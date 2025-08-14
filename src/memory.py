@@ -5,10 +5,13 @@ that we prepend to each specialist agent. Compatible with AG2 0.9.7.
 """
 
 from __future__ import annotations
+
 import json
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
 from anthropic import Anthropic
+
 from .config import settings
 
 # ---------- Minimal schema we keep ----------

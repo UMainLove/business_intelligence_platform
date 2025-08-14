@@ -2,9 +2,9 @@
 External API integration tools for real-time business intelligence.
 """
 
-from typing import Dict, Any, List
-from datetime import datetime
 import time
+from datetime import datetime
+from typing import Any, Dict, List
 
 
 class ExternalAPITool:

@@ -2,11 +2,13 @@
 Swarm intelligence for scenario analysis and stress testing business ideas.
 """
 
-from typing import Dict, Any, List
+import concurrent.futures
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, List
+
 from autogen import ConversableAgent, LLMConfig
-import concurrent.futures
+
 from ..config import settings
 
 

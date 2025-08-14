@@ -1,0 +1,4 @@
+[bandit]
+exclude_dirs = tests,venv,.venv
+skips = B101
+# Skip assert warnings since we've already fixed the production ones

@@ -2,12 +2,11 @@
 RAG (Retrieval-Augmented Generation) tools for market research.
 """
 
-import json
-from typing import List, Dict, Any, Optional
-from dataclasses import dataclass
 import hashlib
+import json
+from dataclasses import dataclass
 from pathlib import Path
-import pickle
+from typing import Any, Dict, List, Optional
 
 # For production, you'd use proper vector DB like Pinecone, Chroma, or FAISS
 # This is a simple in-memory implementation for demonstration
@@ -34,8 +33,8 @@ class MarketResearchRAG:
         self.load_documents()
 
     def generate_id(self, content: str) -> str:
-        """Generate unique ID for document."""
-        return hashlib.md5(content.encode()).hexdigest()[:12]
+        """Generate unique ID for document using SHA-256."""
+        return hashlib.sha256(content.encode()).hexdigest()[:12]
 
     def add_document(self, title: str, content: str, metadata: Dict[str, Any] = None) -> str:
         """Add a document to the RAG system."""
@@ -68,17 +67,28 @@ class MarketResearchRAG:
         return [doc for _, doc in scores[:top_k]]
 
     def save_documents(self):
-        """Persist documents to disk."""
-        save_path = self.storage_path / "documents.pkl"
-        with open(save_path, "wb") as f:
-            pickle.dump(self.documents, f)
+        """Persist documents to disk using JSON."""
+        save_path = self.storage_path / "documents.json"
+        # Convert documents to serializable format
+        serializable_docs = []
+        for doc in self.documents:
+            serializable_docs.append(
+                {"id": doc.id, "content": doc.content, "metadata": doc.metadata}
+            )
+
+        with open(save_path, "w", encoding="utf-8") as f:
+            json.dump(serializable_docs, f, indent=2, ensure_ascii=False)
 
     def load_documents(self):
-        """Load documents from disk."""
-        save_path = self.storage_path / "documents.pkl"
+        """Load documents from disk using JSON."""
+        save_path = self.storage_path / "documents.json"
         if save_path.exists():
-            with open(save_path, "rb") as f:
-                self.documents = pickle.load(f)
+            with open(save_path, "r", encoding="utf-8") as f:
+                docs_data = json.load(f)
+                self.documents = [
+                    Document(id=doc["id"], content=doc["content"], metadata=doc["metadata"])
+                    for doc in docs_data
+                ]
 
     def add_market_research(self, industry: str, data: Dict[str, Any]) -> str:
         """Add market research data."""

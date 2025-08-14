@@ -2,13 +2,13 @@
 Financial modeling tools with code execution capability for AG2 agents.
 """
 
-import numpy as np
-from typing import Dict, Any, List
-from dataclasses import dataclass
-import io
-import contextlib
 import logging
-from src.error_handling import ValidationError, handle_errors, validate_input, track_errors
+from dataclasses import dataclass
+from typing import Any, Dict, List
+
+import numpy as np
+
+from src.error_handling import ValidationError, handle_errors, track_errors, validate_input
 
 logger = logging.getLogger(__name__)
 
@@ -97,57 +97,13 @@ class FinancialCalculator:
         Safely execute financial modeling Python code.
         Returns the captured output and any defined variables.
         """
-        # Create a restricted environment
-        safe_globals = {
-            "__builtins__": {
-                "abs": abs,
-                "all": all,
-                "any": any,
-                "bool": bool,
-                "dict": dict,
-                "enumerate": enumerate,
-                "float": float,
-                "int": int,
-                "len": len,
-                "list": list,
-                "max": max,
-                "min": min,
-                "pow": pow,
-                "range": range,
-                "round": round,
-                "str": str,
-                "sum": sum,
-                "tuple": tuple,
-                "zip": zip,
-            },
-            "np": np,  # Allow numpy for calculations
+        # Security: Code execution disabled
+        return {
+            "success": False,
+            "output": "",
+            "variables": {},
+            "error": "Code execution disabled for security reasons. Use specific financial calculation methods instead.",
         }
-
-        # Capture output
-        output_buffer = io.StringIO()
-
-        try:
-            with contextlib.redirect_stdout(output_buffer):
-                exec(code, safe_globals)
-
-            # Extract results (exclude built-ins and modules)
-            results = {
-                k: v for k, v in safe_globals.items() if not k.startswith("__") and k != "np"
-            }
-
-            return {
-                "success": True,
-                "output": output_buffer.getvalue(),
-                "variables": results,
-                "error": None,
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "output": output_buffer.getvalue(),
-                "variables": {},
-                "error": str(e),
-            }
 
     @staticmethod
     def generate_financial_projection(

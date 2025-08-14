@@ -2,18 +2,20 @@
 Sequential chat workflow for phased business validation.
 """
 
-from typing import Dict, Any, List
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, List
+
 from autogen import ConversableAgent, LLMConfig
+
 from ..config import settings
 from ..tools import (
+    api_tool_executor,
+    database_tool_executor,
+    document_tool_executor,
     financial_tool_executor,
     rag_tool_executor,
     web_search_executor,
-    database_tool_executor,
-    document_tool_executor,
-    api_tool_executor,
 )
 
 

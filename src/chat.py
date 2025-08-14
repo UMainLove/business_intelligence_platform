@@ -1,6 +1,6 @@
 # src/chat.py
 import json
-from typing import Optional, Tuple, Any, List, Dict
+from typing import Any, Dict, List, Optional, Tuple
 
 from autogen import ConversableAgent, GroupChat, GroupChatManager, LLMConfig
 

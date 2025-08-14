@@ -2,9 +2,9 @@
 Document generation tools for business reports and analysis.
 """
 
-from typing import Dict, Any, List
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List
 
 
 class DocumentGenerator:

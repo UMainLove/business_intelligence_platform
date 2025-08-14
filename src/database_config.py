@@ -3,11 +3,11 @@ Database configuration and connection management.
 Supports both SQLite (local/dev) and PostgreSQL (production).
 """
 
+import logging
 import os
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
-import logging
 
 # Optional PostgreSQL dependencies
 try:
@@ -209,21 +209,22 @@ class DatabaseConfig:
             )
 
             # Create triggers for updated_at
-            for table in [
+            allowed_tables = {
                 "business_ventures",
                 "industry_benchmarks",
                 "market_events",
                 "financial_metrics",
-            ]:
-                cursor.execute(
-                    f"""
-                    DROP TRIGGER IF EXISTS update_{table}_updated_at ON {table};
-                    CREATE TRIGGER update_{table}_updated_at
-                        BEFORE UPDATE ON {table}
-                        FOR EACH ROW
-                        EXECUTE FUNCTION update_updated_at_column();
-                """
-                )
+            }
+            for table in allowed_tables:
+                # Use individual statements to avoid SQL injection
+                drop_sql = f"DROP TRIGGER IF EXISTS update_{table}_updated_at ON {table}"
+                create_sql = f"""CREATE TRIGGER update_{table}_updated_at
+                    BEFORE UPDATE ON {table}
+                    FOR EACH ROW
+                    EXECUTE FUNCTION update_updated_at_column()"""
+
+                cursor.execute(drop_sql)
+                cursor.execute(create_sql)
 
             conn.commit()
 

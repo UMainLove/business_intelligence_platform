@@ -2,14 +2,16 @@
 Health monitoring and diagnostics for Business Intelligence Platform.
 """
 
-import time
-import psutil
 import logging
-from typing import Dict, Any
-from datetime import datetime
+import time
 from dataclasses import dataclass
-from src.error_handling import error_tracker
+from datetime import datetime
+from typing import Any, Dict
+
+import psutil
+
 from src.database_config import db_config
+from src.error_handling import error_tracker
 
 logger = logging.getLogger(__name__)
 

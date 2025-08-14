@@ -3,8 +3,8 @@ Database integration for historical business data and benchmarks.
 """
 
 import sqlite3
-from typing import Dict, Any
 from pathlib import Path
+from typing import Any, Dict
 
 
 class BusinessDataDB:

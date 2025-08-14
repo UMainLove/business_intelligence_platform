@@ -2,12 +2,12 @@
 Error handling and retry logic for Business Intelligence Platform.
 """
 
-import time
-import logging
 import functools
-from typing import Any, Callable, Dict, List, Optional, Type
-from datetime import datetime
+import logging
+import time
 import traceback
+from datetime import datetime
+from typing import Any, Callable, Dict, List, Optional, Type
 
 logger = logging.getLogger(__name__)
 
@@ -26,31 +26,21 @@ class BusinessIntelligenceError(Exception):
 class DatabaseError(BusinessIntelligenceError):
     """Database operation errors."""
 
-    pass
-
 
 class APIError(BusinessIntelligenceError):
     """External API errors."""
-
-    pass
 
 
 class ModelError(BusinessIntelligenceError):
     """AI model errors."""
 
-    pass
-
 
 class ValidationError(BusinessIntelligenceError):
     """Input validation errors."""
 
-    pass
-
 
 class ConfigurationError(BusinessIntelligenceError):
     """Configuration and setup errors."""
-
-    pass
 
 
 def retry_with_backoff(

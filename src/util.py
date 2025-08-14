@@ -17,7 +17,8 @@ SDK-provided token counts and per-call prices.
 """
 
 from __future__ import annotations
-from typing import Dict, Optional, Tuple, Any
+
+from typing import Any, Dict, Optional, Tuple
 
 from .config import settings
 
@@ -108,7 +109,8 @@ BI_DEFAULT_SPLIT = {
     "tool_overhead": 0.05,  # additional tokens from tool integration
 }
 # Sanity: ensure it sums to 1.0
-assert abs(sum(BI_DEFAULT_SPLIT.values()) - 1.0) < 1e-6
+if abs(sum(BI_DEFAULT_SPLIT.values()) - 1.0) >= 1e-6:
+    raise ValueError("BI_DEFAULT_SPLIT values must sum to 1.0")
 
 # Legacy split for backward compatibility
 DEFAULT_SPLIT = {
@@ -116,7 +118,8 @@ DEFAULT_SPLIT = {
     "output_specs": 0.15,  # specialists' combined replies
     "output_synth": 0.04,  # final one-shot report
 }
-assert abs(sum(DEFAULT_SPLIT.values()) - 1.0) < 1e-6
+if abs(sum(DEFAULT_SPLIT.values()) - 1.0) >= 1e-6:
+    raise ValueError("DEFAULT_SPLIT values must sum to 1.0")
 
 
 def estimate_cost_usd(
