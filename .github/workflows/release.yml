@@ -1,0 +1,139 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run tests
+      run: |
+        cp .env.example .env
+        echo "ANTHROPIC_API_KEY=test-key-12345" >> .env
+        echo "ENVIRONMENT=test" >> .env
+        python -m pytest tests/ -v --tb=short
+      env:
+        ANTHROPIC_API_KEY: test-key-12345
+        ENVIRONMENT: test
+    
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Get previous tag
+        PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+        if [ -z "$PREVIOUS_TAG" ]; then
+          CHANGES=$(git log --pretty=format:"- %s (%h)" HEAD)
+        else
+          CHANGES=$(git log --pretty=format:"- %s (%h)" ${PREVIOUS_TAG}..HEAD)
+        fi
+        
+        echo "## Changes" > CHANGELOG.md
+        echo "$CHANGES" >> CHANGELOG.md
+        
+        # Set output for later use
+        {
+          echo "changelog<<EOF"
+          cat CHANGELOG.md
+          echo "EOF"
+        } >> "$GITHUB_OUTPUT"
+    
+    - name: Build Docker image
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=tag
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name }}
+        release_name: Business Intelligence Platform ${{ github.ref_name }}
+        body: |
+          # Business Intelligence Platform ${{ github.ref_name }}
+          
+          ## 🚀 Features
+          - Multi-agent business analysis with Claude AI
+          - Advanced financial modeling and market research
+          - Production-ready Kubernetes deployment
+          - Comprehensive test suite and monitoring
+          
+          ## 🐳 Docker Image
+          ```bash
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+          ```
+          
+          ## 📋 Kubernetes Deployment
+          ```bash
+          kubectl apply -f k8s/
+          ```
+          
+          ${{ steps.changelog.outputs.changelog }}
+          
+          ---
+          
+          **Built with ❤️ using AG2, Claude AI, and modern DevOps practices**
+        draft: false
+        prerelease: false
+    
+    - name: Upload Kubernetes manifests
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./k8s
+        asset_name: kubernetes-manifests.zip
+        asset_content_type: application/zip

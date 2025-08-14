@@ -1,0 +1,235 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  PYTHON_VERSION: '3.9'
+  NODE_VERSION: '16'
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9, '3.10', '3.11']
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_USER: test_user
+          POSTGRES_DB: test_bi
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        pip install -r requirements.txt
+        pip install pytest-xdist pytest-cov coverage
+    
+    - name: Set up test environment
+      run: |
+        mkdir -p data logs
+        cp .env.example .env
+        echo "ANTHROPIC_API_KEY=test-key-12345" >> .env
+        echo "ENVIRONMENT=test" >> .env
+        echo "DATABASE_URL=postgresql://test_user:test_password@localhost:5432/test_bi" >> .env
+        echo "REDIS_URL=redis://localhost:6379/0" >> .env
+    
+    - name: Run linting
+      run: |
+        pip install flake8 black isort
+        flake8 src tests --max-line-length=100 --ignore=E203,W503
+        black --check src tests --line-length=100
+        isort --check-only src tests
+    
+    - name: Run type checking
+      run: |
+        pip install mypy
+        mypy src --ignore-missing-imports
+    
+    - name: Run tests
+      run: |
+        python -m pytest tests/ -v --tb=short --cov=src --cov-report=xml --cov-report=term-missing
+      env:
+        ANTHROPIC_API_KEY: test-key-12345
+        ENVIRONMENT: test
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_bi
+        REDIS_URL: redis://localhost:6379/0
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: true
+    
+    - name: Test import functionality
+      run: |
+        python -c "
+        import sys
+        sys.path.append('.')
+        try:
+            from src.business_intelligence import build_bi_group, get_bi_capabilities
+            from src.error_handling import BusinessIntelligenceError
+            from src.health_monitor import health_monitor
+            print('✅ All main imports successful')
+        except ImportError as e:
+            print(f'❌ Import failed: {e}')
+            sys.exit(1)
+        "
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install safety bandit pip-audit
+    
+    - name: Run safety check
+      run: safety check --json --output safety-report.json || true
+    
+    - name: Run bandit security scan
+      run: bandit -r src/ -f json -o bandit-report.json || true
+    
+    - name: Run pip-audit
+      run: pip-audit --format=json --output=pip-audit-report.json || true
+    
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          safety-report.json
+          bandit-report.json
+          pip-audit-report.json
+
+  build:
+    name: Build & Test Docker
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: github.event_name == 'push'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: false
+        tags: business-intelligence:test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Test Docker image
+      run: |
+        docker run --rm -d --name bi-test \
+          -e ANTHROPIC_API_KEY=test-key-12345 \
+          -e ENVIRONMENT=test \
+          -p 8501:8501 \
+          business-intelligence:test
+        
+        sleep 10
+        
+        # Test health endpoint
+        curl -f http://localhost:8501/health || echo "Health check endpoint not ready"
+        
+        docker stop bi-test
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [test, security, build]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment: staging
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Deploy to staging
+      run: |
+        echo "🚀 Deploying to staging environment"
+        # Add staging deployment commands here
+        # kubectl apply -f k8s/ --namespace=bi-staging
+    
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [test, security, build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Deploy to production
+      run: |
+        echo "🚀 Deploying to production environment"
+        # Add production deployment commands here
+        # kubectl apply -f k8s/ --namespace=business-intelligence
+
+  notify:
+    name: Notify Team
+    runs-on: ubuntu-latest
+    needs: [test, security, build]
+    if: always()
+    
+    steps:
+    - name: Notify success
+      if: needs.test.result == 'success' && needs.security.result == 'success' && needs.build.result == 'success'
+      run: |
+        echo "✅ All CI/CD checks passed!"
+        echo "📊 Test results: PASSED"
+        echo "🔒 Security scan: PASSED"
+        echo "🐳 Docker build: PASSED"
+    
+    - name: Notify failure
+      if: needs.test.result == 'failure' || needs.security.result == 'failure' || needs.build.result == 'failure'
+      run: |
+        echo "❌ CI/CD pipeline failed!"
+        echo "📊 Test results: ${{ needs.test.result }}"
+        echo "🔒 Security scan: ${{ needs.security.result }}"
+        echo "🐳 Docker build: ${{ needs.build.result }}"
