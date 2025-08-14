@@ -5,7 +5,6 @@ Supports both SQLite (local/dev) and PostgreSQL (production).
 import os
 import sqlite3
 from contextlib import contextmanager
-from typing import Dict, Any, Optional, Union
 from pathlib import Path
 import logging
 
@@ -21,24 +20,28 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
 class DatabaseConfig:
     """Database configuration and connection management."""
-    
+
     def __init__(self):
         self.environment = os.getenv('ENVIRONMENT', 'development')
         self.database_url = os.getenv('DATABASE_URL')
         self.sqlite_path = os.getenv('SQLITE_PATH', 'data/business_intelligence.db')
-        
+
         # Determine database type
         self.use_postgres = (
             HAS_POSTGRES and (
-                self.environment == 'production' or 
+                self.environment == 'production' or
                 self.database_url is not None
             )
         )
-        
-        logger.info(f"Database config: environment={self.environment}, use_postgres={self.use_postgres}")
-    
+
+        logger.info(
+            f"Database config: environment={
+                self.environment}, use_postgres={
+                self.use_postgres}")
+
     @contextmanager
     def get_connection(self):
         """Get database connection based on environment."""
@@ -54,12 +57,13 @@ class DatabaseConfig:
                 yield conn
             finally:
                 conn.close()
-    
+
     def _get_postgres_connection(self):
         """Create PostgreSQL connection."""
         if not HAS_POSTGRES:
-            raise ImportError("PostgreSQL dependencies not installed. Install with: pip install psycopg2-binary")
-        
+            raise ImportError(
+                "PostgreSQL dependencies not installed. Install with: pip install psycopg2-binary")
+
         if not self.database_url:
             # Construct URL from environment variables
             host = os.getenv('POSTGRES_HOST', 'localhost')
@@ -67,38 +71,38 @@ class DatabaseConfig:
             database = os.getenv('POSTGRES_DB', 'business_intelligence')
             user = os.getenv('POSTGRES_USER', 'bi_user')
             password = os.getenv('POSTGRES_PASSWORD', 'password')
-            
+
             self.database_url = f"postgresql://{user}:{password}@{host}:{port}/{database}"
-        
+
         return psycopg2.connect(
             self.database_url,
             cursor_factory=RealDictCursor
         )
-    
+
     def _get_sqlite_connection(self):
         """Create SQLite connection."""
         db_path = Path(self.sqlite_path)
         db_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row  # Enable dict-like access
         return conn
-    
+
     def init_database(self):
         """Initialize database with required tables."""
         if self.use_postgres:
             self._init_postgres_tables()
         else:
             self._init_sqlite_tables()
-    
+
     def _init_postgres_tables(self):
         """Initialize PostgreSQL tables."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            
+
             # Enable UUID extension
             cursor.execute("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";")
-            
+
             # Business ventures table
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS business_ventures (
@@ -118,7 +122,7 @@ class DatabaseConfig:
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             # Industry benchmarks table
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS industry_benchmarks (
@@ -134,7 +138,7 @@ class DatabaseConfig:
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             # Market events table
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS market_events (
@@ -149,7 +153,7 @@ class DatabaseConfig:
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             # Financial metrics table
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS financial_metrics (
@@ -168,14 +172,19 @@ class DatabaseConfig:
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             # Create indexes for better performance
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_ventures_industry ON business_ventures(industry);")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_ventures_status ON business_ventures(status);")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_benchmarks_industry ON industry_benchmarks(industry);")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_events_industry ON market_events(industry);")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_metrics_venture ON financial_metrics(venture_id);")
-            
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_ventures_industry ON business_ventures(industry);")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_ventures_status ON business_ventures(status);")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_benchmarks_industry ON industry_benchmarks(industry);")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_events_industry ON market_events(industry);")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_metrics_venture ON financial_metrics(venture_id);")
+
             # Create updated_at trigger function
             cursor.execute("""
                 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -186,9 +195,13 @@ class DatabaseConfig:
                 END;
                 $$ language 'plpgsql';
             """)
-            
+
             # Create triggers for updated_at
-            for table in ['business_ventures', 'industry_benchmarks', 'market_events', 'financial_metrics']:
+            for table in [
+                'business_ventures',
+                'industry_benchmarks',
+                'market_events',
+                    'financial_metrics']:
                 cursor.execute(f"""
                     DROP TRIGGER IF EXISTS update_{table}_updated_at ON {table};
                     CREATE TRIGGER update_{table}_updated_at
@@ -196,14 +209,14 @@ class DatabaseConfig:
                         FOR EACH ROW
                         EXECUTE FUNCTION update_updated_at_column();
                 """)
-            
+
             conn.commit()
-    
+
     def _init_sqlite_tables(self):
         """Initialize SQLite tables."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            
+
             # Business ventures table
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS business_ventures (
@@ -223,7 +236,7 @@ class DatabaseConfig:
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             # Industry benchmarks table
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS industry_benchmarks (
@@ -239,7 +252,7 @@ class DatabaseConfig:
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             # Market events table
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS market_events (
@@ -254,7 +267,7 @@ class DatabaseConfig:
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             # Financial metrics table
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS financial_metrics (
@@ -274,15 +287,21 @@ class DatabaseConfig:
                     FOREIGN KEY (venture_id) REFERENCES business_ventures (id)
                 )
             """)
-            
+
             # Create indexes
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_ventures_industry ON business_ventures(industry);")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_ventures_status ON business_ventures(status);")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_benchmarks_industry ON industry_benchmarks(industry);")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_events_industry ON market_events(industry);")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_metrics_venture ON financial_metrics(venture_id);")
-            
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_ventures_industry ON business_ventures(industry);")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_ventures_status ON business_ventures(status);")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_benchmarks_industry ON industry_benchmarks(industry);")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_events_industry ON market_events(industry);")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_metrics_venture ON financial_metrics(venture_id);")
+
             conn.commit()
+
 
 # Global database config instance
 db_config = DatabaseConfig()

@@ -1,19 +1,18 @@
 """
 Document generation tools for business reports and analysis.
 """
-import json
 from typing import Dict, Any, List
 from datetime import datetime
 from pathlib import Path
-import markdown2
+
 
 class DocumentGenerator:
     """Generate structured business documents and reports."""
-    
+
     def __init__(self, output_dir: str = "data/generated_docs"):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     def generate_business_plan(self, business_data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate a comprehensive business plan."""
         template = """
@@ -46,7 +45,7 @@ class DocumentGenerator:
 ---
 *Generated on {generation_date}*
 """
-        
+
         content = template.format(
             business_name=business_data.get('name', 'New Business Venture'),
             executive_summary=business_data.get('executive_summary', 'Business executive summary'),
@@ -61,14 +60,20 @@ class DocumentGenerator:
             funding_requirements=business_data.get('funding_requirements', 'Funding requirements pending'),
             generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         )
-        
+
         # Save to file
-        filename = f"business_plan_{business_data.get('name', 'unnamed').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        filename = f"business_plan_{
+            business_data.get(
+                'name',
+                'unnamed').replace(
+                ' ',
+                '_')}_{
+            datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         file_path = self.output_dir / filename
-        
+
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(content)
-        
+
         return {
             'document_type': 'business_plan',
             'filename': filename,
@@ -76,7 +81,7 @@ class DocumentGenerator:
             'content': content,
             'word_count': len(content.split())
         }
-    
+
     def generate_market_analysis_report(self, market_data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate market analysis report."""
         template = """
@@ -105,19 +110,23 @@ class DocumentGenerator:
 ---
 *Report generated on {generation_date}*
 """
-        
+
         # Format market trends
         trends_text = ""
         if market_data.get('trends'):
             for i, trend in enumerate(market_data['trends'], 1):
-                trends_text += f"{i}. **{trend.get('name', 'Trend')}**: {trend.get('description', 'Description')}\n"
-        
+                trends_text += f"{i}. **{trend.get('name',
+                                                   'Trend')}**: {trend.get('description',
+                                                                           'Description')}\n"
+
         # Format competitive landscape
         competitors_text = ""
         if market_data.get('competitors'):
             for competitor in market_data['competitors']:
-                competitors_text += f"- **{competitor.get('name', 'Competitor')}**: {competitor.get('description', 'Description')}\n"
-        
+                competitors_text += f"- **{competitor.get('name',
+                                                          'Competitor')}**: {competitor.get('description',
+                                                                                            'Description')}\n"
+
         content = template.format(
             industry=market_data.get('industry', 'Industry Analysis'),
             market_size=market_data.get('market_size', 'Size not specified'),
@@ -130,14 +139,20 @@ class DocumentGenerator:
             recommendations=market_data.get('recommendations', 'Recommendations to be developed'),
             generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         )
-        
+
         # Save to file
-        filename = f"market_analysis_{market_data.get('industry', 'industry').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        filename = f"market_analysis_{
+            market_data.get(
+                'industry',
+                'industry').replace(
+                ' ',
+                '_')}_{
+            datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         file_path = self.output_dir / filename
-        
+
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(content)
-        
+
         return {
             'document_type': 'market_analysis',
             'filename': filename,
@@ -145,7 +160,7 @@ class DocumentGenerator:
             'content': content,
             'word_count': len(content.split())
         }
-    
+
     def generate_financial_model(self, financial_data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate financial model document."""
         template = """
@@ -178,14 +193,14 @@ class DocumentGenerator:
 ---
 *Financial model generated on {generation_date}*
 """
-        
+
         # Format revenue projections
         revenue_text = ""
         if financial_data.get('revenue_projections'):
             projections = financial_data['revenue_projections']
             for year, revenue in projections.items():
                 revenue_text += f"- **Year {year}:** ${revenue:,.0f}\n"
-        
+
         # Format financial metrics
         metrics_text = ""
         if financial_data.get('metrics'):
@@ -197,27 +212,46 @@ class DocumentGenerator:
                         metrics_text += f"- **{metric.title()}:** ${value:,.0f}\n"
                 else:
                     metrics_text += f"- **{metric.title()}:** {value}\n"
-        
+
         content = template.format(
-            business_name=financial_data.get('business_name', 'Business Financial Model'),
-            assumptions=financial_data.get('assumptions', 'Key assumptions to be documented'),
+            business_name=financial_data.get(
+                'business_name',
+                'Business Financial Model'),
+            assumptions=financial_data.get(
+                'assumptions',
+                'Key assumptions to be documented'),
             revenue_projections=revenue_text or "Revenue projections to be developed",
-            cost_structure=financial_data.get('cost_structure', 'Cost structure to be analyzed'),
-            profitability_analysis=financial_data.get('profitability_analysis', 'Profitability analysis pending'),
-            cash_flow=financial_data.get('cash_flow', 'Cash flow analysis pending'),
+            cost_structure=financial_data.get(
+                'cost_structure',
+                'Cost structure to be analyzed'),
+            profitability_analysis=financial_data.get(
+                'profitability_analysis',
+                'Profitability analysis pending'),
+            cash_flow=financial_data.get(
+                'cash_flow',
+                'Cash flow analysis pending'),
             financial_metrics=metrics_text or "Financial metrics to be calculated",
-            sensitivity_analysis=financial_data.get('sensitivity_analysis', 'Sensitivity analysis to be performed'),
-            funding_requirements=financial_data.get('funding_requirements', 'Funding requirements to be determined'),
-            generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        )
-        
+            sensitivity_analysis=financial_data.get(
+                'sensitivity_analysis',
+                'Sensitivity analysis to be performed'),
+            funding_requirements=financial_data.get(
+                'funding_requirements',
+                'Funding requirements to be determined'),
+            generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
         # Save to file
-        filename = f"financial_model_{financial_data.get('business_name', 'business').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        filename = f"financial_model_{
+            financial_data.get(
+                'business_name',
+                'business').replace(
+                ' ',
+                '_')}_{
+            datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         file_path = self.output_dir / filename
-        
+
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(content)
-        
+
         return {
             'document_type': 'financial_model',
             'filename': filename,
@@ -225,7 +259,7 @@ class DocumentGenerator:
             'content': content,
             'word_count': len(content.split())
         }
-    
+
     def generate_risk_assessment(self, risk_data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate risk assessment document."""
         template = """
@@ -260,21 +294,24 @@ class DocumentGenerator:
 ---
 *Risk assessment completed on {generation_date}*
 """
-        
+
         # Format risks by category
         def format_risks(risks_list):
             if not risks_list:
                 return "No specific risks identified in this category"
-            
+
             formatted = ""
             for risk in risks_list:
                 if isinstance(risk, dict):
-                    formatted += f"- **{risk.get('name', 'Risk')}** (Impact: {risk.get('impact', 'Unknown')}, Probability: {risk.get('probability', 'Unknown')})\n"
+                    formatted += f"- **{risk.get('name',
+                                                 'Risk')}** (Impact: {risk.get('impact',
+                                                                               'Unknown')}, Probability: {risk.get('probability',
+                                                                                                                   'Unknown')})\n"
                     formatted += f"  {risk.get('description', 'No description provided')}\n"
                 else:
                     formatted += f"- {risk}\n"
             return formatted
-        
+
         content = template.format(
             business_name=risk_data.get('business_name', 'Business Risk Assessment'),
             executive_summary=risk_data.get('executive_summary', 'Risk assessment summary'),
@@ -287,14 +324,20 @@ class DocumentGenerator:
             monitoring_plan=risk_data.get('monitoring_plan', 'Risk monitoring plan to be established'),
             generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         )
-        
+
         # Save to file
-        filename = f"risk_assessment_{risk_data.get('business_name', 'business').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        filename = f"risk_assessment_{
+            risk_data.get(
+                'business_name',
+                'business').replace(
+                ' ',
+                '_')}_{
+            datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         file_path = self.output_dir / filename
-        
+
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(content)
-        
+
         return {
             'document_type': 'risk_assessment',
             'filename': filename,
@@ -302,7 +345,7 @@ class DocumentGenerator:
             'content': content,
             'word_count': len(content.split())
         }
-    
+
     def generate_executive_summary(self, session_data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate executive summary from session data."""
         template = """
@@ -332,7 +375,7 @@ class DocumentGenerator:
 ---
 *Executive summary generated on {generation_date} from business intelligence analysis*
 """
-        
+
         content = template.format(
             business_name=session_data.get('business_name', 'Business Venture'),
             business_overview=session_data.get('business_overview', 'Business overview from analysis'),
@@ -344,14 +387,20 @@ class DocumentGenerator:
             next_steps=session_data.get('next_steps', 'Recommended next steps'),
             generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         )
-        
+
         # Save to file
-        filename = f"executive_summary_{session_data.get('business_name', 'business').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        filename = f"executive_summary_{
+            session_data.get(
+                'business_name',
+                'business').replace(
+                ' ',
+                '_')}_{
+            datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         file_path = self.output_dir / filename
-        
+
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(content)
-        
+
         return {
             'document_type': 'executive_summary',
             'filename': filename,
@@ -359,11 +408,11 @@ class DocumentGenerator:
             'content': content,
             'word_count': len(content.split())
         }
-    
+
     def list_generated_documents(self) -> List[Dict[str, Any]]:
         """List all generated documents."""
         documents = []
-        
+
         for file_path in self.output_dir.glob("*.md"):
             stat = file_path.stat()
             documents.append({
@@ -373,10 +422,11 @@ class DocumentGenerator:
                 'created': datetime.fromtimestamp(stat.st_ctime).strftime("%Y-%m-%d %H:%M:%S"),
                 'modified': datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
             })
-        
+
         # Sort by creation time, newest first
         documents.sort(key=lambda x: x['created'], reverse=True)
         return documents
+
 
 def create_document_tool_spec():
     """Create tool specification for AG2 integration."""
@@ -388,36 +438,39 @@ def create_document_tool_spec():
             "properties": {
                 "document_type": {
                     "type": "string",
-                    "enum": ["business_plan", "market_analysis", "financial_model", "risk_assessment", "executive_summary"],
-                    "description": "Type of document to generate"
-                },
+                    "enum": [
+                        "business_plan",
+                        "market_analysis",
+                        "financial_model",
+                        "risk_assessment",
+                        "executive_summary"],
+                    "description": "Type of document to generate"},
                 "data": {
                     "type": "object",
-                    "description": "Data to include in the document"
-                }
-            },
-            "required": ["document_type", "data"]
-        }
-    }
+                    "description": "Data to include in the document"}},
+            "required": [
+                "document_type",
+                "data"]}}
+
 
 def document_tool_executor(document_type: str, data: Dict[str, Any]) -> Dict[str, Any]:
     """Execute document generation for AG2."""
     generator = DocumentGenerator()
-    
+
     if document_type == "business_plan":
         return generator.generate_business_plan(data)
-    
+
     elif document_type == "market_analysis":
         return generator.generate_market_analysis_report(data)
-    
+
     elif document_type == "financial_model":
         return generator.generate_financial_model(data)
-    
+
     elif document_type == "risk_assessment":
         return generator.generate_risk_assessment(data)
-    
+
     elif document_type == "executive_summary":
         return generator.generate_executive_summary(data)
-    
+
     else:
         return {"error": f"Unknown document type: {document_type}"}

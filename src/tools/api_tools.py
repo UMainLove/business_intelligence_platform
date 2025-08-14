@@ -1,15 +1,14 @@
 """
 External API integration tools for real-time business intelligence.
 """
-import requests
-from typing import Dict, Any, List, Optional
-import json
+from typing import Dict, Any, List
 from datetime import datetime
 import time
 
+
 class ExternalAPITool:
     """Integration with external APIs for comprehensive business intelligence."""
-    
+
     def __init__(self):
         # In production, these would be loaded from environment variables
         self.api_configs = {
@@ -26,7 +25,7 @@ class ExternalAPITool:
                 'api_key': None
             }
         }
-    
+
     def search_company_crunchbase(self, company_name: str) -> Dict[str, Any]:
         """Search for company information on Crunchbase."""
         # Mock response for demonstration
@@ -62,9 +61,9 @@ class ExternalAPITool:
             'retrieved_at': datetime.now().isoformat(),
             'api_status': 'success'
         }
-        
+
         return mock_response
-    
+
     def get_market_data_alpha_vantage(self, symbol: str) -> Dict[str, Any]:
         """Get market data from Alpha Vantage."""
         mock_response = {
@@ -85,9 +84,9 @@ class ExternalAPITool:
             'retrieved_at': datetime.now().isoformat(),
             'api_status': 'success'
         }
-        
+
         return mock_response
-    
+
     def enrich_company_clearbit(self, domain: str) -> Dict[str, Any]:
         """Enrich company data using Clearbit."""
         mock_response = {
@@ -114,9 +113,9 @@ class ExternalAPITool:
             'retrieved_at': datetime.now().isoformat(),
             'api_status': 'success'
         }
-        
+
         return mock_response
-    
+
     def search_patents(self, company_name: str, keywords: List[str] = None) -> Dict[str, Any]:
         """Search for patents (mock USPTO API)."""
         mock_response = {
@@ -151,9 +150,9 @@ class ExternalAPITool:
             'retrieved_at': datetime.now().isoformat(),
             'api_status': 'success'
         }
-        
+
         return mock_response
-    
+
     def get_industry_regulations(self, industry: str, region: str = 'US') -> Dict[str, Any]:
         """Get regulatory information for industry."""
         mock_response = {
@@ -199,9 +198,9 @@ class ExternalAPITool:
             'retrieved_at': datetime.now().isoformat(),
             'api_status': 'success'
         }
-        
+
         return mock_response
-    
+
     def get_funding_intelligence(self, industry: str, stage: str = 'Series A') -> Dict[str, Any]:
         """Get funding intelligence and investor data."""
         mock_response = {
@@ -250,17 +249,17 @@ class ExternalAPITool:
             'retrieved_at': datetime.now().isoformat(),
             'api_status': 'success'
         }
-        
+
         return mock_response
-    
+
     def batch_api_call(self, requests_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Execute multiple API calls efficiently."""
         results = []
-        
+
         for request in requests_data:
             api_type = request.get('api_type')
             params = request.get('params', {})
-            
+
             if api_type == 'company_search':
                 result = self.search_company_crunchbase(params.get('company_name', ''))
             elif api_type == 'market_data':
@@ -268,18 +267,28 @@ class ExternalAPITool:
             elif api_type == 'company_enrich':
                 result = self.enrich_company_clearbit(params.get('domain', ''))
             elif api_type == 'patent_search':
-                result = self.search_patents(params.get('company_name', ''), params.get('keywords', []))
+                result = self.search_patents(
+                    params.get(
+                        'company_name', ''), params.get(
+                        'keywords', []))
             elif api_type == 'regulations':
-                result = self.get_industry_regulations(params.get('industry', ''), params.get('region', 'US'))
+                result = self.get_industry_regulations(
+                    params.get(
+                        'industry', ''), params.get(
+                        'region', 'US'))
             elif api_type == 'funding_intel':
-                result = self.get_funding_intelligence(params.get('industry', ''), params.get('stage', 'Series A'))
+                result = self.get_funding_intelligence(
+                    params.get(
+                        'industry', ''), params.get(
+                        'stage', 'Series A'))
             else:
                 result = {'error': f'Unknown API type: {api_type}'}
-            
+
             results.append(result)
             time.sleep(0.1)  # Rate limiting
-        
+
         return results
+
 
 def create_api_tool_spec():
     """Create tool specification for AG2 integration."""
@@ -291,53 +300,58 @@ def create_api_tool_spec():
             "properties": {
                 "api_type": {
                     "type": "string",
-                    "enum": ["company_search", "market_data", "company_enrich", "patent_search", "regulations", "funding_intel", "batch"],
-                    "description": "Type of external API to call"
-                },
+                    "enum": [
+                        "company_search",
+                        "market_data",
+                        "company_enrich",
+                        "patent_search",
+                        "regulations",
+                        "funding_intel",
+                        "batch"],
+                    "description": "Type of external API to call"},
                 "params": {
                     "type": "object",
-                    "description": "Parameters specific to the API call"
-                }
-            },
-            "required": ["api_type", "params"]
-        }
-    }
+                    "description": "Parameters specific to the API call"}},
+            "required": [
+                "api_type",
+                "params"]}}
+
 
 def api_tool_executor(api_type: str, params: Dict[str, Any]) -> Dict[str, Any]:
     """Execute external API calls for AG2."""
     api_tool = ExternalAPITool()
-    
+
     if api_type == "company_search":
         return api_tool.search_company_crunchbase(params['company_name'])
-    
+
     elif api_type == "market_data":
         return api_tool.get_market_data_alpha_vantage(params['symbol'])
-    
+
     elif api_type == "company_enrich":
         return api_tool.enrich_company_clearbit(params['domain'])
-    
+
     elif api_type == "patent_search":
         return api_tool.search_patents(
             params['company_name'],
             params.get('keywords', [])
         )
-    
+
     elif api_type == "regulations":
         return api_tool.get_industry_regulations(
             params['industry'],
             params.get('region', 'US')
         )
-    
+
     elif api_type == "funding_intel":
         return api_tool.get_funding_intelligence(
             params['industry'],
             params.get('stage', 'Series A')
         )
-    
+
     elif api_type == "batch":
         return {
             'batch_results': api_tool.batch_api_call(params['requests'])
         }
-    
+
     else:
         return {"error": f"Unknown API type: {api_type}"}

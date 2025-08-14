@@ -1,15 +1,13 @@
 """
 Web search tools for real-time market intelligence.
 """
-import requests
-from typing import Dict, Any, List, Optional
-import json
+from typing import Dict, Any, List
 from datetime import datetime
-import time
+
 
 class WebSearchTool:
     """Web search integration for market intelligence."""
-    
+
     def __init__(self):
         # In production, use services like:
         # - Serper API (Google Search)
@@ -17,7 +15,7 @@ class WebSearchTool:
         # - Bing Search API
         # - DuckDuckGo API
         self.search_history = []
-    
+
     def search_companies(self, company_name: str, location: str = "") -> Dict[str, Any]:
         """Search for company information."""
         # Simulate company search results
@@ -28,13 +26,13 @@ class WebSearchTool:
             "results": [
                 {
                     "title": f"{company_name} - Company Overview",
-                    "snippet": f"Leading company in the industry with strong market presence...",
+                    "snippet": "Leading company in the industry with strong market presence...",
                     "url": f"https://example.com/{company_name.lower()}",
                     "type": "company_profile"
                 },
                 {
                     "title": f"{company_name} Financial Results",
-                    "snippet": f"Recent quarterly earnings and financial performance data...",
+                    "snippet": "Recent quarterly earnings and financial performance data...",
                     "url": f"https://finance.example.com/{company_name.lower()}",
                     "type": "financial_data"
                 }
@@ -42,10 +40,10 @@ class WebSearchTool:
             "search_time": datetime.now().isoformat(),
             "query_type": "company_search"
         }
-        
+
         self.search_history.append(mock_results)
         return mock_results
-    
+
     def search_market_trends(self, industry: str, timeframe: str = "1y") -> Dict[str, Any]:
         """Search for market trends and industry analysis."""
         mock_trends = {
@@ -75,10 +73,10 @@ class WebSearchTool:
             "growth_rate": "X% CAGR projected",
             "search_time": datetime.now().isoformat()
         }
-        
+
         self.search_history.append(mock_trends)
         return mock_trends
-    
+
     def search_competitors(self, business_idea: str, target_market: str) -> Dict[str, Any]:
         """Search for competitors and competitive landscape."""
         mock_competitors = {
@@ -108,10 +106,10 @@ class WebSearchTool:
             "barriers_to_entry": ["High customer acquisition cost", "Regulatory compliance"],
             "search_time": datetime.now().isoformat()
         }
-        
+
         self.search_history.append(mock_competitors)
         return mock_competitors
-    
+
     def search_regulations(self, industry: str, region: str) -> Dict[str, Any]:
         """Search for regulatory requirements and compliance information."""
         mock_regulations = {
@@ -141,10 +139,10 @@ class WebSearchTool:
             ],
             "search_time": datetime.now().isoformat()
         }
-        
+
         self.search_history.append(mock_regulations)
         return mock_regulations
-    
+
     def search_funding_landscape(self, industry: str, stage: str) -> Dict[str, Any]:
         """Search for funding trends and investor information."""
         mock_funding = {
@@ -175,13 +173,14 @@ class WebSearchTool:
             ],
             "search_time": datetime.now().isoformat()
         }
-        
+
         self.search_history.append(mock_funding)
         return mock_funding
-    
+
     def get_search_history(self) -> List[Dict[str, Any]]:
         """Get recent search history."""
         return self.search_history[-10:]  # Return last 10 searches
+
 
 def create_web_search_tool_spec():
     """Create tool specification for AG2 integration."""
@@ -193,51 +192,54 @@ def create_web_search_tool_spec():
             "properties": {
                 "search_type": {
                     "type": "string",
-                    "enum": ["companies", "market_trends", "competitors", "regulations", "funding"],
-                    "description": "Type of web search to perform"
-                },
+                    "enum": [
+                        "companies",
+                        "market_trends",
+                        "competitors",
+                        "regulations",
+                        "funding"],
+                    "description": "Type of web search to perform"},
                 "params": {
                     "type": "object",
-                    "description": "Parameters specific to the search type"
-                }
-            },
-            "required": ["search_type", "params"]
-        }
-    }
+                    "description": "Parameters specific to the search type"}},
+            "required": [
+                "search_type",
+                "params"]}}
+
 
 def web_search_executor(search_type: str, params: Dict[str, Any]) -> Dict[str, Any]:
     """Execute web search operations for AG2."""
     search_tool = WebSearchTool()
-    
+
     if search_type == "companies":
         return search_tool.search_companies(
             params['company_name'],
             params.get('location', '')
         )
-    
+
     elif search_type == "market_trends":
         return search_tool.search_market_trends(
             params['industry'],
             params.get('timeframe', '1y')
         )
-    
+
     elif search_type == "competitors":
         return search_tool.search_competitors(
             params['business_idea'],
             params['target_market']
         )
-    
+
     elif search_type == "regulations":
         return search_tool.search_regulations(
             params['industry'],
             params['region']
         )
-    
+
     elif search_type == "funding":
         return search_tool.search_funding_landscape(
             params['industry'],
             params['stage']
         )
-    
+
     else:
         return {"error": f"Unknown search type: {search_type}"}

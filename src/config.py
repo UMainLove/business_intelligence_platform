@@ -4,20 +4,24 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 def _bool(env_value: str, default=False) -> bool:
     if env_value is None:
         return default
     return env_value.strip().lower() in {"1", "true", "yes", "on"}
+
 
 def _int(env_value: str, default: int) -> int:
     if env_value is None or env_value == "":
         return default
     return int(env_value)
 
+
 def _float(env_value: str, default: float) -> float:
     if env_value is None or env_value == "":
         return default
     return float(env_value)
+
 
 @dataclass(frozen=True)
 class Settings:
@@ -53,5 +57,6 @@ class Settings:
     price_out_specialists: float = _float(os.getenv("PRICE_OUT_SPECIALISTS"), 0.015)
     price_in_synth: float = _float(os.getenv("PRICE_IN_SYNTH"), 0.003)
     price_out_synth: float = _float(os.getenv("PRICE_OUT_SYNTH"), 0.015)
+
 
 settings = Settings()

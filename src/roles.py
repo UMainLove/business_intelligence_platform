@@ -9,6 +9,7 @@ def economist_prompt() -> str:
         "Be concise and quantify when possible."
     )
 
+
 def lawyer_prompt() -> str:
     return (
         "Role: Business-Law Expert.\n"
@@ -20,6 +21,7 @@ def lawyer_prompt() -> str:
         "Call out jurisdiction-sensitive points and suggest legal structures."
     )
 
+
 def sociologist_prompt() -> str:
     return (
         "Role: Sociologist.\n"
@@ -30,6 +32,7 @@ def sociologist_prompt() -> str:
         "Identify potential resistance points and adoption accelerators.\n"
         "Consider different user segments and contexts."
     )
+
 
 def synthesizer_prompt() -> str:
     return (

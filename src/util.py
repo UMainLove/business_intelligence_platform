@@ -17,7 +17,7 @@ SDK-provided token counts and per-call prices.
 """
 
 from __future__ import annotations
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, Any
 
 from .config import settings
 
@@ -33,6 +33,7 @@ MODEL_PRICE_MAP: Dict[str, Tuple[float, float]] = {
     "claude-3-7-sonnet": (_PER_1K["in"], _PER_1K["out"]),
 }
 
+
 def _pick_prices(model_name: str) -> Tuple[float, float]:
     """Return (price_in_per_1k, price_out_per_1k) for a given Anthropic model name."""
     mn = (model_name or "").lower()
@@ -41,6 +42,7 @@ def _pick_prices(model_name: str) -> Tuple[float, float]:
             return pair
     # Fallback: default to Sonnet rates if unknown
     return _PER_1K["in"], _PER_1K["out"]
+
 
 def _resolve_prices_from_env_or_models() -> Tuple[float, float, float, float]:
     """
@@ -80,6 +82,7 @@ def _resolve_prices_from_env_or_models() -> Tuple[float, float, float, float]:
 
 # ---- Token estimation ---------------------------------------------------------
 
+
 def estimate_tokens_chars(messages) -> int:
     """Very rough token estimate: characters / 4."""
     if not messages:
@@ -88,6 +91,7 @@ def estimate_tokens_chars(messages) -> int:
     return max(1, chars // 4)
 
 # ---- Cost estimation ----------------------------------------------------------
+
 
 # Enhanced split for Business Intelligence Platform with tool usage.
 # BI platform uses significantly more tokens due to:
@@ -99,7 +103,7 @@ BI_DEFAULT_SPLIT = {
     "input": 0.70,         # repeated transcript/context + tool results
     "output_specs": 0.20,  # enhanced specialists' replies with tool usage
     "output_synth": 0.05,  # comprehensive synthesis and document generation
-    "tool_overhead": 0.05, # additional tokens from tool integration
+    "tool_overhead": 0.05,  # additional tokens from tool integration
 }
 # Sanity: ensure it sums to 1.0
 assert abs(sum(BI_DEFAULT_SPLIT.values()) - 1.0) < 1e-6
@@ -107,10 +111,11 @@ assert abs(sum(BI_DEFAULT_SPLIT.values()) - 1.0) < 1e-6
 # Legacy split for backward compatibility
 DEFAULT_SPLIT = {
     "input": 0.81,        # repeated transcript/context fed to each specialist turn
-    "output_specs": 0.15, # specialists' combined replies
-    "output_synth": 0.04, # final one-shot report
+    "output_specs": 0.15,  # specialists' combined replies
+    "output_synth": 0.04,  # final one-shot report
 }
 assert abs(sum(DEFAULT_SPLIT.values()) - 1.0) < 1e-6
+
 
 def estimate_cost_usd(
     approx_tokens: int,
@@ -154,28 +159,34 @@ def estimate_cost_usd(
         sp = BI_DEFAULT_SPLIT
     else:
         sp = DEFAULT_SPLIT
-    
+
     total = float(approx_tokens)
 
     # Token buckets with enhanced BI accounting
     input_tokens = total * sp["input"]
     output_specs = total * sp["output_specs"]
     output_synth = total * sp["output_synth"]
-    
+
     # Account for tool overhead in BI platform
     tool_overhead = total * sp.get("tool_overhead", 0)
 
     # Convert to cost using per-1K pricing
     cost = 0.0
-    cost += (input_tokens / 1000.0) * in_s
+    # Input tokens go to both specialists and synthesizer
+    # Approximate split: 70% specialists, 30% synthesizer input
+    specialist_input = input_tokens * 0.7
+    synthesizer_input = input_tokens * 0.3
+    cost += (specialist_input / 1000.0) * in_s
+    cost += (synthesizer_input / 1000.0) * in_y
     cost += (output_specs / 1000.0) * out_s
     cost += (output_synth / 1000.0) * out_y
-    
+
     # Add tool overhead cost (use specialist pricing as tools are called by specialists)
     if tool_overhead > 0:
         cost += (tool_overhead / 1000.0) * out_s
-    
+
     return cost
+
 
 def describe_pricing() -> Dict[str, float]:
     """
@@ -194,36 +205,37 @@ def describe_pricing() -> Dict[str, float]:
         },
     }
 
+
 def get_cost_breakdown(approx_tokens: int, use_bi_pricing: bool = True) -> Dict[str, Any]:
     """
     Get detailed cost breakdown for Business Intelligence Platform.
-    
+
     Returns breakdown of costs by component (input, output, tools).
     """
     if approx_tokens <= 0:
         return {"error": "No tokens to analyze"}
-    
+
     # Get pricing
     in_s, out_s, in_y, out_y = _resolve_prices_from_env_or_models()
-    
+
     # Get appropriate split
     sp = BI_DEFAULT_SPLIT if use_bi_pricing else DEFAULT_SPLIT
     total = float(approx_tokens)
-    
+
     # Calculate token distribution
     input_tokens = total * sp["input"]
-    output_specs = total * sp["output_specs"]  
+    output_specs = total * sp["output_specs"]
     output_synth = total * sp["output_synth"]
     tool_overhead = total * sp.get("tool_overhead", 0)
-    
+
     # Calculate costs
     input_cost = (input_tokens / 1000.0) * in_s
     output_specs_cost = (output_specs / 1000.0) * out_s
     output_synth_cost = (output_synth / 1000.0) * out_y
     tool_cost = (tool_overhead / 1000.0) * out_s if tool_overhead > 0 else 0
-    
+
     total_cost = input_cost + output_specs_cost + output_synth_cost + tool_cost
-    
+
     return {
         "total_tokens": int(total),
         "total_cost_usd": total_cost,

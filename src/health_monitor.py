@@ -4,13 +4,14 @@ Health monitoring and diagnostics for Business Intelligence Platform.
 import time
 import psutil
 import logging
-from typing import Dict, Any, List
-from datetime import datetime, timedelta
+from typing import Dict, Any
+from datetime import datetime
 from dataclasses import dataclass
 from src.error_handling import error_tracker
 from src.database_config import db_config
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class HealthStatus:
@@ -20,20 +21,21 @@ class HealthStatus:
     details: Dict[str, Any]
     timestamp: str
 
+
 class HealthMonitor:
     """Monitor system health and performance."""
-    
+
     def __init__(self):
         self.start_time = time.time()
         self.health_checks = []
-    
+
     def get_system_metrics(self) -> Dict[str, Any]:
         """Get basic system metrics."""
         try:
             cpu_percent = psutil.cpu_percent(interval=1)
             memory = psutil.virtual_memory()
             disk = psutil.disk_usage('/')
-            
+
             return {
                 "cpu_usage_percent": cpu_percent,
                 "memory_usage_percent": memory.percent,
@@ -45,7 +47,7 @@ class HealthMonitor:
         except Exception as e:
             logger.error(f"Failed to get system metrics: {e}")
             return {"error": str(e)}
-    
+
     def check_database_health(self) -> HealthStatus:
         """Check database connectivity and health."""
         try:
@@ -57,7 +59,7 @@ class HealthMonitor:
                 else:
                     cursor.execute("SELECT 1")
                 result = cursor.fetchone()
-            
+
             if result:
                 return HealthStatus(
                     status="healthy",
@@ -75,7 +77,7 @@ class HealthMonitor:
                     details={"database_type": "PostgreSQL" if db_config.use_postgres else "SQLite"},
                     timestamp=datetime.utcnow().isoformat()
                 )
-                
+
         except Exception as e:
             logger.error(f"Database health check failed: {e}")
             return HealthStatus(
@@ -84,13 +86,13 @@ class HealthMonitor:
                 details={"error": str(e)},
                 timestamp=datetime.utcnow().isoformat()
             )
-    
+
     def check_error_rate(self, hours: int = 1) -> HealthStatus:
         """Check recent error rates."""
         try:
             error_summary = error_tracker.get_error_summary(hours)
             total_errors = error_summary['total_errors']
-            
+
             # Define thresholds
             if total_errors == 0:
                 status = "healthy"
@@ -104,14 +106,14 @@ class HealthMonitor:
             else:
                 status = "unhealthy"
                 message = f"High error rate: {total_errors} errors in {hours} hour(s)"
-            
+
             return HealthStatus(
                 status=status,
                 message=message,
                 details=error_summary,
                 timestamp=datetime.utcnow().isoformat()
             )
-            
+
         except Exception as e:
             logger.error(f"Error rate check failed: {e}")
             return HealthStatus(
@@ -120,12 +122,12 @@ class HealthMonitor:
                 details={"error": str(e)},
                 timestamp=datetime.utcnow().isoformat()
             )
-    
+
     def check_system_resources(self) -> HealthStatus:
         """Check system resource usage."""
         try:
             metrics = self.get_system_metrics()
-            
+
             if "error" in metrics:
                 return HealthStatus(
                     status="degraded",
@@ -133,32 +135,32 @@ class HealthMonitor:
                     details=metrics,
                     timestamp=datetime.utcnow().isoformat()
                 )
-            
+
             # Check thresholds
             issues = []
             if metrics["cpu_usage_percent"] > 80:
                 issues.append(f"High CPU usage: {metrics['cpu_usage_percent']}%")
-            
+
             if metrics["memory_usage_percent"] > 85:
                 issues.append(f"High memory usage: {metrics['memory_usage_percent']}%")
-            
+
             if metrics["disk_usage_percent"] > 90:
                 issues.append(f"High disk usage: {metrics['disk_usage_percent']}%")
-            
+
             if issues:
                 status = "degraded" if len(issues) == 1 else "unhealthy"
                 message = "; ".join(issues)
             else:
                 status = "healthy"
                 message = "System resources within normal limits"
-            
+
             return HealthStatus(
                 status=status,
                 message=message,
                 details=metrics,
                 timestamp=datetime.utcnow().isoformat()
             )
-            
+
         except Exception as e:
             logger.error(f"System resource check failed: {e}")
             return HealthStatus(
@@ -167,7 +169,7 @@ class HealthMonitor:
                 details={"error": str(e)},
                 timestamp=datetime.utcnow().isoformat()
             )
-    
+
     def get_comprehensive_health(self) -> Dict[str, Any]:
         """Get comprehensive health check results."""
         checks = {
@@ -175,7 +177,7 @@ class HealthMonitor:
             "errors": self.check_error_rate(),
             "resources": self.check_system_resources()
         }
-        
+
         # Determine overall status
         statuses = [check.status for check in checks.values()]
         if "unhealthy" in statuses:
@@ -184,7 +186,7 @@ class HealthMonitor:
             overall_status = "degraded"
         else:
             overall_status = "healthy"
-        
+
         return {
             "overall_status": overall_status,
             "timestamp": datetime.utcnow().isoformat(),
@@ -197,7 +199,7 @@ class HealthMonitor:
             } for name, check in checks.items()},
             "system_metrics": self.get_system_metrics()
         }
-    
+
     def get_simple_health(self) -> Dict[str, str]:
         """Get simple health status for load balancers."""
         try:
@@ -206,7 +208,7 @@ class HealthMonitor:
                 cursor = conn.cursor()
                 cursor.execute("SELECT 1")
                 cursor.fetchone()
-            
+
             return {
                 "status": "healthy",
                 "timestamp": datetime.utcnow().isoformat()
@@ -218,6 +220,7 @@ class HealthMonitor:
                 "error": str(e),
                 "timestamp": datetime.utcnow().isoformat()
             }
+
 
 # Global health monitor instance
 health_monitor = HealthMonitor()

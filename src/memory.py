@@ -23,9 +23,11 @@ DEFAULT_MEMORY: Dict[str, Any] = {
     "assumptions": [],
 }
 
+
 def memory_block(mem: Dict[str, Any]) -> str:
     """Render memory as a compact system-prompt block."""
     lines: List[str] = ["## Session Memory (facts & assumptions)"]
+
     def add(label, value):
         if isinstance(value, list):
             if value:
@@ -46,6 +48,8 @@ def memory_block(mem: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 # ---------- Persistence (optional) ----------
+
+
 def load_memory(path: str) -> Dict[str, Any]:
     p = Path(path)
     if not p.exists():
@@ -55,10 +59,12 @@ def load_memory(path: str) -> Dict[str, Any]:
     except Exception:
         return DEFAULT_MEMORY.copy()
 
+
 def save_memory(path: str, mem: Dict[str, Any]) -> None:
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(mem, indent=2), encoding="utf-8")
+
 
 # ---------- LLM-powered summarization ----------
 PROMPT_JSON = (
@@ -68,7 +74,9 @@ PROMPT_JSON = (
     "Keep lists short (<=5 items). No extra text."
 )
 
-def build_memory_from_messages(messages: List[Dict[str, str]], model: str | None = None) -> Dict[str, Any]:
+
+def build_memory_from_messages(
+        messages: List[Dict[str, str]], model: str | None = None) -> Dict[str, Any]:
     """
     Ask Claude to distill the current chat into our memory schema.
     Uses the memory model (Haiku) by default for fast extraction.

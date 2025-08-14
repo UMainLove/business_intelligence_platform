@@ -14,7 +14,12 @@ _synthesizer = None
 _memory_dict = None
 _MEMORY_PATH = "data/sessions/session_memory.json"
 
-def _anthropic_cfg(model: str, temperature: float, max_tokens: int = 2048, top_p: float = None) -> LLMConfig:
+
+def _anthropic_cfg(
+        model: str,
+        temperature: float,
+        max_tokens: int = 2048,
+        top_p: float = None) -> LLMConfig:
     """Enhanced LLMConfig for Anthropic with advanced parameters."""
     config = {
         "api_type": "anthropic",
@@ -23,25 +28,27 @@ def _anthropic_cfg(model: str, temperature: float, max_tokens: int = 2048, top_p
         "temperature": temperature,
         "max_tokens": max_tokens,
     }
-    
+
     # Add optional parameters if provided
     if top_p is not None:
         config["top_p"] = top_p
-    
+
     # Add top_k if not disabled
     if settings.top_k > 0:
         config["top_k"] = settings.top_k
-    
+
     # Add thinking mode support for Opus models if enabled
     if "opus" in model.lower() and settings.thinking_enabled:
         config["thinking_budget_tokens"] = settings.thinking_budget_tokens
-    
+
     return LLMConfig(**config)
+
 
 def _compose_system(base: str) -> str:
     """Base role prompt + (optional) session memory block."""
     mem_txt = memory_block(_memory_dict or {})
     return base if not mem_txt else f"{base}\n\n{mem_txt}"
+
 
 def _construct_group_from_memory():
     """(Re)construct agents & manager using the current _memory_dict with role-specific configurations."""
@@ -72,11 +79,17 @@ def _construct_group_from_memory():
     )
 
     with llm_economist:
-        economist = ConversableAgent(name="economist", system_message=_compose_system(economist_prompt()))
+        economist = ConversableAgent(
+            name="economist",
+            system_message=_compose_system(
+                economist_prompt()))
     with llm_lawyer:
         lawyer = ConversableAgent(name="lawyer", system_message=_compose_system(lawyer_prompt()))
     with llm_sociologist:
-        sociologist = ConversableAgent(name="sociologist", system_message=_compose_system(sociologist_prompt()))
+        sociologist = ConversableAgent(
+            name="sociologist",
+            system_message=_compose_system(
+                sociologist_prompt()))
 
     # One-shot synthesizer (not part of the group rotation)
     with llm_synth:
@@ -103,6 +116,7 @@ def _construct_group_from_memory():
     )
     return manager, user_proxy, synthesizer
 
+
 def _rebuild_group(preserve_messages: bool = True):
     """Rebuild agents with the latest memory; optionally keep the transcript."""
     global _manager, _user_proxy, _synthesizer
@@ -117,6 +131,7 @@ def _rebuild_group(preserve_messages: bool = True):
     _manager, _user_proxy, _synthesizer = manager, user_proxy, synthesizer
     return _manager, _user_proxy, _synthesizer
 
+
 def build_group():
     """Build (or return cached) agents + group chat manager."""
     global _manager, _user_proxy, _synthesizer, _memory_dict
@@ -129,11 +144,13 @@ def build_group():
 
 # ---------- Memory controls exposed to UI ----------
 
+
 def get_memory() -> dict:
     global _memory_dict
     if _memory_dict is None:
         _ = build_group()
     return _memory_dict or {}
+
 
 def set_memory(mem: dict):
     """Replace memory dict, persist it, and rebuild agents to apply prompts."""
@@ -142,9 +159,11 @@ def set_memory(mem: dict):
     save_memory(_MEMORY_PATH, _memory_dict)
     return _rebuild_group(preserve_messages=True)
 
+
 def clear_memory():
     """Clear memory and rebuild agents (keeps the chat transcript)."""
     return set_memory({})
+
 
 def update_memory_from_chat() -> dict:
     """Summarize current transcript into memory schema and set it."""
@@ -155,11 +174,13 @@ def update_memory_from_chat() -> dict:
 
 # ---------- Synth run & transcript helpers ----------
 
+
 def run_synthesizer() -> str:
     m, _, synthesizer = build_group()
     reply = synthesizer.generate_reply(messages=m.groupchat.messages)
     m.groupchat.messages.append({"name": "synthesizer", "content": reply})
     return reply
+
 
 def run_synthesizer_json() -> dict:
     """Ask synthesizer for JSON report; store raw reply; return parsed dict (best-effort)."""
@@ -177,9 +198,11 @@ def run_synthesizer_json() -> dict:
             "next_steps": [],
         }
 
+
 def get_messages():
     m, _, _ = build_group()
     return m.groupchat.messages
+
 
 def reset_messages():
     m, _, _ = build_group()

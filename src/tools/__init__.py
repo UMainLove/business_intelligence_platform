@@ -10,7 +10,7 @@ from .api_tools import ExternalAPITool, api_tool_executor
 __all__ = [
     'FinancialCalculator',
     'financial_tool_executor',
-    'MarketResearchRAG', 
+    'MarketResearchRAG',
     'rag_tool_executor',
     'WebSearchTool',
     'web_search_executor',

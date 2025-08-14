@@ -8,6 +8,6 @@ model = os.getenv("ANTHROPIC_MODEL_SPECIALISTS", "claude-sonnet-4-20250514")
 resp = client.messages.create(
     model=model,
     max_tokens=40,
-    messages=[{"role":"user","content":"Reply with exactly: pong"}],
+    messages=[{"role": "user", "content": "Reply with exactly: pong"}],
 )
 print(resp.content[0].text)

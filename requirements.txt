@@ -40,3 +40,4 @@ pytest-cov>=4.1.0  # Coverage reporting
 pytest-xdist>=3.3.0  # Parallel test execution
 pytest-mock>=3.11.0  # Enhanced mocking
 coverage>=7.3.0  # Coverage analysis
+ruff>=0.12.0  # Modern Python linter and formatter
