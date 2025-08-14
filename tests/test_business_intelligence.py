@@ -2,12 +2,14 @@
 Tests for business intelligence integration.
 """
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import patch, Mock
+
 from src.business_intelligence import (
     build_bi_group,
-    get_bi_capabilities,
     create_bi_tools_list,
+    get_bi_capabilities,
     run_enhanced_synthesis,
 )
 
@@ -249,12 +251,12 @@ class TestIntegrationPoints:
     def test_tool_executors_importable(self):
         """Test that all tool executors can be imported."""
         from src.business_intelligence import (
+            api_tool_executor,
+            database_tool_executor,
+            document_tool_executor,
             financial_tool_executor,
             rag_tool_executor,
             web_search_executor,
-            database_tool_executor,
-            document_tool_executor,
-            api_tool_executor,
         )
 
         # All should be callable
@@ -267,7 +269,10 @@ class TestIntegrationPoints:
 
     def test_workflow_components_importable(self):
         """Test that workflow components can be imported."""
-        from src.business_intelligence import SequentialValidationWorkflow, SwarmScenarioAnalysis
+        from src.business_intelligence import (
+            SequentialValidationWorkflow,
+            SwarmScenarioAnalysis,
+        )
 
         # Should be classes
         assert callable(SequentialValidationWorkflow)
@@ -275,7 +280,11 @@ class TestIntegrationPoints:
 
     def test_error_handling_integration(self):
         """Test error handling integration."""
-        from src.business_intelligence import ModelError, retry_with_backoff, track_errors
+        from src.business_intelligence import (
+            ModelError,
+            retry_with_backoff,
+            track_errors,
+        )
 
         # Should have error handling components
         assert issubclass(ModelError, Exception)

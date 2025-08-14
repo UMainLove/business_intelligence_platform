@@ -19,3 +19,8 @@ ignore = ["E501"]  # Ignore line too long, let formatter handle it
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["D", "S", "ANN", "PLR2004", "ARG"]
 "*/__init__.py" = ["D", "F401"]
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 100

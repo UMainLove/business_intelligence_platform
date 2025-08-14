@@ -6,7 +6,12 @@ from autogen import ConversableAgent, GroupChat, GroupChatManager, LLMConfig
 
 from .config import settings
 from .memory import build_memory_from_messages, load_memory, memory_block, save_memory
-from .roles import economist_prompt, lawyer_prompt, sociologist_prompt, synthesizer_prompt
+from .roles import (
+    economist_prompt,
+    lawyer_prompt,
+    sociologist_prompt,
+    synthesizer_prompt,
+)
 
 # Singletons cached for the Streamlit session
 _manager = None

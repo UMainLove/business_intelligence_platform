@@ -2,11 +2,13 @@
 Integration tests for Business Intelligence Platform.
 """
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import patch, Mock
+
+from src.health_monitor import health_monitor
 from src.tools.database_tools import BusinessDataDB
 from src.tools.financial_tools import financial_tool_executor
-from src.health_monitor import health_monitor
 
 
 class TestDatabaseIntegration:
@@ -138,7 +140,7 @@ class TestErrorHandlingIntegration:
 
     def test_error_propagation(self):
         """Test error propagation through system."""
-        from src.error_handling import handle_errors, ValidationError
+        from src.error_handling import ValidationError, handle_errors
 
         @handle_errors(error_mapping={ValueError: ValidationError})
         def operation_with_error():

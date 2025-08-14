@@ -2,7 +2,8 @@
 Tests for health monitoring functionality.
 """
 
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import MagicMock, Mock, patch
+
 from src.health_monitor import HealthMonitor, HealthStatus, health_monitor
 
 

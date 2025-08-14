@@ -281,9 +281,7 @@ class DocumentGenerator:
             formatted = ""
             for risk in risks_list:
                 if isinstance(risk, dict):
-                    formatted += f"- **{risk.get('name', 'Risk')}** (Impact: {
-                        risk.get('impact', 'Unknown')
-                    }, Probability: {risk.get('probability', 'Unknown')})\n"
+                    formatted += f"- **{risk.get('name', 'Risk')}** (Impact: {risk.get('impact', 'Unknown')}, Probability: {risk.get('probability', 'Unknown')})\n"
                     formatted += f"  {risk.get('description', 'No description provided')}\n"
                 else:
                     formatted += f"- {risk}\n"

@@ -12,6 +12,7 @@ help:
 	@echo ""
 	@echo "Testing:"
 	@echo "  test             Run all tests"
+	@echo "  test-synthetic   Run synthetic tests only (no external deps)"
 	@echo "  test-unit        Run unit tests only"
 	@echo "  test-integration Run integration tests only"
 	@echo "  test-coverage    Run tests with coverage report"
@@ -50,6 +51,10 @@ install-dev:
 # Testing
 test:
 	python scripts/run_tests.py
+
+test-synthetic:
+	@echo "Running synthetic tests (no external dependencies)..."
+	pytest tests/test_*_synthetic.py -v --tb=short
 
 test-unit:
 	python scripts/run_tests.py --unit

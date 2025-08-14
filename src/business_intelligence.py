@@ -17,7 +17,12 @@ from .error_handling import (
     retry_with_backoff,
     track_errors,
 )
-from .roles import economist_prompt, lawyer_prompt, sociologist_prompt, synthesizer_prompt
+from .roles import (
+    economist_prompt,
+    lawyer_prompt,
+    sociologist_prompt,
+    synthesizer_prompt,
+)
 from .tools.api_tools import api_tool_executor, create_api_tool_spec
 from .tools.database_production import database_tool_executor
 from .tools.database_tools import create_database_tool_spec

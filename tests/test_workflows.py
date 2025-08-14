@@ -2,10 +2,12 @@
 Tests for workflow components.
 """
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import patch, Mock
+
 from src.workflows.sequential_validation import SequentialValidationWorkflow
-from src.workflows.swarm_scenarios import SwarmScenarioAnalysis, ScenarioType
+from src.workflows.swarm_scenarios import ScenarioType, SwarmScenarioAnalysis
 
 
 class TestSequentialValidationWorkflow:

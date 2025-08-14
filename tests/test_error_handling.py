@@ -2,20 +2,22 @@
 Tests for error handling and retry logic.
 """
 
-import pytest
 import time
+
+import pytest
+
 from src.error_handling import (
+    APIError,
     BusinessIntelligenceError,
     DatabaseError,
-    APIError,
+    ErrorTracker,
     ModelError,
     ValidationError,
-    retry_with_backoff,
     handle_errors,
+    retry_with_backoff,
     safe_execute,
-    validate_input,
-    ErrorTracker,
     track_errors,
+    validate_input,
 )
 
 

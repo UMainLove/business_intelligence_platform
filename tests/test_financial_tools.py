@@ -4,8 +4,8 @@ Tests for financial modeling tools.
 
 from src.tools.financial_tools import (
     FinancialCalculator,
-    financial_tool_executor,
     create_financial_tool_spec,
+    financial_tool_executor,
 )
 
 

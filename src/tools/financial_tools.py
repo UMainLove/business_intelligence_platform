@@ -8,7 +8,12 @@ from typing import Any, Dict, List
 
 import numpy as np
 
-from src.error_handling import ValidationError, handle_errors, track_errors, validate_input
+from src.error_handling import (
+    ValidationError,
+    handle_errors,
+    track_errors,
+    validate_input,
+)
 
 logger = logging.getLogger(__name__)
 
