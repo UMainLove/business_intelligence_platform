@@ -21,7 +21,7 @@ This project and everyone participating in it is governed by our Code of Conduct
 
 ### Prerequisites
 
-- Python 3.9 or higher
+- Python 3.10 or higher (required for AG2/AutoGen)
 - Git
 - Anthropic API key (for testing with actual AI models)
 - Docker (optional, for containerized development)

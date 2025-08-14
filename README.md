@@ -2,7 +2,7 @@
 
 A comprehensive AI-powered business analysis platform built with AG2 (AutoGen) and Claude AI. **Evolved from a simple Business-Idea Pre-Validator** into a full enterprise-grade Business Intelligence Platform with multi-agent collaboration, advanced financial modeling, market research, and scenario planning.
 
-![Python](https://img.shields.io/badge/python-3.9+-blue.svg)
+![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)
 ![Coverage](https://img.shields.io/badge/coverage-80%25+-yellow.svg)
@@ -38,7 +38,7 @@ A comprehensive AI-powered business analysis platform built with AG2 (AutoGen) a
 ## 📋 Quick Start
 
 ### Prerequisites
-- Python 3.9+
+- Python 3.10+ (required for AG2/AutoGen)
 - Anthropic API Key
 - Docker (optional, for production deployment)
 
