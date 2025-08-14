@@ -1,0 +1,53 @@
+# Ingress for Business Intelligence Platform
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bi-ingress
+  namespace: business-intelligence
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+spec:
+  tls:
+  - hosts:
+    - bi.yourdomain.com
+    secretName: bi-tls-secret
+  rules:
+  - host: bi.yourdomain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bi-app-service
+            port:
+              number: 80
+      - path: /health
+        pathType: Prefix
+        backend:
+          service:
+            name: bi-app-service
+            port:
+              number: 80
+
+---
+# Certificate for HTTPS
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: bi-certificate
+  namespace: business-intelligence
+spec:
+  secretName: bi-tls-secret
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+  - bi.yourdomain.com

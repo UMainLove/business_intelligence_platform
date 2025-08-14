@@ -1,0 +1,107 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Application specific
+data/
+logs/
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets and configuration
+.env.local
+.env.production
+.env.staging
+secrets/
+
+# Generated files
+data/generated_docs/
+data/sessions/
+data/business_intelligence.db
+
+# Streamlit
+.streamlit/
+
+# Docker
+.dockerignore
+
+# Kubernetes secrets (keep templates)
+k8s/*secret*.yaml
+!k8s/secrets.yaml
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Monitoring and logs
+prometheus_data/
+grafana_data/
+postgres_data/
+redis_data/

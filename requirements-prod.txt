@@ -1,0 +1,48 @@
+# Production dependencies for Business Intelligence Platform
+
+# Database
+psycopg2-binary>=2.9.0  # PostgreSQL adapter
+sqlalchemy>=2.0.0       # ORM
+alembic>=1.12.0         # Database migrations
+
+# Caching & Session Management
+redis>=5.0.0            # Redis client
+hiredis>=2.2.0          # Redis performance
+
+# API & Web Framework
+fastapi>=0.104.0        # API framework
+uvicorn[standard]>=0.24.0  # ASGI server
+gunicorn>=21.2.0        # WSGI server
+
+# Vector Database (uncomment as needed)
+# pinecone-client>=2.2.0  # Pinecone vector DB
+# chromadb>=0.4.0         # Chroma vector DB
+# weaviate-client>=3.24.0 # Weaviate vector DB
+
+# Monitoring & Logging
+structlog>=23.2.0       # Structured logging
+prometheus-client>=0.19.0  # Metrics
+sentry-sdk>=1.38.0      # Error tracking
+
+# Background Tasks
+celery>=5.3.0           # Task queue
+flower>=2.0.1           # Celery monitoring
+
+# Security
+cryptography>=41.0.0    # Encryption
+python-jose>=3.3.0      # JWT tokens
+passlib>=1.7.0          # Password hashing
+
+# Cloud Storage
+boto3>=1.34.0           # AWS S3
+google-cloud-storage>=2.12.0  # Google Cloud Storage
+
+# Performance & Optimization
+asyncio-throttle>=1.0.2  # Rate limiting
+tenacity>=8.2.0         # Retry logic
+cachetools>=5.3.0       # Memory caching
+
+# Development & Testing (production builds)
+pytest>=7.4.0          # Testing
+pytest-asyncio>=0.21.0 # Async testing
+coverage>=7.3.0         # Code coverage

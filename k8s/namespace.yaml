@@ -1,0 +1,8 @@
+# Namespace for Business Intelligence Platform
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: business-intelligence
+  labels:
+    name: business-intelligence
+    environment: production
