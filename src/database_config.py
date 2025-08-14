@@ -100,7 +100,8 @@ class DatabaseConfig:
             cursor.execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";')
 
             # Business ventures table
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS business_ventures (
                     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                     name VARCHAR(255) NOT NULL,
@@ -117,10 +118,12 @@ class DatabaseConfig:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """)
+            """
+            )
 
             # Industry benchmarks table
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS industry_benchmarks (
                     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                     industry VARCHAR(100) NOT NULL,
@@ -133,10 +136,12 @@ class DatabaseConfig:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """)
+            """
+            )
 
             # Market events table
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS market_events (
                     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                     event_date DATE NOT NULL,
@@ -148,10 +153,12 @@ class DatabaseConfig:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """)
+            """
+            )
 
             # Financial metrics table
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS financial_metrics (
                     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                     venture_id UUID REFERENCES business_ventures(id) ON DELETE CASCADE,
@@ -167,7 +174,8 @@ class DatabaseConfig:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """)
+            """
+            )
 
             # Create indexes for better performance
             cursor.execute(
@@ -177,7 +185,8 @@ class DatabaseConfig:
                 "CREATE INDEX IF NOT EXISTS idx_ventures_status ON business_ventures(status);"
             )
             cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_benchmarks_industry ON industry_benchmarks(industry);"
+                "CREATE INDEX IF NOT EXISTS idx_benchmarks_industry "
+                "ON industry_benchmarks(industry);"
             )
             cursor.execute(
                 "CREATE INDEX IF NOT EXISTS idx_events_industry ON market_events(industry);"
@@ -187,15 +196,17 @@ class DatabaseConfig:
             )
 
             # Create updated_at trigger function
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE OR REPLACE FUNCTION update_updated_at_column()
                 RETURNS TRIGGER AS $$
                 BEGIN
-                   NEW.updated_at = CURRENT_TIMESTAMP;
-                   RETURN NEW;
+                NEW.updated_at = CURRENT_TIMESTAMP;
+                RETURN NEW;
                 END;
                 $$ language 'plpgsql';
-            """)
+            """
+            )
 
             # Create triggers for updated_at
             for table in [
@@ -204,13 +215,15 @@ class DatabaseConfig:
                 "market_events",
                 "financial_metrics",
             ]:
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     DROP TRIGGER IF EXISTS update_{table}_updated_at ON {table};
                     CREATE TRIGGER update_{table}_updated_at
                         BEFORE UPDATE ON {table}
                         FOR EACH ROW
                         EXECUTE FUNCTION update_updated_at_column();
-                """)
+                """
+                )
 
             conn.commit()
 
@@ -220,7 +233,8 @@ class DatabaseConfig:
             cursor = conn.cursor()
 
             # Business ventures table
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS business_ventures (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL,
@@ -237,10 +251,12 @@ class DatabaseConfig:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """)
+            """
+            )
 
             # Industry benchmarks table
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS industry_benchmarks (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     industry TEXT NOT NULL,
@@ -253,10 +269,12 @@ class DatabaseConfig:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """)
+            """
+            )
 
             # Market events table
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS market_events (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     event_date DATE NOT NULL,
@@ -268,10 +286,12 @@ class DatabaseConfig:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """)
+            """
+            )
 
             # Financial metrics table
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS financial_metrics (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     venture_id INTEGER,
@@ -288,7 +308,8 @@ class DatabaseConfig:
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (venture_id) REFERENCES business_ventures (id)
                 )
-            """)
+            """
+            )
 
             # Create indexes
             cursor.execute(
@@ -298,7 +319,8 @@ class DatabaseConfig:
                 "CREATE INDEX IF NOT EXISTS idx_ventures_status ON business_ventures(status);"
             )
             cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_benchmarks_industry ON industry_benchmarks(industry);"
+                "CREATE INDEX IF NOT EXISTS idx_benchmarks_industry "
+                "ON industry_benchmarks(industry);"
             )
             cursor.execute(
                 "CREATE INDEX IF NOT EXISTS idx_events_industry ON market_events(industry);"

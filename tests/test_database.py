@@ -1,6 +1,7 @@
 """
 Tests for database functionality.
 """
+
 import pytest
 import sqlite3
 from unittest.mock import patch, Mock
@@ -25,10 +26,10 @@ class TestBusinessDataDB:
         tables = [row[0] for row in cursor.fetchall()]
 
         expected_tables = [
-            'business_ventures',
-            'industry_benchmarks',
-            'market_events',
-            'financial_metrics'
+            "business_ventures",
+            "industry_benchmarks",
+            "market_events",
+            "financial_metrics",
         ]
 
         for table in expected_tables:
@@ -115,7 +116,7 @@ class TestProductionBusinessDataDB:
         """Test initialization with SQLite fallback."""
         mock_database_config.use_postgres = False
 
-        with patch('src.tools.database_production.BusinessDataDB') as mock_sqlite:
+        with patch("src.tools.database_production.BusinessDataDB") as mock_sqlite:
             db = ProductionBusinessDataDB()
             mock_sqlite.assert_called_once()
 
@@ -123,12 +124,12 @@ class TestProductionBusinessDataDB:
         """Test queries with SQLite fallback."""
         mock_database_config.use_postgres = False
 
-        with patch('src.tools.database_production.BusinessDataDB') as mock_sqlite:
+        with patch("src.tools.database_production.BusinessDataDB") as mock_sqlite:
             mock_sqlite_instance = Mock()
             mock_sqlite.return_value = mock_sqlite_instance
             mock_sqlite_instance.query_industry_success_rates.return_value = {
                 "industry": "SaaS",
-                "success_rate": 75.0
+                "success_rate": 75.0,
             }
 
             db = ProductionBusinessDataDB()
@@ -146,12 +147,12 @@ class TestDatabaseToolExecutor:
         """Test success rates query execution."""
         mock_database_config.use_postgres = False
 
-        with patch('src.tools.database_production.ProductionBusinessDataDB') as mock_db:
+        with patch("src.tools.database_production.ProductionBusinessDataDB") as mock_db:
             mock_instance = Mock()
             mock_db.return_value = mock_instance
             mock_instance.query_industry_success_rates.return_value = {
                 "industry": "SaaS",
-                "success_rate": 80.0
+                "success_rate": 80.0,
             }
 
             result = database_tool_executor("success_rates", {"industry": "SaaS"})
@@ -163,12 +164,12 @@ class TestDatabaseToolExecutor:
         """Test benchmarks query execution."""
         mock_database_config.use_postgres = False
 
-        with patch('src.tools.database_production.ProductionBusinessDataDB') as mock_db:
+        with patch("src.tools.database_production.ProductionBusinessDataDB") as mock_db:
             mock_instance = Mock()
             mock_db.return_value = mock_instance
             mock_instance.get_industry_benchmarks.return_value = {
                 "industry": "SaaS",
-                "metrics": [{"name": "CAC", "value": 120}]
+                "metrics": [{"name": "CAC", "value": 120}],
             }
 
             result = database_tool_executor("benchmarks", {"industry": "SaaS"})
@@ -189,25 +190,23 @@ class TestDatabaseConfig:
 
     def test_sqlite_environment(self):
         """Test SQLite configuration in development."""
-        with patch.dict('os.environ', {'ENVIRONMENT': 'development'}):
+        with patch.dict("os.environ", {"ENVIRONMENT": "development"}):
             config = DatabaseConfig()
-            assert config.environment == 'development'
+            assert config.environment == "development"
             assert not config.use_postgres
 
     def test_postgres_environment(self):
         """Test PostgreSQL configuration in production."""
-        with patch.dict('os.environ', {'ENVIRONMENT': 'production'}):
-            with patch('src.database_config.HAS_POSTGRES', True):
+        with patch.dict("os.environ", {"ENVIRONMENT": "production"}):
+            with patch("src.database_config.HAS_POSTGRES", True):
                 config = DatabaseConfig()
-                assert config.environment == 'production'
+                assert config.environment == "production"
                 assert config.use_postgres
 
     def test_database_url_override(self):
         """Test DATABASE_URL override."""
-        with patch.dict('os.environ', {
-            'DATABASE_URL': 'postgresql://test:test@localhost/test'
-        }):
-            with patch('src.database_config.HAS_POSTGRES', True):
+        with patch.dict("os.environ", {"DATABASE_URL": "postgresql://test:test@localhost/test"}):
+            with patch("src.database_config.HAS_POSTGRES", True):
                 config = DatabaseConfig()
                 assert config.use_postgres
-                assert config.database_url == 'postgresql://test:test@localhost/test'
+                assert config.database_url == "postgresql://test:test@localhost/test"

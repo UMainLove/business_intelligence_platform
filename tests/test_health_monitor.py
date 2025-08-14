@@ -1,6 +1,7 @@
 """
 Tests for health monitoring functionality.
 """
+
 import pytest
 from unittest.mock import patch, Mock, MagicMock
 from src.health_monitor import HealthMonitor, HealthStatus, health_monitor
@@ -16,7 +17,7 @@ class TestHealthStatus:
             status="healthy",
             message="All systems operational",
             details={"uptime": 3600},
-            timestamp="2024-01-01T00:00:00"
+            timestamp="2024-01-01T00:00:00",
         )
 
         assert status.status == "healthy"
@@ -35,9 +36,9 @@ class TestHealthMonitor:
         assert monitor.start_time is not None
         assert monitor.health_checks == []
 
-    @patch('psutil.cpu_percent')
-    @patch('psutil.virtual_memory')
-    @patch('psutil.disk_usage')
+    @patch("psutil.cpu_percent")
+    @patch("psutil.virtual_memory")
+    @patch("psutil.disk_usage")
     def test_get_system_metrics(self, mock_disk, mock_memory, mock_cpu):
         """Test system metrics collection."""
         # Mock psutil functions
@@ -63,7 +64,7 @@ class TestHealthMonitor:
         assert metrics["disk_free_gb"] == 100.0
         assert "uptime_seconds" in metrics
 
-    @patch('psutil.cpu_percent')
+    @patch("psutil.cpu_percent")
     def test_get_system_metrics_error(self, mock_cpu):
         """Test system metrics collection with error."""
         mock_cpu.side_effect = Exception("psutil error")
@@ -74,7 +75,7 @@ class TestHealthMonitor:
         assert "error" in metrics
         assert "psutil error" in metrics["error"]
 
-    @patch('src.health_monitor.db_config')
+    @patch("src.health_monitor.db_config")
     def test_check_database_health_success(self, mock_db_config):
         """Test successful database health check."""
         # Mock database connection
@@ -93,7 +94,7 @@ class TestHealthMonitor:
         assert "Database connection successful" in status.message
         assert status.details["database_type"] == "SQLite"
 
-    @patch('src.health_monitor.db_config')
+    @patch("src.health_monitor.db_config")
     def test_check_database_health_failure(self, mock_db_config):
         """Test failed database health check."""
         mock_db_config.get_connection.side_effect = Exception("Connection failed")
@@ -140,13 +141,13 @@ class TestHealthMonitor:
         assert "High error rate" in status.message
         assert status.details["total_errors"] == 25
 
-    @patch.object(HealthMonitor, 'get_system_metrics')
+    @patch.object(HealthMonitor, "get_system_metrics")
     def test_check_system_resources_healthy(self, mock_metrics):
         """Test system resource check with healthy metrics."""
         mock_metrics.return_value = {
             "cpu_usage_percent": 50.0,
             "memory_usage_percent": 60.0,
-            "disk_usage_percent": 70.0
+            "disk_usage_percent": 70.0,
         }
 
         monitor = HealthMonitor()
@@ -155,13 +156,13 @@ class TestHealthMonitor:
         assert status.status == "healthy"
         assert "within normal limits" in status.message
 
-    @patch.object(HealthMonitor, 'get_system_metrics')
+    @patch.object(HealthMonitor, "get_system_metrics")
     def test_check_system_resources_degraded(self, mock_metrics):
         """Test system resource check with degraded metrics."""
         mock_metrics.return_value = {
             "cpu_usage_percent": 85.0,  # High CPU
             "memory_usage_percent": 60.0,
-            "disk_usage_percent": 70.0
+            "disk_usage_percent": 70.0,
         }
 
         monitor = HealthMonitor()
@@ -170,13 +171,13 @@ class TestHealthMonitor:
         assert status.status == "degraded"
         assert "High CPU usage" in status.message
 
-    @patch.object(HealthMonitor, 'get_system_metrics')
+    @patch.object(HealthMonitor, "get_system_metrics")
     def test_check_system_resources_unhealthy(self, mock_metrics):
         """Test system resource check with unhealthy metrics."""
         mock_metrics.return_value = {
             "cpu_usage_percent": 85.0,  # High CPU
             "memory_usage_percent": 90.0,  # High memory
-            "disk_usage_percent": 95.0   # High disk
+            "disk_usage_percent": 95.0,  # High disk
         }
 
         monitor = HealthMonitor()
@@ -187,12 +188,13 @@ class TestHealthMonitor:
         assert "High memory usage" in status.message
         assert "High disk usage" in status.message
 
-    @patch.object(HealthMonitor, 'check_database_health')
-    @patch.object(HealthMonitor, 'check_error_rate')
-    @patch.object(HealthMonitor, 'check_system_resources')
-    @patch.object(HealthMonitor, 'get_system_metrics')
+    @patch.object(HealthMonitor, "check_database_health")
+    @patch.object(HealthMonitor, "check_error_rate")
+    @patch.object(HealthMonitor, "check_system_resources")
+    @patch.object(HealthMonitor, "get_system_metrics")
     def test_get_comprehensive_health_healthy(
-            self, mock_metrics, mock_resources, mock_errors, mock_db):
+        self, mock_metrics, mock_resources, mock_errors, mock_db
+    ):
         """Test comprehensive health check with all systems healthy."""
         # Mock all checks as healthy
         mock_db.return_value = HealthStatus("healthy", "DB OK", {}, "2024-01-01")
@@ -208,12 +210,13 @@ class TestHealthMonitor:
         assert len(health["checks"]) == 3
         assert all(check["status"] == "healthy" for check in health["checks"].values())
 
-    @patch.object(HealthMonitor, 'check_database_health')
-    @patch.object(HealthMonitor, 'check_error_rate')
-    @patch.object(HealthMonitor, 'check_system_resources')
-    @patch.object(HealthMonitor, 'get_system_metrics')
+    @patch.object(HealthMonitor, "check_database_health")
+    @patch.object(HealthMonitor, "check_error_rate")
+    @patch.object(HealthMonitor, "check_system_resources")
+    @patch.object(HealthMonitor, "get_system_metrics")
     def test_get_comprehensive_health_degraded(
-            self, mock_metrics, mock_resources, mock_errors, mock_db):
+        self, mock_metrics, mock_resources, mock_errors, mock_db
+    ):
         """Test comprehensive health check with degraded status."""
         mock_db.return_value = HealthStatus("healthy", "DB OK", {}, "2024-01-01")
         mock_errors.return_value = HealthStatus("degraded", "Some errors", {}, "2024-01-01")
@@ -225,12 +228,13 @@ class TestHealthMonitor:
 
         assert health["overall_status"] == "degraded"
 
-    @patch.object(HealthMonitor, 'check_database_health')
-    @patch.object(HealthMonitor, 'check_error_rate')
-    @patch.object(HealthMonitor, 'check_system_resources')
-    @patch.object(HealthMonitor, 'get_system_metrics')
+    @patch.object(HealthMonitor, "check_database_health")
+    @patch.object(HealthMonitor, "check_error_rate")
+    @patch.object(HealthMonitor, "check_system_resources")
+    @patch.object(HealthMonitor, "get_system_metrics")
     def test_get_comprehensive_health_unhealthy(
-            self, mock_metrics, mock_resources, mock_errors, mock_db):
+        self, mock_metrics, mock_resources, mock_errors, mock_db
+    ):
         """Test comprehensive health check with unhealthy status."""
         mock_db.return_value = HealthStatus("unhealthy", "DB Down", {}, "2024-01-01")
         mock_errors.return_value = HealthStatus("healthy", "No errors", {}, "2024-01-01")
@@ -242,7 +246,7 @@ class TestHealthMonitor:
 
         assert health["overall_status"] == "unhealthy"
 
-    @patch('src.health_monitor.db_config')
+    @patch("src.health_monitor.db_config")
     def test_get_simple_health_success(self, mock_db_config):
         """Test simple health check success."""
         mock_conn = MagicMock()
@@ -258,7 +262,7 @@ class TestHealthMonitor:
         assert health["status"] == "healthy"
         assert "timestamp" in health
 
-    @patch('src.health_monitor.db_config')
+    @patch("src.health_monitor.db_config")
     def test_get_simple_health_failure(self, mock_db_config):
         """Test simple health check failure."""
         mock_db_config.get_connection.side_effect = Exception("DB error")
@@ -281,8 +285,8 @@ class TestGlobalHealthMonitor:
 
     def test_global_instance_methods(self):
         """Test that global instance has required methods."""
-        assert hasattr(health_monitor, 'get_comprehensive_health')
-        assert hasattr(health_monitor, 'get_simple_health')
-        assert hasattr(health_monitor, 'check_database_health')
-        assert hasattr(health_monitor, 'check_error_rate')
-        assert hasattr(health_monitor, 'check_system_resources')
+        assert hasattr(health_monitor, "get_comprehensive_health")
+        assert hasattr(health_monitor, "get_simple_health")
+        assert hasattr(health_monitor, "check_database_health")
+        assert hasattr(health_monitor, "check_error_rate")
+        assert hasattr(health_monitor, "check_system_resources")

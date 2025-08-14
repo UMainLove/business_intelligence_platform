@@ -21,7 +21,8 @@ class BusinessDataDB:
         cursor = conn.cursor()
 
         # Business ventures table
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS business_ventures (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
@@ -37,10 +38,12 @@ class BusinessDataDB:
                 business_model TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """)
+        """
+        )
 
         # Industry benchmarks table
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS industry_benchmarks (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 industry TEXT NOT NULL,
@@ -52,10 +55,12 @@ class BusinessDataDB:
                 source TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """)
+        """
+        )
 
         # Market events table
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS market_events (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 event_date DATE NOT NULL,
@@ -66,10 +71,12 @@ class BusinessDataDB:
                 affected_companies TEXT, -- JSON array
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """)
+        """
+        )
 
         # Financial metrics table
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS financial_metrics (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 venture_id INTEGER,
@@ -84,7 +91,8 @@ class BusinessDataDB:
                 runway_months INTEGER,
                 FOREIGN KEY (venture_id) REFERENCES business_ventures (id)
             )
-        """)
+        """
+        )
 
         conn.commit()
         conn.close()

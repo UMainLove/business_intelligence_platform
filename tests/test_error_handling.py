@@ -1,13 +1,23 @@
 """
 Tests for error handling and retry logic.
 """
+
 import pytest
 import time
 from unittest.mock import Mock, patch
 from src.error_handling import (
-    BusinessIntelligenceError, DatabaseError, APIError, ModelError, ValidationError,
-    retry_with_backoff, handle_errors, safe_execute, validate_input,
-    ErrorTracker, track_errors, error_tracker
+    BusinessIntelligenceError,
+    DatabaseError,
+    APIError,
+    ModelError,
+    ValidationError,
+    retry_with_backoff,
+    handle_errors,
+    safe_execute,
+    validate_input,
+    ErrorTracker,
+    track_errors,
+    error_tracker,
 )
 
 
@@ -17,9 +27,7 @@ class TestCustomExceptions:
     def test_business_intelligence_error(self):
         """Test base exception."""
         error = BusinessIntelligenceError(
-            "Test error",
-            error_code="TEST_ERROR",
-            details={"key": "value"}
+            "Test error", error_code="TEST_ERROR", details={"key": "value"}
         )
 
         assert str(error) == "Test error"
@@ -54,6 +62,7 @@ class TestRetryWithBackoff:
 
     def test_successful_function(self):
         """Test retry decorator with successful function."""
+
         @retry_with_backoff(max_retries=3)
         def successful_function():
             return "success"
@@ -79,6 +88,7 @@ class TestRetryWithBackoff:
 
     def test_function_exhausts_retries(self):
         """Test function that always fails."""
+
         @retry_with_backoff(max_retries=2, initial_delay=0.01)
         def failing_function():
             raise ConnectionError("Persistent failure")
@@ -88,6 +98,7 @@ class TestRetryWithBackoff:
 
     def test_specific_exceptions_only(self):
         """Test retry only catches specified exceptions."""
+
         @retry_with_backoff(max_retries=2, exceptions=(ConnectionError,))
         def function_with_different_error():
             raise ValueError("Different error")
@@ -122,6 +133,7 @@ class TestHandleErrors:
 
     def test_successful_function(self):
         """Test error handler with successful function."""
+
         @handle_errors()
         def successful_function():
             return "success"
@@ -131,6 +143,7 @@ class TestHandleErrors:
 
     def test_maps_exceptions(self):
         """Test exception mapping."""
+
         @handle_errors(error_mapping={ValueError: ValidationError})
         def function_with_value_error():
             raise ValueError("Invalid value")
@@ -140,6 +153,7 @@ class TestHandleErrors:
 
     def test_preserves_custom_exceptions(self):
         """Test that custom exceptions are preserved."""
+
         @handle_errors()
         def function_with_custom_error():
             raise DatabaseError("Custom database error")
@@ -149,6 +163,7 @@ class TestHandleErrors:
 
     def test_default_error_mapping(self):
         """Test default error type for unmapped exceptions."""
+
         @handle_errors(default_error=APIError)
         def function_with_runtime_error():
             raise RuntimeError("Runtime error")
@@ -162,6 +177,7 @@ class TestSafeExecute:
 
     def test_successful_execution(self):
         """Test safe execution with successful function."""
+
         def successful_function(x, y):
             return x + y
 
@@ -170,18 +186,18 @@ class TestSafeExecute:
 
     def test_execution_with_fallback(self):
         """Test safe execution with fallback value."""
+
         def failing_function():
             raise ValueError("Test error")
 
         result = safe_execute(
-            failing_function,
-            fallback_value="fallback",
-            error_context="test context"
+            failing_function, fallback_value="fallback", error_context="test context"
         )
         assert result == "fallback"
 
     def test_execution_with_kwargs(self):
         """Test safe execution with keyword arguments."""
+
         def function_with_kwargs(x, y=10):
             return x * y
 
@@ -287,6 +303,7 @@ class TestTrackErrorsDecorator:
 
     def test_successful_function(self, clean_error_tracker):
         """Test decorator with successful function."""
+
         @track_errors
         def successful_function():
             return "success"
@@ -297,6 +314,7 @@ class TestTrackErrorsDecorator:
 
     def test_function_with_error(self, clean_error_tracker):
         """Test decorator with failing function."""
+
         @track_errors
         def failing_function():
             raise ValueError("Test error")

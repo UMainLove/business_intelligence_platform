@@ -676,14 +676,17 @@ class SequentialValidationWorkflow:
         summary = {
             "total_phases": len(ValidationPhase),
             "completed_phases": len(self.phase_results),
-            "success_rate": len([r for r in self.phase_results.values() if r.success])
-            / len(self.phase_results)
-            if self.phase_results
-            else 0,
-            "average_confidence": sum(r.confidence_score for r in self.phase_results.values())
-            / len(self.phase_results)
-            if self.phase_results
-            else 0,
+            "success_rate": (
+                len([r for r in self.phase_results.values() if r.success]) / len(self.phase_results)
+                if self.phase_results
+                else 0
+            ),
+            "average_confidence": (
+                sum(r.confidence_score for r in self.phase_results.values())
+                / len(self.phase_results)
+                if self.phase_results
+                else 0
+            ),
             "phase_details": {},
         }
 

@@ -1,12 +1,15 @@
 """
 Tests for financial modeling tools.
 """
+
 import pytest
 import numpy as np
 from unittest.mock import patch, Mock
 from src.tools.financial_tools import (
-    FinancialCalculator, FinancialMetrics, financial_tool_executor,
-    create_financial_tool_spec
+    FinancialCalculator,
+    FinancialMetrics,
+    financial_tool_executor,
+    create_financial_tool_spec,
 )
 from src.error_handling import ValidationError
 
@@ -84,9 +87,7 @@ class TestFinancialCalculator:
         calc = FinancialCalculator()
 
         break_even = calc.calculate_break_even(
-            fixed_costs=50000,
-            variable_cost_per_unit=20,
-            price_per_unit=50
+            fixed_costs=50000, variable_cost_per_unit=20, price_per_unit=50
         )
 
         # Break-even should be reasonable
@@ -106,37 +107,34 @@ class TestFinancialCalculator:
         calc = FinancialCalculator()
 
         metrics = calc.calculate_unit_economics(
-            cac=100,
-            ltv=500,
-            monthly_revenue_per_customer=50,
-            monthly_churn_rate=0.05
+            cac=100, ltv=500, monthly_revenue_per_customer=50, monthly_churn_rate=0.05
         )
 
-        assert metrics['ltv_cac_ratio'] == 5.0
-        assert metrics['payback_months'] == 2.0
-        assert metrics['monthly_cohort_value'] > 0
+        assert metrics["ltv_cac_ratio"] == 5.0
+        assert metrics["payback_months"] == 2.0
+        assert metrics["monthly_cohort_value"] > 0
 
     def test_financial_model_comprehensive(self):
         """Test comprehensive financial model."""
         calc = FinancialCalculator()
 
         params = {
-            'initial_investment': 100000,
-            'monthly_revenue': 10000,
-            'monthly_costs': 7000,
-            'growth_rate': 0.1,
-            'periods': 12,
-            'discount_rate': 0.1
+            "initial_investment": 100000,
+            "monthly_revenue": 10000,
+            "monthly_costs": 7000,
+            "growth_rate": 0.1,
+            "periods": 12,
+            "discount_rate": 0.1,
         }
 
         result = calc.calculate_comprehensive_model(**params)
 
-        assert 'npv' in result
-        assert 'irr' in result
-        assert 'payback_period' in result
-        assert 'break_even_point' in result
-        assert 'roi' in result
-        assert isinstance(result['npv'], float)
+        assert "npv" in result
+        assert "irr" in result
+        assert "payback_period" in result
+        assert "break_even_point" in result
+        assert "roi" in result
+        assert isinstance(result["npv"], float)
 
 
 class TestFinancialToolExecutor:
@@ -144,19 +142,22 @@ class TestFinancialToolExecutor:
 
     def test_npv_operation(self, sample_financial_params):
         """Test NPV operation through executor."""
-        result = financial_tool_executor("npv", {
-            "cash_flows": sample_financial_params["cash_flows"],
-            "discount_rate": sample_financial_params["discount_rate"]
-        })
+        result = financial_tool_executor(
+            "npv",
+            {
+                "cash_flows": sample_financial_params["cash_flows"],
+                "discount_rate": sample_financial_params["discount_rate"],
+            },
+        )
 
         assert "npv" in result
         assert isinstance(result["npv"], float)
 
     def test_irr_operation(self, sample_financial_params):
         """Test IRR operation through executor."""
-        result = financial_tool_executor("irr", {
-            "cash_flows": sample_financial_params["cash_flows"]
-        })
+        result = financial_tool_executor(
+            "irr", {"cash_flows": sample_financial_params["cash_flows"]}
+        )
 
         assert "irr" in result
         # IRR might be None for some cash flows
@@ -165,9 +166,9 @@ class TestFinancialToolExecutor:
 
     def test_payback_operation(self, sample_financial_params):
         """Test payback period operation."""
-        result = financial_tool_executor("payback", {
-            "cash_flows": sample_financial_params["cash_flows"]
-        })
+        result = financial_tool_executor(
+            "payback", {"cash_flows": sample_financial_params["cash_flows"]}
+        )
 
         assert "payback_period" in result
         if result["payback_period"] is not None:
@@ -175,33 +176,31 @@ class TestFinancialToolExecutor:
 
     def test_break_even_operation(self):
         """Test break-even operation."""
-        result = financial_tool_executor("break_even", {
-            "fixed_costs": 50000,
-            "variable_cost_per_unit": 20,
-            "price_per_unit": 50
-        })
+        result = financial_tool_executor(
+            "break_even", {"fixed_costs": 50000, "variable_cost_per_unit": 20, "price_per_unit": 50}
+        )
 
         assert "break_even_point" in result
         assert isinstance(result["break_even_point"], (int, float))
 
     def test_roi_operation(self):
         """Test ROI operation."""
-        result = financial_tool_executor("roi", {
-            "gain": 150000,
-            "investment": 100000
-        })
+        result = financial_tool_executor("roi", {"gain": 150000, "investment": 100000})
 
         assert "roi" in result
         assert isinstance(result["roi"], float)
 
     def test_unit_economics_operation(self):
         """Test unit economics operation."""
-        result = financial_tool_executor("unit_economics", {
-            "cac": 100,
-            "ltv": 500,
-            "monthly_revenue_per_customer": 50,
-            "monthly_churn_rate": 0.05
-        })
+        result = financial_tool_executor(
+            "unit_economics",
+            {
+                "cac": 100,
+                "ltv": 500,
+                "monthly_revenue_per_customer": 50,
+                "monthly_churn_rate": 0.05,
+            },
+        )
 
         assert "ltv_cac_ratio" in result
         assert "payback_months" in result
@@ -209,14 +208,17 @@ class TestFinancialToolExecutor:
 
     def test_comprehensive_model_operation(self, sample_financial_params):
         """Test comprehensive financial model operation."""
-        result = financial_tool_executor("comprehensive_model", {
-            "initial_investment": sample_financial_params["initial_investment"],
-            "monthly_revenue": sample_financial_params["monthly_revenue"],
-            "monthly_costs": sample_financial_params["monthly_costs"],
-            "growth_rate": 0.1,
-            "periods": 12,
-            "discount_rate": sample_financial_params["discount_rate"]
-        })
+        result = financial_tool_executor(
+            "comprehensive_model",
+            {
+                "initial_investment": sample_financial_params["initial_investment"],
+                "monthly_revenue": sample_financial_params["monthly_revenue"],
+                "monthly_costs": sample_financial_params["monthly_costs"],
+                "growth_rate": 0.1,
+                "periods": 12,
+                "discount_rate": sample_financial_params["discount_rate"],
+            },
+        )
 
         assert "npv" in result
         assert "irr" in result
@@ -239,10 +241,7 @@ class TestFinancialToolExecutor:
 
     def test_invalid_cash_flows(self):
         """Test handling of invalid cash flows."""
-        result = financial_tool_executor("npv", {
-            "cash_flows": "not_a_list",
-            "discount_rate": 0.1
-        })
+        result = financial_tool_executor("npv", {"cash_flows": "not_a_list", "discount_rate": 0.1})
 
         assert "error" in result
 
@@ -272,8 +271,13 @@ class TestFinancialToolSpec:
         # Check operation enum
         operation_enum = params["properties"]["operation"]["enum"]
         expected_operations = [
-            "npv", "irr", "payback", "break_even", "roi",
-            "unit_economics", "comprehensive_model"
+            "npv",
+            "irr",
+            "payback",
+            "break_even",
+            "roi",
+            "unit_economics",
+            "comprehensive_model",
         ]
         for op in expected_operations:
             assert op in operation_enum

@@ -257,20 +257,24 @@ def get_cost_breakdown(approx_tokens: int, use_bi_pricing: bool = True) -> Dict[
                 "cost": output_synth_cost,
                 "percentage": sp["output_synth"] * 100,
             },
-            "tool_overhead": {
-                "tokens": int(tool_overhead),
-                "cost": tool_cost,
-                "percentage": sp.get("tool_overhead", 0) * 100,
-            }
-            if use_bi_pricing
-            else None,
+            "tool_overhead": (
+                {
+                    "tokens": int(tool_overhead),
+                    "cost": tool_cost,
+                    "percentage": sp.get("tool_overhead", 0) * 100,
+                }
+                if use_bi_pricing
+                else None
+            ),
         },
         "pricing_model": "BI_Enhanced" if use_bi_pricing else "Standard",
         "cost_increase_vs_standard": (
-            (total_cost / estimate_cost_usd(approx_tokens, use_bi_pricing=False) - 1) * 100
-            if estimate_cost_usd(approx_tokens, use_bi_pricing=False)
+            (
+                (total_cost / estimate_cost_usd(approx_tokens, use_bi_pricing=False) - 1) * 100
+                if estimate_cost_usd(approx_tokens, use_bi_pricing=False)
+                else 0
+            )
+            if use_bi_pricing
             else 0
-        )
-        if use_bi_pricing
-        else 0,
+        ),
     }

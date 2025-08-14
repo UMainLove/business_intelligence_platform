@@ -1,6 +1,7 @@
 """
 Tests for workflow components.
 """
+
 import pytest
 from unittest.mock import patch, Mock
 from src.workflows.sequential_validation import SequentialValidationWorkflow
@@ -10,14 +11,14 @@ from src.workflows.swarm_scenarios import SwarmScenarioAnalysis, ScenarioType
 class TestSequentialValidationWorkflow:
     """Test sequential validation workflow."""
 
-    @patch('src.workflows.sequential_validation.ConversableAgent')
+    @patch("src.workflows.sequential_validation.ConversableAgent")
     def test_workflow_initialization(self, mock_agent):
         """Test workflow initialization."""
         mock_agent.return_value = Mock()
 
         workflow = SequentialValidationWorkflow()
 
-        assert hasattr(workflow, 'phases')
+        assert hasattr(workflow, "phases")
         assert len(workflow.phases) == 7  # 7 validation phases
 
         # Check phase names
@@ -28,14 +29,14 @@ class TestSequentialValidationWorkflow:
             "Technical Feasibility",
             "Competitive Analysis",
             "Risk Assessment",
-            "Strategic Planning"
+            "Strategic Planning",
         ]
 
-        phase_names = [phase['name'] for phase in workflow.phases]
+        phase_names = [phase["name"] for phase in workflow.phases]
         for expected in expected_phases:
             assert expected in phase_names
 
-    @patch('src.workflows.sequential_validation.ConversableAgent')
+    @patch("src.workflows.sequential_validation.ConversableAgent")
     def test_run_validation_phase(self, mock_agent):
         """Test running a single validation phase."""
         mock_agent_instance = Mock()
@@ -57,7 +58,7 @@ class TestSequentialValidationWorkflow:
         # Should have called agent chat
         mock_agent_instance.initiate_chat.assert_called_once()
 
-    @patch('src.workflows.sequential_validation.ConversableAgent')
+    @patch("src.workflows.sequential_validation.ConversableAgent")
     def test_run_complete_validation(self, mock_agent):
         """Test running complete validation workflow."""
         mock_agent_instance = Mock()
@@ -113,20 +114,20 @@ class TestSwarmScenarioAnalysis:
             "SUPPLY_CHAIN_CRISIS",
             "MARKET_SATURATION",
             "FUNDING_DROUGHT",
-            "TALENT_SHORTAGE"
+            "TALENT_SHORTAGE",
         ]
 
         for scenario in expected_scenarios:
             assert hasattr(ScenarioType, scenario)
 
-    @patch('src.workflows.swarm_scenarios.ConversableAgent')
+    @patch("src.workflows.swarm_scenarios.ConversableAgent")
     def test_swarm_initialization(self, mock_agent):
         """Test swarm analysis initialization."""
         mock_agent.return_value = Mock()
 
         swarm = SwarmScenarioAnalysis()
 
-        assert hasattr(swarm, 'scenarios')
+        assert hasattr(swarm, "scenarios")
         assert len(swarm.scenarios) == 8  # 8 scenario types
 
         # Check scenario structure
@@ -137,7 +138,7 @@ class TestSwarmScenarioAnalysis:
             assert "impact_areas" in scenario
             assert "analysis_focus" in scenario
 
-    @patch('src.workflows.swarm_scenarios.ConversableAgent')
+    @patch("src.workflows.swarm_scenarios.ConversableAgent")
     def test_run_scenario_analysis(self, mock_agent):
         """Test running single scenario analysis."""
         mock_agent_instance = Mock()
@@ -146,10 +147,7 @@ class TestSwarmScenarioAnalysis:
         swarm = SwarmScenarioAnalysis()
 
         test_business = "E-commerce marketplace"
-        scenario_result = swarm.run_scenario_analysis(
-            ScenarioType.ECONOMIC_DOWNTURN,
-            test_business
-        )
+        scenario_result = swarm.run_scenario_analysis(ScenarioType.ECONOMIC_DOWNTURN, test_business)
 
         assert "scenario_type" in scenario_result
         assert "scenario_name" in scenario_result
@@ -162,7 +160,7 @@ class TestSwarmScenarioAnalysis:
         assert 0 <= scenario_result["probability_score"] <= 10
         assert 0 <= scenario_result["impact_severity"] <= 10
 
-    @patch('src.workflows.swarm_scenarios.ConversableAgent')
+    @patch("src.workflows.swarm_scenarios.ConversableAgent")
     def test_run_comprehensive_analysis(self, mock_agent):
         """Test running comprehensive swarm analysis."""
         mock_agent_instance = Mock()
@@ -207,7 +205,7 @@ class TestSwarmScenarioAnalysis:
             assert isinstance(scenario["analysis_focus"], list)
             assert len(scenario["analysis_focus"]) > 0
 
-    @patch('src.workflows.swarm_scenarios.ConversableAgent')
+    @patch("src.workflows.swarm_scenarios.ConversableAgent")
     def test_risk_categorization(self, mock_agent):
         """Test risk categorization logic."""
         mock_agent_instance = Mock()
@@ -236,7 +234,7 @@ class TestSwarmScenarioAnalysis:
 class TestWorkflowIntegration:
     """Test workflow integration with other components."""
 
-    @patch('src.workflows.sequential_validation.financial_tool_executor')
+    @patch("src.workflows.sequential_validation.financial_tool_executor")
     def test_sequential_workflow_tool_integration(self, mock_financial):
         """Test sequential workflow tool integration."""
         mock_financial.return_value = {"npv": 50000, "irr": 0.25}
@@ -253,13 +251,10 @@ class TestWorkflowIntegration:
         assert financial_phase is not None
         assert "financial_calculator" in financial_phase["tools"]
 
-    @patch('src.workflows.swarm_scenarios.database_tool_executor')
+    @patch("src.workflows.swarm_scenarios.database_tool_executor")
     def test_swarm_workflow_database_integration(self, mock_database):
         """Test swarm workflow database integration."""
-        mock_database.return_value = {
-            "similar_ventures": [],
-            "success_rate": 75.0
-        }
+        mock_database.return_value = {"similar_ventures": [], "success_rate": 75.0}
 
         swarm = SwarmScenarioAnalysis()
 
@@ -277,7 +272,7 @@ class TestWorkflowIntegration:
 class TestWorkflowErrorHandling:
     """Test error handling in workflows."""
 
-    @patch('src.workflows.sequential_validation.ConversableAgent')
+    @patch("src.workflows.sequential_validation.ConversableAgent")
     def test_sequential_workflow_error_recovery(self, mock_agent):
         """Test sequential workflow error recovery."""
         # Mock agent that fails on first call
@@ -285,7 +280,7 @@ class TestWorkflowErrorHandling:
         mock_agent.return_value = mock_agent_instance
         mock_agent_instance.initiate_chat.side_effect = [
             Exception("First call fails"),
-            None  # Second call succeeds
+            None,  # Second call succeeds
         ]
 
         workflow = SequentialValidationWorkflow()
@@ -299,7 +294,7 @@ class TestWorkflowErrorHandling:
             # If no error handling, should raise exception
             assert "First call fails" in str(e)
 
-    @patch('src.workflows.swarm_scenarios.ConversableAgent')
+    @patch("src.workflows.swarm_scenarios.ConversableAgent")
     def test_swarm_workflow_partial_failure(self, mock_agent):
         """Test swarm workflow handling partial failures."""
         mock_agent_instance = Mock()

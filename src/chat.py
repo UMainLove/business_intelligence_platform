@@ -1,9 +1,12 @@
 # src/chat.py
 import json
+from typing import Optional, Tuple, Any, List, Dict
+
 from autogen import ConversableAgent, GroupChat, GroupChatManager, LLMConfig
+
 from .config import settings
+from .memory import build_memory_from_messages, load_memory, memory_block, save_memory
 from .roles import economist_prompt, lawyer_prompt, sociologist_prompt, synthesizer_prompt
-from .memory import memory_block, load_memory, save_memory, build_memory_from_messages
 
 # Singletons cached for the Streamlit session
 _manager = None
@@ -16,7 +19,10 @@ _MEMORY_PATH = "data/sessions/session_memory.json"
 
 
 def _anthropic_cfg(
-    model: str, temperature: float, max_tokens: int = 2048, top_p: float = None
+    model: str,
+    temperature: float,
+    max_tokens: int = 2048,
+    top_p: Optional[float] = None,
 ) -> LLMConfig:
     """Enhanced LLMConfig for Anthropic with advanced parameters."""
     config = {
@@ -43,13 +49,15 @@ def _anthropic_cfg(
 
 
 def _compose_system(base: str) -> str:
-    """Base role prompt + (optional) session memory block."""
+    """Compose system prompt with base role prompt and optional session memory block."""
     mem_txt = memory_block(_memory_dict or {})
     return base if not mem_txt else f"{base}\n\n{mem_txt}"
 
 
-def _construct_group_from_memory():
-    """(Re)construct agents & manager using the current _memory_dict with role-specific configurations."""
+def _construct_group_from_memory() -> Tuple[GroupChatManager, ConversableAgent, ConversableAgent]:
+    """
+    (Re)construct agents & manager using current _memory_dict with role-specific configurations.
+    """
     # Role-specific LLM configurations
     llm_economist = _anthropic_cfg(
         settings.model_specialists,
@@ -78,13 +86,15 @@ def _construct_group_from_memory():
 
     with llm_economist:
         economist = ConversableAgent(
-            name="economist", system_message=_compose_system(economist_prompt())
+            name="economist",
+            system_message=_compose_system(economist_prompt()),
         )
     with llm_lawyer:
         lawyer = ConversableAgent(name="lawyer", system_message=_compose_system(lawyer_prompt()))
     with llm_sociologist:
         sociologist = ConversableAgent(
-            name="sociologist", system_message=_compose_system(sociologist_prompt())
+            name="sociologist",
+            system_message=_compose_system(sociologist_prompt()),
         )
 
     # One-shot synthesizer (not part of the group rotation)
@@ -113,7 +123,9 @@ def _construct_group_from_memory():
     return manager, user_proxy, synthesizer
 
 
-def _rebuild_group(preserve_messages: bool = True):
+def _rebuild_group(
+    *, preserve_messages: bool = True
+) -> Tuple[GroupChatManager, ConversableAgent, ConversableAgent]:
     """Rebuild agents with the latest memory; optionally keep the transcript."""
     global _manager, _user_proxy, _synthesizer
     prev = []
@@ -128,7 +140,7 @@ def _rebuild_group(preserve_messages: bool = True):
     return _manager, _user_proxy, _synthesizer
 
 
-def build_group():
+def build_group() -> Tuple[GroupChatManager, ConversableAgent, ConversableAgent]:
     """Build (or return cached) agents + group chat manager."""
     global _manager, _user_proxy, _synthesizer, _memory_dict
     if _manager is not None:
@@ -136,7 +148,8 @@ def build_group():
 
     # initial load of persisted memory
     _memory_dict = load_memory(_MEMORY_PATH)
-    return _rebuild_group(preserve_messages=False)
+    _manager, _user_proxy, _synthesizer = _rebuild_group(preserve_messages=False)
+    return _manager, _user_proxy, _synthesizer
 
 
 # ---------- Memory controls exposed to UI ----------
@@ -145,11 +158,12 @@ def build_group():
 def get_memory() -> dict:
     global _memory_dict
     if _memory_dict is None:
+        _memory_dict = {}
         _ = build_group()
     return _memory_dict or {}
 
 
-def set_memory(mem: dict):
+def set_memory(mem: dict) -> Tuple[GroupChatManager, ConversableAgent, ConversableAgent]:
     """Replace memory dict, persist it, and rebuild agents to apply prompts."""
     global _memory_dict
     _memory_dict = mem or {}
@@ -157,7 +171,7 @@ def set_memory(mem: dict):
     return _rebuild_group(preserve_messages=True)
 
 
-def clear_memory():
+def clear_memory() -> Tuple[GroupChatManager, ConversableAgent, ConversableAgent]:
     """Clear memory and rebuild agents (keeps the chat transcript)."""
     return set_memory({})
 
@@ -187,7 +201,7 @@ def run_synthesizer_json() -> dict:
     m.groupchat.messages.append({"name": "synthesizer", "content": raw})
     try:
         return json.loads(raw)
-    except Exception:
+    except (json.JSONDecodeError, TypeError, ValueError):
         return {
             "executive_summary": raw[:800],
             "economic_viability": "",
@@ -197,11 +211,11 @@ def run_synthesizer_json() -> dict:
         }
 
 
-def get_messages():
+def get_messages() -> List[Dict[str, Any]]:
     m, _, _ = build_group()
     return m.groupchat.messages
 
 
-def reset_messages():
+def reset_messages() -> None:
     m, _, _ = build_group()
     m.groupchat.messages.clear()

@@ -101,7 +101,8 @@ def retry_with_backoff(
                         raise
 
                     logger.warning(
-                        f"Function {func.__name__} failed on attempt {attempt + 1}/{max_retries + 1}: {str(e)}. "
+                        f"Function {func.__name__} failed on attempt {attempt + 1}/"
+                        f"{max_retries + 1}: {str(e)}. "
                         f"Retrying in {delay:.2f} seconds...",
                         extra={
                             "function": func.__name__,
