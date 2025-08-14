@@ -12,6 +12,8 @@ on:
 permissions:
   contents: read
   security-events: write
+  actions: read
+  id-token: write
 
 jobs:
   dependency-scan:
@@ -100,11 +102,23 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
+    - name: Check for Dockerfile
+      id: dockerfile-check
+      run: |
+        if [ -f "Dockerfile" ]; then
+          echo "dockerfile_exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "dockerfile_exists=false" >> $GITHUB_OUTPUT
+          echo "⚠️ No Dockerfile found, skipping container scan"
+        fi
+    
     - name: Build Docker image
+      if: steps.dockerfile-check.outputs.dockerfile_exists == 'true'
       run: |
         docker build -t bi-security-scan:latest .
     
     - name: Run Trivy vulnerability scanner
+      if: steps.dockerfile-check.outputs.dockerfile_exists == 'true'
       uses: aquasecurity/trivy-action@master
       with:
         image-ref: 'bi-security-scan:latest'
@@ -112,12 +126,13 @@ jobs:
         output: 'trivy-results.sarif'
     
     - name: Upload Trivy scan results
-      uses: github/codeql-action/upload-sarif@v2
-      if: always()
+      if: steps.dockerfile-check.outputs.dockerfile_exists == 'true'
+      uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: 'trivy-results.sarif'
     
     - name: Run container security scan
+      if: steps.dockerfile-check.outputs.dockerfile_exists == 'true'
       run: |
         # Additional container security checks
         docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
@@ -127,6 +142,11 @@ jobs:
           --format json \
           --output /workspace/container-scan-results.json
       continue-on-error: true
+    
+    - name: Create placeholder for missing container scan
+      if: steps.dockerfile-check.outputs.dockerfile_exists == 'false'
+      run: |
+        echo '{"message": "No Dockerfile found, container scan skipped"}' > container-scan-results.json
     
     - name: Upload container scan results
       uses: actions/upload-artifact@v4
@@ -148,9 +168,8 @@ jobs:
       uses: trufflesecurity/trufflehog@main
       with:
         path: ./
-        base: main
-        head: HEAD
-        extra_args: --debug --only-verified
+        extra_args: --debug --only-verified --force
+      continue-on-error: false
 
   compliance-check:
     name: Compliance & License Check
