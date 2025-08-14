@@ -1,6 +1,7 @@
 """
 Web search tools for real-time market intelligence.
 """
+
 from typing import Dict, Any, List
 from datetime import datetime
 
@@ -28,17 +29,17 @@ class WebSearchTool:
                     "title": f"{company_name} - Company Overview",
                     "snippet": "Leading company in the industry with strong market presence...",
                     "url": f"https://example.com/{company_name.lower()}",
-                    "type": "company_profile"
+                    "type": "company_profile",
                 },
                 {
                     "title": f"{company_name} Financial Results",
                     "snippet": "Recent quarterly earnings and financial performance data...",
                     "url": f"https://finance.example.com/{company_name.lower()}",
-                    "type": "financial_data"
-                }
+                    "type": "financial_data",
+                },
             ],
             "search_time": datetime.now().isoformat(),
-            "query_type": "company_search"
+            "query_type": "company_search",
         }
 
         self.search_history.append(mock_results)
@@ -54,24 +55,24 @@ class WebSearchTool:
                     "trend": "Digital transformation acceleration",
                     "impact": "High",
                     "description": f"Rapid adoption of digital solutions in {industry}",
-                    "source": "Industry Report 2024"
+                    "source": "Industry Report 2024",
                 },
                 {
                     "trend": "Sustainability focus",
                     "impact": "Medium",
                     "description": f"Increased emphasis on sustainable practices in {industry}",
-                    "source": "Market Analysis Q4 2023"
+                    "source": "Market Analysis Q4 2023",
                 },
                 {
                     "trend": "AI integration",
                     "impact": "High",
                     "description": f"AI and machine learning adoption growing in {industry}",
-                    "source": "Technology Survey 2024"
-                }
+                    "source": "Technology Survey 2024",
+                },
             ],
             "market_size": f"${industry} market estimated at $XXX billion",
             "growth_rate": "X% CAGR projected",
-            "search_time": datetime.now().isoformat()
+            "search_time": datetime.now().isoformat(),
         }
 
         self.search_history.append(mock_trends)
@@ -90,7 +91,7 @@ class WebSearchTool:
                     "strengths": ["Strong brand", "Wide distribution"],
                     "weaknesses": ["High pricing", "Limited innovation"],
                     "funding": "$50M Series B",
-                    "url": "https://competitor-a.com"
+                    "url": "https://competitor-a.com",
                 },
                 {
                     "name": "Competitor B",
@@ -99,12 +100,12 @@ class WebSearchTool:
                     "strengths": ["Technology focus", "User experience"],
                     "weaknesses": ["Limited market reach", "New to market"],
                     "funding": "$20M Series A",
-                    "url": "https://competitor-b.com"
-                }
+                    "url": "https://competitor-b.com",
+                },
             ],
             "market_concentration": "Fragmented market with many small players",
             "barriers_to_entry": ["High customer acquisition cost", "Regulatory compliance"],
-            "search_time": datetime.now().isoformat()
+            "search_time": datetime.now().isoformat(),
         }
 
         self.search_history.append(mock_competitors)
@@ -121,23 +122,23 @@ class WebSearchTool:
                     "description": f"Privacy and data protection requirements for {industry}",
                     "compliance_level": "Mandatory",
                     "penalties": "Up to 4% of annual revenue",
-                    "implementation_date": "2018-05-25"
+                    "implementation_date": "2018-05-25",
                 },
                 {
                     "regulation": "Industry-Specific Licensing",
                     "description": f"Operating licenses required for {industry} businesses",
                     "compliance_level": "Mandatory",
                     "cost": "$5,000-$50,000",
-                    "renewal_period": "Annual"
-                }
+                    "renewal_period": "Annual",
+                },
             ],
             "compliance_checklist": [
                 "Register business entity",
                 "Obtain industry licenses",
                 "Implement data protection measures",
-                "Setup compliance monitoring"
+                "Setup compliance monitoring",
             ],
-            "search_time": datetime.now().isoformat()
+            "search_time": datetime.now().isoformat(),
         }
 
         self.search_history.append(mock_regulations)
@@ -154,7 +155,7 @@ class WebSearchTool:
                     "total_funding": "$2.1B",
                     "deal_count": 145,
                     "average_deal_size": "$14.5M",
-                    "top_investors": ["VC Fund A", "Strategic Investor B", "Growth Equity C"]
+                    "top_investors": ["VC Fund A", "Strategic Investor B", "Growth Equity C"],
                 }
             ],
             "active_investors": [
@@ -163,15 +164,15 @@ class WebSearchTool:
                     "focus": f"{industry} startups",
                     "check_size": "$1M-$10M",
                     "stage_preference": stage,
-                    "portfolio_companies": 25
+                    "portfolio_companies": 25,
                 }
             ],
             "funding_advice": [
                 f"Average {stage} round in {industry}: $5M-$15M",
                 "Typical equity dilution: 15-25%",
-                "Process timeline: 4-6 months"
+                "Process timeline: 4-6 months",
             ],
-            "search_time": datetime.now().isoformat()
+            "search_time": datetime.now().isoformat(),
         }
 
         self.search_history.append(mock_funding)
@@ -192,19 +193,17 @@ def create_web_search_tool_spec():
             "properties": {
                 "search_type": {
                     "type": "string",
-                    "enum": [
-                        "companies",
-                        "market_trends",
-                        "competitors",
-                        "regulations",
-                        "funding"],
-                    "description": "Type of web search to perform"},
+                    "enum": ["companies", "market_trends", "competitors", "regulations", "funding"],
+                    "description": "Type of web search to perform",
+                },
                 "params": {
                     "type": "object",
-                    "description": "Parameters specific to the search type"}},
-            "required": [
-                "search_type",
-                "params"]}}
+                    "description": "Parameters specific to the search type",
+                },
+            },
+            "required": ["search_type", "params"],
+        },
+    }
 
 
 def web_search_executor(search_type: str, params: Dict[str, Any]) -> Dict[str, Any]:
@@ -212,34 +211,19 @@ def web_search_executor(search_type: str, params: Dict[str, Any]) -> Dict[str, A
     search_tool = WebSearchTool()
 
     if search_type == "companies":
-        return search_tool.search_companies(
-            params['company_name'],
-            params.get('location', '')
-        )
+        return search_tool.search_companies(params["company_name"], params.get("location", ""))
 
     elif search_type == "market_trends":
-        return search_tool.search_market_trends(
-            params['industry'],
-            params.get('timeframe', '1y')
-        )
+        return search_tool.search_market_trends(params["industry"], params.get("timeframe", "1y"))
 
     elif search_type == "competitors":
-        return search_tool.search_competitors(
-            params['business_idea'],
-            params['target_market']
-        )
+        return search_tool.search_competitors(params["business_idea"], params["target_market"])
 
     elif search_type == "regulations":
-        return search_tool.search_regulations(
-            params['industry'],
-            params['region']
-        )
+        return search_tool.search_regulations(params["industry"], params["region"])
 
     elif search_type == "funding":
-        return search_tool.search_funding_landscape(
-            params['industry'],
-            params['stage']
-        )
+        return search_tool.search_funding_landscape(params["industry"], params["stage"])
 
     else:
         return {"error": f"Unknown search type: {search_type}"}

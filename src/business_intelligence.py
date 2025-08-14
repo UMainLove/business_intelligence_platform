@@ -1,6 +1,7 @@
 """
 Business Intelligence Platform integration with AG2 and all tools.
 """
+
 from .workflows.swarm_scenarios import SwarmScenarioAnalysis
 from .workflows.sequential_validation import SequentialValidationWorkflow
 from .tools.api_tools import api_tool_executor, create_api_tool_spec
@@ -19,8 +20,11 @@ from .config import settings
 from .chat import _anthropic_cfg, _compose_system
 from .roles import economist_prompt, lawyer_prompt, sociologist_prompt, synthesizer_prompt
 from .error_handling import (
-    ModelError, handle_errors, retry_with_backoff, MODEL_RETRY_CONFIG,
-    track_errors
+    ModelError,
+    handle_errors,
+    retry_with_backoff,
+    MODEL_RETRY_CONFIG,
+    track_errors,
 )
 
 logger = logging.getLogger(__name__)
@@ -45,7 +49,7 @@ class BusinessIntelligenceAgent(ConversableAgent):
             name=name,
             system_message=system_message,
             llm_config=llm_config,
-            human_input_mode="NEVER"
+            human_input_mode="NEVER",
         )
 
         # Register tools with the agent
@@ -59,63 +63,77 @@ class BusinessIntelligenceAgent(ConversableAgent):
         """Create tool execution function with proper annotations for AG2."""
 
         if tool_name == "financial_calculator":
+
             def financial_calculator(operation: str, params: Dict[str, Any]) -> Dict[str, Any]:
                 """Execute financial calculations and modeling operations."""
                 try:
                     return financial_tool_executor(operation, params)
                 except Exception as e:
                     return {"error": f"Financial tool execution failed: {str(e)}"}
+
             return financial_calculator
 
         elif tool_name == "market_research_rag":
+
             def market_research_rag(action: str, params: Dict[str, Any]) -> Dict[str, Any]:
                 """Search and retrieve market research data."""
                 try:
                     return rag_tool_executor(action, params)
                 except Exception as e:
                     return {"error": f"RAG tool execution failed: {str(e)}"}
+
             return market_research_rag
 
         elif tool_name == "web_search":
+
             def web_search(search_type: str, params: Dict[str, Any]) -> Dict[str, Any]:
                 """Search the web for market intelligence."""
                 try:
                     return web_search_executor(search_type, params)
                 except Exception as e:
                     return {"error": f"Web search tool execution failed: {str(e)}"}
+
             return web_search
 
         elif tool_name == "business_database":
+
             def business_database(query_type: str, params: Dict[str, Any]) -> Dict[str, Any]:
                 """Query historical business data and benchmarks."""
                 try:
                     return database_tool_executor(query_type, params)
                 except Exception as e:
                     return {"error": f"Database tool execution failed: {str(e)}"}
+
             return business_database
 
         elif tool_name == "document_generator":
+
             def document_generator(document_type: str, data: Dict[str, Any]) -> Dict[str, Any]:
                 """Generate business documents and reports."""
                 try:
                     return document_tool_executor(document_type, data)
                 except Exception as e:
                     return {"error": f"Document generator execution failed: {str(e)}"}
+
             return document_generator
 
         elif tool_name == "external_api":
+
             def external_api(api_type: str, params: Dict[str, Any]) -> Dict[str, Any]:
                 """Access external APIs for business intelligence."""
                 try:
                     return api_tool_executor(api_type, params)
                 except Exception as e:
                     return {"error": f"External API execution failed: {str(e)}"}
+
             return external_api
 
         else:
+
             def unknown_tool(tool: str = tool_name) -> Dict[str, Any]:
                 """Handle unknown tool requests."""
                 return {"error": f"Unknown tool: {tool}"}
+
             return unknown_tool
 
 
@@ -127,7 +145,7 @@ def create_bi_tools_list() -> List[Dict[str, Any]]:
         create_web_search_tool_spec(),
         create_database_tool_spec(),
         create_document_tool_spec(),
-        create_api_tool_spec()
+        create_api_tool_spec(),
     ]
 
 
@@ -155,28 +173,28 @@ def build_bi_group():
         settings.model_specialists,
         temperature=settings.temperature_economist,
         max_tokens=settings.max_tokens_specialists,
-        top_p=settings.top_p
+        top_p=settings.top_p,
     )
 
     llm_lawyer = _anthropic_cfg(
         settings.model_specialists,
         temperature=settings.temperature_lawyer,
         max_tokens=settings.max_tokens_specialists,
-        top_p=settings.top_p
+        top_p=settings.top_p,
     )
 
     llm_sociologist = _anthropic_cfg(
         settings.model_specialists,
         temperature=settings.temperature_sociologist,
         max_tokens=settings.max_tokens_specialists,
-        top_p=settings.top_p
+        top_p=settings.top_p,
     )
 
     llm_synth = _anthropic_cfg(
         settings.model_synth,
         temperature=settings.temperature_synth,
         max_tokens=settings.max_tokens_synth,
-        top_p=settings.top_p
+        top_p=settings.top_p,
     )
 
     # Create enhanced agents with tools
@@ -226,21 +244,21 @@ def build_bi_group():
         name="economist",
         system_message=_compose_system(enhanced_economist_prompt),
         llm_config=llm_economist,
-        tools=bi_tools
+        tools=bi_tools,
     )
 
     lawyer = BusinessIntelligenceAgent(
         name="lawyer",
         system_message=_compose_system(enhanced_lawyer_prompt),
         llm_config=llm_lawyer,
-        tools=bi_tools
+        tools=bi_tools,
     )
 
     sociologist = BusinessIntelligenceAgent(
         name="sociologist",
         system_message=_compose_system(enhanced_sociologist_prompt),
         llm_config=llm_sociologist,
-        tools=bi_tools
+        tools=bi_tools,
     )
 
     # Enhanced synthesizer
@@ -258,7 +276,7 @@ def build_bi_group():
         name="synthesizer",
         system_message=enhanced_synthesizer_prompt,
         llm_config=llm_synth,
-        tools=bi_tools
+        tools=bi_tools,
     )
 
     # Human proxy
@@ -279,7 +297,7 @@ def build_bi_group():
         agents=[user_proxy, economist, lawyer, sociologist],
         speaker_selection_method="auto",
         max_round=8,  # Increased for tool usage
-        allow_repeat_speaker=False
+        allow_repeat_speaker=False,
     )
 
     # Manager
@@ -309,13 +327,15 @@ def run_sequential_validation(business_data: Dict[str, Any]) -> Dict[str, Any]:
     return workflow.run_full_validation(business_data)
 
 
-def run_swarm_analysis(business_data: Dict[str, Any],
-                       scenarios: List[str] = None) -> Dict[str, Any]:
+def run_swarm_analysis(
+    business_data: Dict[str, Any], scenarios: List[str] = None
+) -> Dict[str, Any]:
     """Run swarm scenario analysis."""
     _, _, _, _, swarm = build_bi_group()
 
     # Convert scenario strings to enums if provided
     from .workflows.swarm_scenarios import ScenarioType
+
     scenario_types = None
     if scenarios:
         scenario_types = []
@@ -343,8 +363,8 @@ def run_enhanced_synthesis(messages: List[Dict[str, Any]]) -> Dict[str, Any]:
 
     # Extract business data from conversation for document generation
     business_data = {
-        'business_name': 'Analyzed Business Venture',
-        'executive_summary': response[:500],
+        "business_name": "Analyzed Business Venture",
+        "executive_summary": response[:500],
         # More extraction logic would go here
     }
 
@@ -354,47 +374,47 @@ def run_enhanced_synthesis(messages: List[Dict[str, Any]]) -> Dict[str, Any]:
         exec_summary_doc = document_tool_executor("executive_summary", business_data)
 
         return {
-            'synthesis_response': response,
-            'generated_documents': [exec_summary_doc],
-            'analysis_complete': True
+            "synthesis_response": response,
+            "generated_documents": [exec_summary_doc],
+            "analysis_complete": True,
         }
     except Exception as e:
         return {
-            'synthesis_response': response,
-            'generated_documents': [],
-            'analysis_complete': True,
-            'document_error': str(e)
+            "synthesis_response": response,
+            "generated_documents": [],
+            "analysis_complete": True,
+            "document_error": str(e),
         }
 
 
 def get_bi_capabilities() -> Dict[str, Any]:
     """Get information about business intelligence capabilities."""
     return {
-        'tools_available': len(create_bi_tools_list()),
-        'tool_categories': [
-            'Financial Modeling & Analysis',
-            'Market Research & RAG',
-            'Web Intelligence & Search',
-            'Historical Business Data',
-            'Document Generation',
-            'External API Integration'
+        "tools_available": len(create_bi_tools_list()),
+        "tool_categories": [
+            "Financial Modeling & Analysis",
+            "Market Research & RAG",
+            "Web Intelligence & Search",
+            "Historical Business Data",
+            "Document Generation",
+            "External API Integration",
         ],
-        'workflows_available': [
-            'Sequential Validation (7 phases)',
-            'Swarm Scenario Analysis (8 scenario types)',
-            'Enhanced Group Chat with Tools'
+        "workflows_available": [
+            "Sequential Validation (7 phases)",
+            "Swarm Scenario Analysis (8 scenario types)",
+            "Enhanced Group Chat with Tools",
         ],
-        'specialized_agents': [
-            'Economist (with financial tools)',
-            'Lawyer (with regulatory tools)',
-            'Sociologist (with market intelligence)',
-            'Synthesizer (with document generation)'
+        "specialized_agents": [
+            "Economist (with financial tools)",
+            "Lawyer (with regulatory tools)",
+            "Sociologist (with market intelligence)",
+            "Synthesizer (with document generation)",
         ],
-        'document_types': [
-            'Business Plans',
-            'Market Analysis Reports',
-            'Financial Models',
-            'Risk Assessments',
-            'Executive Summaries'
-        ]
+        "document_types": [
+            "Business Plans",
+            "Market Analysis Reports",
+            "Financial Models",
+            "Risk Assessments",
+            "Executive Summaries",
+        ],
     }

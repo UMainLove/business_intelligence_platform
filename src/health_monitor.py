@@ -1,6 +1,7 @@
 """
 Health monitoring and diagnostics for Business Intelligence Platform.
 """
+
 import time
 import psutil
 import logging
@@ -16,6 +17,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class HealthStatus:
     """Health check status."""
+
     status: str  # "healthy", "degraded", "unhealthy"
     message: str
     details: Dict[str, Any]
@@ -34,7 +36,7 @@ class HealthMonitor:
         try:
             cpu_percent = psutil.cpu_percent(interval=1)
             memory = psutil.virtual_memory()
-            disk = psutil.disk_usage('/')
+            disk = psutil.disk_usage("/")
 
             return {
                 "cpu_usage_percent": cpu_percent,
@@ -42,7 +44,7 @@ class HealthMonitor:
                 "memory_available_gb": round(memory.available / (1024**3), 2),
                 "disk_usage_percent": disk.percent,
                 "disk_free_gb": round(disk.free / (1024**3), 2),
-                "uptime_seconds": int(time.time() - self.start_time)
+                "uptime_seconds": int(time.time() - self.start_time),
             }
         except Exception as e:
             logger.error(f"Failed to get system metrics: {e}")
@@ -66,16 +68,16 @@ class HealthMonitor:
                     message="Database connection successful",
                     details={
                         "database_type": "PostgreSQL" if db_config.use_postgres else "SQLite",
-                        "response_time_ms": "< 100"
+                        "response_time_ms": "< 100",
                     },
-                    timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.utcnow().isoformat(),
                 )
             else:
                 return HealthStatus(
                     status="unhealthy",
                     message="Database query returned no result",
                     details={"database_type": "PostgreSQL" if db_config.use_postgres else "SQLite"},
-                    timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.utcnow().isoformat(),
                 )
 
         except Exception as e:
@@ -84,14 +86,14 @@ class HealthMonitor:
                 status="unhealthy",
                 message=f"Database connection failed: {str(e)}",
                 details={"error": str(e)},
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.utcnow().isoformat(),
             )
 
     def check_error_rate(self, hours: int = 1) -> HealthStatus:
         """Check recent error rates."""
         try:
             error_summary = error_tracker.get_error_summary(hours)
-            total_errors = error_summary['total_errors']
+            total_errors = error_summary["total_errors"]
 
             # Define thresholds
             if total_errors == 0:
@@ -111,7 +113,7 @@ class HealthMonitor:
                 status=status,
                 message=message,
                 details=error_summary,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.utcnow().isoformat(),
             )
 
         except Exception as e:
@@ -120,7 +122,7 @@ class HealthMonitor:
                 status="degraded",
                 message=f"Could not check error rates: {str(e)}",
                 details={"error": str(e)},
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.utcnow().isoformat(),
             )
 
     def check_system_resources(self) -> HealthStatus:
@@ -133,7 +135,7 @@ class HealthMonitor:
                     status="degraded",
                     message="Could not retrieve system metrics",
                     details=metrics,
-                    timestamp=datetime.utcnow().isoformat()
+                    timestamp=datetime.utcnow().isoformat(),
                 )
 
             # Check thresholds
@@ -158,7 +160,7 @@ class HealthMonitor:
                 status=status,
                 message=message,
                 details=metrics,
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.utcnow().isoformat(),
             )
 
         except Exception as e:
@@ -167,7 +169,7 @@ class HealthMonitor:
                 status="unhealthy",
                 message=f"System resource check failed: {str(e)}",
                 details={"error": str(e)},
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.utcnow().isoformat(),
             )
 
     def get_comprehensive_health(self) -> Dict[str, Any]:
@@ -175,7 +177,7 @@ class HealthMonitor:
         checks = {
             "database": self.check_database_health(),
             "errors": self.check_error_rate(),
-            "resources": self.check_system_resources()
+            "resources": self.check_system_resources(),
         }
 
         # Determine overall status
@@ -191,13 +193,16 @@ class HealthMonitor:
             "overall_status": overall_status,
             "timestamp": datetime.utcnow().isoformat(),
             "uptime_seconds": int(time.time() - self.start_time),
-            "checks": {name: {
-                "status": check.status,
-                "message": check.message,
-                "details": check.details,
-                "timestamp": check.timestamp
-            } for name, check in checks.items()},
-            "system_metrics": self.get_system_metrics()
+            "checks": {
+                name: {
+                    "status": check.status,
+                    "message": check.message,
+                    "details": check.details,
+                    "timestamp": check.timestamp,
+                }
+                for name, check in checks.items()
+            },
+            "system_metrics": self.get_system_metrics(),
         }
 
     def get_simple_health(self) -> Dict[str, str]:
@@ -209,16 +214,13 @@ class HealthMonitor:
                 cursor.execute("SELECT 1")
                 cursor.fetchone()
 
-            return {
-                "status": "healthy",
-                "timestamp": datetime.utcnow().isoformat()
-            }
+            return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
         except Exception as e:
             logger.error(f"Simple health check failed: {e}")
             return {
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(),
             }
 
 

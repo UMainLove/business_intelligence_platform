@@ -1,16 +1,14 @@
 """
 Financial modeling tools with code execution capability for AG2 agents.
 """
+
 import numpy as np
 from typing import Dict, Any, List
 from dataclasses import dataclass
 import io
 import contextlib
 import logging
-from src.error_handling import (
-    ValidationError, handle_errors, validate_input,
-    track_errors
-)
+from src.error_handling import ValidationError, handle_errors, validate_input, track_errors
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +16,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class FinancialMetrics:
     """Container for financial analysis results."""
+
     npv: float
     irr: float
     payback_period: float
@@ -72,17 +71,16 @@ class FinancialCalculator:
     def calculate_payback(initial_investment: float, annual_cash_flow: float) -> float:
         """Calculate simple payback period in years."""
         if annual_cash_flow <= 0:
-            return float('inf')
+            return float("inf")
         return initial_investment / annual_cash_flow
 
     @staticmethod
     def calculate_break_even(
-            fixed_costs: float,
-            price_per_unit: float,
-            variable_cost_per_unit: float) -> int:
+        fixed_costs: float, price_per_unit: float, variable_cost_per_unit: float
+    ) -> int:
         """Calculate break-even point in units."""
         if price_per_unit <= variable_cost_per_unit:
-            return float('inf')
+            return float("inf")
         contribution_margin = price_per_unit - variable_cost_per_unit
         return int(np.ceil(fixed_costs / contribution_margin))
 
@@ -101,28 +99,28 @@ class FinancialCalculator:
         """
         # Create a restricted environment
         safe_globals = {
-            '__builtins__': {
-                'abs': abs,
-                'all': all,
-                'any': any,
-                'bool': bool,
-                'dict': dict,
-                'enumerate': enumerate,
-                'float': float,
-                'int': int,
-                'len': len,
-                'list': list,
-                'max': max,
-                'min': min,
-                'pow': pow,
-                'range': range,
-                'round': round,
-                'str': str,
-                'sum': sum,
-                'tuple': tuple,
-                'zip': zip,
+            "__builtins__": {
+                "abs": abs,
+                "all": all,
+                "any": any,
+                "bool": bool,
+                "dict": dict,
+                "enumerate": enumerate,
+                "float": float,
+                "int": int,
+                "len": len,
+                "list": list,
+                "max": max,
+                "min": min,
+                "pow": pow,
+                "range": range,
+                "round": round,
+                "str": str,
+                "sum": sum,
+                "tuple": tuple,
+                "zip": zip,
             },
-            'np': np,  # Allow numpy for calculations
+            "np": np,  # Allow numpy for calculations
         }
 
         # Capture output
@@ -134,22 +132,21 @@ class FinancialCalculator:
 
             # Extract results (exclude built-ins and modules)
             results = {
-                k: v for k, v in safe_globals.items()
-                if not k.startswith('__') and k != 'np'
+                k: v for k, v in safe_globals.items() if not k.startswith("__") and k != "np"
             }
 
             return {
-                'success': True,
-                'output': output_buffer.getvalue(),
-                'variables': results,
-                'error': None
+                "success": True,
+                "output": output_buffer.getvalue(),
+                "variables": results,
+                "error": None,
             }
         except Exception as e:
             return {
-                'success': False,
-                'output': output_buffer.getvalue(),
-                'variables': {},
-                'error': str(e)
+                "success": False,
+                "output": output_buffer.getvalue(),
+                "variables": {},
+                "error": str(e),
             }
 
     @staticmethod
@@ -158,7 +155,7 @@ class FinancialCalculator:
         growth_rate: float,
         years: int = 5,
         operating_margin: float = 0.2,
-        tax_rate: float = 0.25
+        tax_rate: float = 0.25,
     ) -> Dict[str, List[float]]:
         """Generate multi-year financial projections."""
         revenues = []
@@ -176,10 +173,10 @@ class FinancialCalculator:
             net_income.append(net_income_val)
 
         return {
-            'revenues': revenues,
-            'ebitda': ebitda,
-            'net_income': net_income,
-            'years': list(range(1, years + 1))
+            "revenues": revenues,
+            "ebitda": ebitda,
+            "net_income": net_income,
+            "years": list(range(1, years + 1)),
         }
 
     @staticmethod
@@ -187,21 +184,27 @@ class FinancialCalculator:
         customer_acquisition_cost: float,
         customer_lifetime_value: float,
         monthly_churn_rate: float,
-        average_revenue_per_user: float
+        average_revenue_per_user: float,
     ) -> Dict[str, Any]:
         """Analyze unit economics for SaaS/subscription businesses."""
-        ltv_cac_ratio = customer_lifetime_value / \
-            customer_acquisition_cost if customer_acquisition_cost > 0 else 0
-        months_to_recover_cac = customer_acquisition_cost / \
-            average_revenue_per_user if average_revenue_per_user > 0 else float('inf')
+        ltv_cac_ratio = (
+            customer_lifetime_value / customer_acquisition_cost
+            if customer_acquisition_cost > 0
+            else 0
+        )
+        months_to_recover_cac = (
+            customer_acquisition_cost / average_revenue_per_user
+            if average_revenue_per_user > 0
+            else float("inf")
+        )
         annual_churn = 1 - (1 - monthly_churn_rate) ** 12
 
         return {
-            'ltv_cac_ratio': ltv_cac_ratio,
-            'months_to_recover_cac': months_to_recover_cac,
-            'annual_churn_rate': annual_churn * 100,
-            'is_sustainable': ltv_cac_ratio > 3,  # Industry benchmark
-            'health_score': min(100, (ltv_cac_ratio / 3) * 100)
+            "ltv_cac_ratio": ltv_cac_ratio,
+            "months_to_recover_cac": months_to_recover_cac,
+            "annual_churn_rate": annual_churn * 100,
+            "is_sustainable": ltv_cac_ratio > 3,  # Industry benchmark
+            "health_score": min(100, (ltv_cac_ratio / 3) * 100),
         }
 
 
@@ -223,14 +226,15 @@ def create_financial_tool_spec():
                         "roi",
                         "projection",
                         "unit_economics",
-                        "execute_code"],
-                    "description": "The financial operation to perform"},
-                "params": {
-                    "type": "object",
-                    "description": "Parameters specific to the operation"}},
-            "required": [
-                "operation",
-                "params"]}}
+                        "execute_code",
+                    ],
+                    "description": "The financial operation to perform",
+                },
+                "params": {"type": "object", "description": "Parameters specific to the operation"},
+            },
+            "required": ["operation", "params"],
+        },
+    }
 
 
 @handle_errors(error_mapping={ValueError: ValidationError, KeyError: ValidationError})
@@ -239,7 +243,7 @@ def financial_tool_executor(operation: str, params: Dict[str, Any]) -> Dict[str,
     """Execute financial tool operations for AG2."""
     try:
         # Validate inputs
-        validate_input({'operation': operation}, ['operation'], {'operation': str})
+        validate_input({"operation": operation}, ["operation"], {"operation": str})
         validate_input(params, [], {})  # Ensure params is a dict
 
         calc = FinancialCalculator()
@@ -249,27 +253,25 @@ def financial_tool_executor(operation: str, params: Dict[str, Any]) -> Dict[str,
         return {"error": f"Validation failed: {str(e)}", "operation": operation}
 
     if operation == "npv":
-        result = calc.calculate_npv(params['cash_flows'], params['discount_rate'])
+        result = calc.calculate_npv(params["cash_flows"], params["discount_rate"])
         return {"npv": result}
 
     elif operation == "irr":
-        result = calc.calculate_irr(params['cash_flows'])
+        result = calc.calculate_irr(params["cash_flows"])
         return {"irr": result}
 
     elif operation == "payback":
-        result = calc.calculate_payback(params['initial_investment'], params['annual_cash_flow'])
+        result = calc.calculate_payback(params["initial_investment"], params["annual_cash_flow"])
         return {"payback_period_years": result}
 
     elif operation == "break_even":
         result = calc.calculate_break_even(
-            params['fixed_costs'],
-            params['price_per_unit'],
-            params['variable_cost_per_unit']
+            params["fixed_costs"], params["price_per_unit"], params["variable_cost_per_unit"]
         )
         return {"break_even_units": result}
 
     elif operation == "roi":
-        result = calc.calculate_roi(params['gain'], params['cost'])
+        result = calc.calculate_roi(params["gain"], params["cost"])
         return {"roi_percentage": result}
 
     elif operation == "projection":
@@ -279,7 +281,7 @@ def financial_tool_executor(operation: str, params: Dict[str, Any]) -> Dict[str,
         return calc.unit_economics_analysis(**params)
 
     elif operation == "execute_code":
-        return calc.safe_exec_financial_code(params['code'])
+        return calc.safe_exec_financial_code(params["code"])
 
     else:
         return {"error": f"Unknown operation: {operation}"}

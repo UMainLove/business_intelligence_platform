@@ -35,6 +35,7 @@ def memory_block(mem: Dict[str, Any]) -> str:
         else:
             if value:
                 lines.append(f"- {label}: {value}")
+
     add("Idea", mem.get("idea"))
     add("Target market", mem.get("target_market"))
     add("Customer", mem.get("customer"))
@@ -46,6 +47,7 @@ def memory_block(mem: Dict[str, Any]) -> str:
     if len(lines) == 1:
         return ""  # empty memory → no extra prompt
     return "\n".join(lines)
+
 
 # ---------- Persistence (optional) ----------
 
@@ -76,7 +78,8 @@ PROMPT_JSON = (
 
 
 def build_memory_from_messages(
-        messages: List[Dict[str, str]], model: str | None = None) -> Dict[str, Any]:
+    messages: List[Dict[str, str]], model: str | None = None
+) -> Dict[str, Any]:
     """
     Ask Claude to distill the current chat into our memory schema.
     Uses the memory model (Haiku) by default for fast extraction.
@@ -96,7 +99,7 @@ def build_memory_from_messages(
         max_tokens=settings.max_tokens_memory,
         temperature=settings.temperature_memory,
         top_p=settings.top_p,
-        messages=msgs
+        messages=msgs,
     )
     txt = resp.content[0].text.strip()
     try:

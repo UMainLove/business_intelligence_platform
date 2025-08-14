@@ -1,6 +1,7 @@
 """
 RAG (Retrieval-Augmented Generation) tools for market research.
 """
+
 import json
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
@@ -15,6 +16,7 @@ import pickle
 @dataclass
 class Document:
     """Document for RAG system."""
+
     id: str
     title: str
     content: str
@@ -38,12 +40,7 @@ class MarketResearchRAG:
     def add_document(self, title: str, content: str, metadata: Dict[str, Any] = None) -> str:
         """Add a document to the RAG system."""
         doc_id = self.generate_id(content)
-        doc = Document(
-            id=doc_id,
-            title=title,
-            content=content,
-            metadata=metadata or {}
-        )
+        doc = Document(id=doc_id, title=title, content=content, metadata=metadata or {})
         self.documents.append(doc)
         self.save_documents()
         return doc_id
@@ -73,86 +70,78 @@ class MarketResearchRAG:
     def save_documents(self):
         """Persist documents to disk."""
         save_path = self.storage_path / "documents.pkl"
-        with open(save_path, 'wb') as f:
+        with open(save_path, "wb") as f:
             pickle.dump(self.documents, f)
 
     def load_documents(self):
         """Load documents from disk."""
         save_path = self.storage_path / "documents.pkl"
         if save_path.exists():
-            with open(save_path, 'rb') as f:
+            with open(save_path, "rb") as f:
                 self.documents = pickle.load(f)
 
     def add_market_research(self, industry: str, data: Dict[str, Any]) -> str:
         """Add market research data."""
         content = json.dumps(data, indent=2)
         metadata = {
-            'type': 'market_research',
-            'industry': industry,
-            'date': data.get('date', ''),
-            'source': data.get('source', '')
+            "type": "market_research",
+            "industry": industry,
+            "date": data.get("date", ""),
+            "source": data.get("source", ""),
         }
         return self.add_document(
-            title=f"Market Research: {industry}",
-            content=content,
-            metadata=metadata
+            title=f"Market Research: {industry}", content=content, metadata=metadata
         )
 
     def add_competitor_analysis(self, company: str, analysis: Dict[str, Any]) -> str:
         """Add competitor analysis."""
         content = json.dumps(analysis, indent=2)
         metadata = {
-            'type': 'competitor_analysis',
-            'company': company,
-            'date': analysis.get('date', ''),
-            'market_cap': analysis.get('market_cap', '')
+            "type": "competitor_analysis",
+            "company": company,
+            "date": analysis.get("date", ""),
+            "market_cap": analysis.get("market_cap", ""),
         }
         return self.add_document(
-            title=f"Competitor Analysis: {company}",
-            content=content,
-            metadata=metadata
+            title=f"Competitor Analysis: {company}", content=content, metadata=metadata
         )
 
     def add_industry_report(self, title: str, report: str, metadata: Dict[str, Any] = None) -> str:
         """Add industry report."""
         meta = metadata or {}
-        meta['type'] = 'industry_report'
-        return self.add_document(
-            title=title,
-            content=report,
-            metadata=meta
-        )
+        meta["type"] = "industry_report"
+        return self.add_document(title=title, content=report, metadata=meta)
 
     def get_market_insights(self, query: str) -> Dict[str, Any]:
         """Get market insights based on query."""
         relevant_docs = self.search(query, top_k=3)
 
         insights = {
-            'query': query,
-            'sources': [],
-            'key_findings': [],
-            'market_data': {},
-            'competitors': []
+            "query": query,
+            "sources": [],
+            "key_findings": [],
+            "market_data": {},
+            "competitors": [],
         }
 
         for doc in relevant_docs:
-            insights['sources'].append({
-                'title': doc.title,
-                'type': doc.metadata.get('type', 'unknown')
-            })
+            insights["sources"].append(
+                {"title": doc.title, "type": doc.metadata.get("type", "unknown")}
+            )
 
             # Extract specific insights based on document type
-            if doc.metadata.get('type') == 'market_research':
+            if doc.metadata.get("type") == "market_research":
                 try:
                     data = json.loads(doc.content)
-                    insights['market_data'].update(data)
+                    insights["market_data"].update(data)
                 except BaseException:
                     pass
 
-            elif doc.metadata.get('type') == 'competitor_analysis':
-                insights['competitors'].append(doc.metadata.get('company', 'Unknown'))
+            elif doc.metadata.get("type") == "competitor_analysis":
+                insights["competitors"].append(doc.metadata.get("company", "Unknown"))
 
         return insights
+
 
 # Pre-populate with sample market data
 
@@ -161,38 +150,39 @@ def initialize_sample_data(rag: MarketResearchRAG):
     """Initialize RAG with sample market research data."""
 
     # Sample market research data
-    rag.add_market_research("SaaS", {
-        "market_size": "$195 billion (2023)",
-        "growth_rate": "18% CAGR",
-        "key_trends": [
-            "AI integration",
-            "Vertical SaaS",
-            "Low-code/No-code platforms"
-        ],
-        "date": "2024",
-        "source": "Industry Report"
-    })
+    rag.add_market_research(
+        "SaaS",
+        {
+            "market_size": "$195 billion (2023)",
+            "growth_rate": "18% CAGR",
+            "key_trends": ["AI integration", "Vertical SaaS", "Low-code/No-code platforms"],
+            "date": "2024",
+            "source": "Industry Report",
+        },
+    )
 
-    rag.add_market_research("E-commerce", {
-        "market_size": "$6.3 trillion (2023)",
-        "growth_rate": "9.7% CAGR",
-        "key_trends": [
-            "Social commerce",
-            "Sustainable shopping",
-            "AR/VR experiences"
-        ],
-        "date": "2024",
-        "source": "Market Analysis"
-    })
+    rag.add_market_research(
+        "E-commerce",
+        {
+            "market_size": "$6.3 trillion (2023)",
+            "growth_rate": "9.7% CAGR",
+            "key_trends": ["Social commerce", "Sustainable shopping", "AR/VR experiences"],
+            "date": "2024",
+            "source": "Market Analysis",
+        },
+    )
 
     # Sample competitor analysis
-    rag.add_competitor_analysis("Shopify", {
-        "market_cap": "$90 billion",
-        "revenue": "$7.06 billion (2023)",
-        "strengths": ["Platform ecosystem", "Developer friendly", "Multi-channel"],
-        "weaknesses": ["High competition", "Dependency on SMBs"],
-        "date": "2024"
-    })
+    rag.add_competitor_analysis(
+        "Shopify",
+        {
+            "market_cap": "$90 billion",
+            "revenue": "$7.06 billion (2023)",
+            "strengths": ["Platform ecosystem", "Developer friendly", "Multi-channel"],
+            "weaknesses": ["High competition", "Dependency on SMBs"],
+            "date": "2024",
+        },
+    )
 
 
 def create_rag_tool_spec():
@@ -205,18 +195,14 @@ def create_rag_tool_spec():
             "properties": {
                 "action": {
                     "type": "string",
-                    "enum": [
-                        "search",
-                        "add_research",
-                        "add_competitor",
-                        "get_insights"],
-                    "description": "The RAG action to perform"},
-                "params": {
-                    "type": "object",
-                    "description": "Parameters specific to the action"}},
-            "required": [
-                "action",
-                "params"]}}
+                    "enum": ["search", "add_research", "add_competitor", "get_insights"],
+                    "description": "The RAG action to perform",
+                },
+                "params": {"type": "object", "description": "Parameters specific to the action"},
+            },
+            "required": ["action", "params"],
+        },
+    }
 
 
 def rag_tool_executor(action: str, params: Dict[str, Any]) -> Dict[str, Any]:
@@ -228,28 +214,28 @@ def rag_tool_executor(action: str, params: Dict[str, Any]) -> Dict[str, Any]:
         initialize_sample_data(rag)
 
     if action == "search":
-        results = rag.search(params['query'], params.get('top_k', 5))
+        results = rag.search(params["query"], params.get("top_k", 5))
         return {
             "results": [
                 {
                     "title": doc.title,
                     "content": doc.content[:500],  # Truncate for response
-                    "metadata": doc.metadata
+                    "metadata": doc.metadata,
                 }
                 for doc in results
             ]
         }
 
     elif action == "add_research":
-        doc_id = rag.add_market_research(params['industry'], params['data'])
+        doc_id = rag.add_market_research(params["industry"], params["data"])
         return {"success": True, "document_id": doc_id}
 
     elif action == "add_competitor":
-        doc_id = rag.add_competitor_analysis(params['company'], params['analysis'])
+        doc_id = rag.add_competitor_analysis(params["company"], params["analysis"])
         return {"success": True, "document_id": doc_id}
 
     elif action == "get_insights":
-        return rag.get_market_insights(params['query'])
+        return rag.get_market_insights(params["query"])
 
     else:
         return {"error": f"Unknown action: {action}"}

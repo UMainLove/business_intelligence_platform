@@ -16,10 +16,8 @@ _MEMORY_PATH = "data/sessions/session_memory.json"
 
 
 def _anthropic_cfg(
-        model: str,
-        temperature: float,
-        max_tokens: int = 2048,
-        top_p: float = None) -> LLMConfig:
+    model: str, temperature: float, max_tokens: int = 2048, top_p: float = None
+) -> LLMConfig:
     """Enhanced LLMConfig for Anthropic with advanced parameters."""
     config = {
         "api_type": "anthropic",
@@ -57,39 +55,37 @@ def _construct_group_from_memory():
         settings.model_specialists,
         temperature=settings.temperature_economist,
         max_tokens=settings.max_tokens_specialists,
-        top_p=settings.top_p
+        top_p=settings.top_p,
     )
     llm_lawyer = _anthropic_cfg(
         settings.model_specialists,
         temperature=settings.temperature_lawyer,
         max_tokens=settings.max_tokens_specialists,
-        top_p=settings.top_p
+        top_p=settings.top_p,
     )
     llm_sociologist = _anthropic_cfg(
         settings.model_specialists,
         temperature=settings.temperature_sociologist,
         max_tokens=settings.max_tokens_specialists,
-        top_p=settings.top_p
+        top_p=settings.top_p,
     )
     llm_synth = _anthropic_cfg(
         settings.model_synth,
         temperature=settings.temperature_synth,
         max_tokens=settings.max_tokens_synth,
-        top_p=settings.top_p
+        top_p=settings.top_p,
     )
 
     with llm_economist:
         economist = ConversableAgent(
-            name="economist",
-            system_message=_compose_system(
-                economist_prompt()))
+            name="economist", system_message=_compose_system(economist_prompt())
+        )
     with llm_lawyer:
         lawyer = ConversableAgent(name="lawyer", system_message=_compose_system(lawyer_prompt()))
     with llm_sociologist:
         sociologist = ConversableAgent(
-            name="sociologist",
-            system_message=_compose_system(
-                sociologist_prompt()))
+            name="sociologist", system_message=_compose_system(sociologist_prompt())
+        )
 
     # One-shot synthesizer (not part of the group rotation)
     with llm_synth:
@@ -142,6 +138,7 @@ def build_group():
     _memory_dict = load_memory(_MEMORY_PATH)
     return _rebuild_group(preserve_messages=False)
 
+
 # ---------- Memory controls exposed to UI ----------
 
 
@@ -171,6 +168,7 @@ def update_memory_from_chat() -> dict:
     mem = build_memory_from_messages(m.groupchat.messages)
     set_memory(mem)
     return mem
+
 
 # ---------- Synth run & transcript helpers ----------
 

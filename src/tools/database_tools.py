@@ -1,6 +1,7 @@
 """
 Database integration for historical business data and benchmarks.
 """
+
 import sqlite3
 from typing import Dict, Any
 from pathlib import Path
@@ -104,67 +105,81 @@ class BusinessDataDB:
 
         # Sample business ventures
         ventures = [
-            ("TechStart",
-             "SaaS",
-             "2019-01-15",
-             "active",
-             1000000,
-             5000000,
-             25000000,
-             45,
-             3000000,
-             "North America",
-             "subscription"),
-            ("EcommerceNow",
-             "E-commerce",
-             "2018-03-20",
-             "acquired",
-             500000,
-             12000000,
-             80000000,
-             120,
-             15000000,
-             "Europe",
-             "marketplace"),
-            ("FinTechInc",
-             "FinTech",
-             "2020-06-10",
-             "active",
-             2000000,
-             15000000,
-             100000000,
-             80,
-             8000000,
-             "Asia",
-             "B2B"),
-            ("FailedStartup",
-             "HealthTech",
-             "2017-08-05",
-             "failed",
-             800000,
-             800000,
-             0,
-             0,
-             0,
-             "North America",
-             "B2C"),
-            ("UnicornCorp",
-             "AI/ML",
-             "2016-12-01",
-             "ipo",
-             5000000,
-             150000000,
-             2000000000,
-             500,
-             50000000,
-             "North America",
-             "enterprise")]
+            (
+                "TechStart",
+                "SaaS",
+                "2019-01-15",
+                "active",
+                1000000,
+                5000000,
+                25000000,
+                45,
+                3000000,
+                "North America",
+                "subscription",
+            ),
+            (
+                "EcommerceNow",
+                "E-commerce",
+                "2018-03-20",
+                "acquired",
+                500000,
+                12000000,
+                80000000,
+                120,
+                15000000,
+                "Europe",
+                "marketplace",
+            ),
+            (
+                "FinTechInc",
+                "FinTech",
+                "2020-06-10",
+                "active",
+                2000000,
+                15000000,
+                100000000,
+                80,
+                8000000,
+                "Asia",
+                "B2B",
+            ),
+            (
+                "FailedStartup",
+                "HealthTech",
+                "2017-08-05",
+                "failed",
+                800000,
+                800000,
+                0,
+                0,
+                0,
+                "North America",
+                "B2C",
+            ),
+            (
+                "UnicornCorp",
+                "AI/ML",
+                "2016-12-01",
+                "ipo",
+                5000000,
+                150000000,
+                2000000000,
+                500,
+                50000000,
+                "North America",
+                "enterprise",
+            ),
+        ]
 
-        cursor.executemany("""
+        cursor.executemany(
+            """
             INSERT INTO business_ventures
             (name, industry, founded_date, status, initial_funding, total_funding, valuation, employees, revenue, region, business_model)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, ventures)
+        """,
+            ventures,
+        )
 
         # Sample industry benchmarks
         benchmarks = [
@@ -174,14 +189,17 @@ class BusinessDataDB:
             ("SaaS", "Revenue Growth Rate", 25, "percent", 75, 2024, "Industry Report"),
             ("E-commerce", "Conversion Rate", 2.8, "percent", 50, 2024, "E-commerce Study"),
             ("E-commerce", "Average Order Value", 85, "USD", 50, 2024, "E-commerce Study"),
-            ("FinTech", "Customer Acquisition Cost", 180, "USD", 50, 2024, "FinTech Analysis")
+            ("FinTech", "Customer Acquisition Cost", 180, "USD", 50, 2024, "FinTech Analysis"),
         ]
 
-        cursor.executemany("""
+        cursor.executemany(
+            """
             INSERT INTO industry_benchmarks
             (industry, metric_name, metric_value, metric_unit, percentile, year, source)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, benchmarks)
+        """,
+            benchmarks,
+        )
 
         conn.commit()
         conn.close()
@@ -191,7 +209,8 @@ class BusinessDataDB:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT
                 status,
                 COUNT(*) as count,
@@ -200,40 +219,42 @@ class BusinessDataDB:
             FROM business_ventures
             WHERE industry = ?
             GROUP BY status
-        """, (industry,))
+        """,
+            (industry,),
+        )
 
         results = cursor.fetchall()
         conn.close()
 
         total_ventures = sum(row[1] for row in results)
         analysis = {
-            'industry': industry,
-            'total_ventures': total_ventures,
-            'status_breakdown': {},
-            'success_rate': 0,
-            'avg_funding_by_status': {}
+            "industry": industry,
+            "total_ventures": total_ventures,
+            "status_breakdown": {},
+            "success_rate": 0,
+            "avg_funding_by_status": {},
         }
 
         for status, count, avg_funding, avg_valuation in results:
             percentage = (count / total_ventures * 100) if total_ventures > 0 else 0
-            analysis['status_breakdown'][status] = {
-                'count': count,
-                'percentage': round(percentage, 1)
+            analysis["status_breakdown"][status] = {
+                "count": count,
+                "percentage": round(percentage, 1),
             }
-            analysis['avg_funding_by_status'][status] = {
-                'funding': avg_funding or 0,
-                'valuation': avg_valuation or 0
+            analysis["avg_funding_by_status"][status] = {
+                "funding": avg_funding or 0,
+                "valuation": avg_valuation or 0,
             }
 
         # Calculate success rate (active + acquired + ipo)
-        success_statuses = ['active', 'acquired', 'ipo']
+        success_statuses = ["active", "acquired", "ipo"]
         success_count = sum(
-            analysis['status_breakdown'].get(status, {}).get('count', 0)
+            analysis["status_breakdown"].get(status, {}).get("count", 0)
             for status in success_statuses
         )
-        analysis['success_rate'] = round(
-            (success_count / total_ventures * 100),
-            1) if total_ventures > 0 else 0
+        analysis["success_rate"] = (
+            round((success_count / total_ventures * 100), 1) if total_ventures > 0 else 0
+        )
 
         return analysis
 
@@ -242,34 +263,37 @@ class BusinessDataDB:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT metric_name, metric_value, metric_unit, percentile, source
             FROM industry_benchmarks
             WHERE industry = ?
             ORDER BY metric_name
-        """, (industry,))
+        """,
+            (industry,),
+        )
 
         results = cursor.fetchall()
         conn.close()
 
-        benchmarks = {
-            'industry': industry,
-            'metrics': []
-        }
+        benchmarks = {"industry": industry, "metrics": []}
 
         for metric_name, value, unit, percentile, source in results:
-            benchmarks['metrics'].append({
-                'name': metric_name,
-                'value': value,
-                'unit': unit,
-                'percentile': f"{percentile}th",
-                'source': source
-            })
+            benchmarks["metrics"].append(
+                {
+                    "name": metric_name,
+                    "value": value,
+                    "unit": unit,
+                    "percentile": f"{percentile}th",
+                    "source": source,
+                }
+            )
 
         return benchmarks
 
-    def analyze_similar_ventures(self, industry: str, business_model: str,
-                                 region: str = None) -> Dict[str, Any]:
+    def analyze_similar_ventures(
+        self, industry: str, business_model: str, region: str = None
+    ) -> Dict[str, Any]:
         """Find and analyze similar ventures."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -290,70 +314,67 @@ class BusinessDataDB:
         conn.close()
 
         if not results:
-            return {
-                'similar_ventures': [],
-                'analysis': 'No similar ventures found in database'
-            }
+            return {"similar_ventures": [], "analysis": "No similar ventures found in database"}
 
         ventures = []
         total_funding_sum = 0
         successful_ventures = 0
 
         for name, status, initial, total, valuation, employees, revenue in results:
-            ventures.append({
-                'name': name,
-                'status': status,
-                'initial_funding': initial or 0,
-                'total_funding': total or 0,
-                'valuation': valuation or 0,
-                'employees': employees or 0,
-                'revenue': revenue or 0
-            })
+            ventures.append(
+                {
+                    "name": name,
+                    "status": status,
+                    "initial_funding": initial or 0,
+                    "total_funding": total or 0,
+                    "valuation": valuation or 0,
+                    "employees": employees or 0,
+                    "revenue": revenue or 0,
+                }
+            )
 
             if total:
                 total_funding_sum += total
 
-            if status in ['active', 'acquired', 'ipo']:
+            if status in ["active", "acquired", "ipo"]:
                 successful_ventures += 1
 
         return {
-            'similar_ventures': ventures,
-            'count': len(ventures),
-            'success_rate': round(
-                (successful_ventures / len(ventures) * 100),
-                1),
-            'avg_total_funding': round(
-                total_funding_sum / len(ventures),
-                0) if ventures else 0,
-            'analysis': f"Found {
-                len(ventures)} similar ventures with {
-                    round(
-                        (successful_ventures / len(ventures) * 100),
-                        1)}% success rate"}
+            "similar_ventures": ventures,
+            "count": len(ventures),
+            "success_rate": round((successful_ventures / len(ventures) * 100), 1),
+            "avg_total_funding": round(total_funding_sum / len(ventures), 0) if ventures else 0,
+            "analysis": f"Found {len(ventures)} similar ventures with {
+                round((successful_ventures / len(ventures) * 100), 1)
+            }% success rate",
+        }
 
     def add_venture(self, venture_data: Dict[str, Any]) -> int:
         """Add a new venture to the database."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO business_ventures
             (name, industry, founded_date, status, initial_funding, total_funding,
              valuation, employees, revenue, region, business_model)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            venture_data['name'],
-            venture_data['industry'],
-            venture_data.get('founded_date'),
-            venture_data.get('status', 'active'),
-            venture_data.get('initial_funding'),
-            venture_data.get('total_funding'),
-            venture_data.get('valuation'),
-            venture_data.get('employees'),
-            venture_data.get('revenue'),
-            venture_data.get('region'),
-            venture_data.get('business_model')
-        ))
+        """,
+            (
+                venture_data["name"],
+                venture_data["industry"],
+                venture_data.get("founded_date"),
+                venture_data.get("status", "active"),
+                venture_data.get("initial_funding"),
+                venture_data.get("total_funding"),
+                venture_data.get("valuation"),
+                venture_data.get("employees"),
+                venture_data.get("revenue"),
+                venture_data.get("region"),
+                venture_data.get("business_model"),
+            ),
+        )
 
         venture_id = cursor.lastrowid
         conn.commit()
@@ -373,15 +394,15 @@ def create_database_tool_spec():
                 "query_type": {
                     "type": "string",
                     "enum": ["success_rates", "benchmarks", "similar_ventures", "add_venture"],
-                    "description": "Type of database query to perform"
+                    "description": "Type of database query to perform",
                 },
                 "params": {
                     "type": "object",
-                    "description": "Parameters specific to the query type"
-                }
+                    "description": "Parameters specific to the query type",
+                },
             },
-            "required": ["query_type", "params"]
-        }
+            "required": ["query_type", "params"],
+        },
     }
 
 
@@ -390,20 +411,18 @@ def database_tool_executor(query_type: str, params: Dict[str, Any]) -> Dict[str,
     db = BusinessDataDB()
 
     if query_type == "success_rates":
-        return db.query_industry_success_rates(params['industry'])
+        return db.query_industry_success_rates(params["industry"])
 
     elif query_type == "benchmarks":
-        return db.get_industry_benchmarks(params['industry'])
+        return db.get_industry_benchmarks(params["industry"])
 
     elif query_type == "similar_ventures":
         return db.analyze_similar_ventures(
-            params['industry'],
-            params['business_model'],
-            params.get('region')
+            params["industry"], params["business_model"], params.get("region")
         )
 
     elif query_type == "add_venture":
-        venture_id = db.add_venture(params['venture_data'])
+        venture_id = db.add_venture(params["venture_data"])
         return {"success": True, "venture_id": venture_id}
 
     else:

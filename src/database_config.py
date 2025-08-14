@@ -2,6 +2,7 @@
 Database configuration and connection management.
 Supports both SQLite (local/dev) and PostgreSQL (production).
 """
+
 import os
 import sqlite3
 from contextlib import contextmanager
@@ -12,6 +13,7 @@ import logging
 try:
     import psycopg2
     from psycopg2.extras import RealDictCursor
+
     HAS_POSTGRES = True
 except ImportError:
     HAS_POSTGRES = False
@@ -25,22 +27,18 @@ class DatabaseConfig:
     """Database configuration and connection management."""
 
     def __init__(self):
-        self.environment = os.getenv('ENVIRONMENT', 'development')
-        self.database_url = os.getenv('DATABASE_URL')
-        self.sqlite_path = os.getenv('SQLITE_PATH', 'data/business_intelligence.db')
+        self.environment = os.getenv("ENVIRONMENT", "development")
+        self.database_url = os.getenv("DATABASE_URL")
+        self.sqlite_path = os.getenv("SQLITE_PATH", "data/business_intelligence.db")
 
         # Determine database type
-        self.use_postgres = (
-            HAS_POSTGRES and (
-                self.environment == 'production' or
-                self.database_url is not None
-            )
+        self.use_postgres = HAS_POSTGRES and (
+            self.environment == "production" or self.database_url is not None
         )
 
         logger.info(
-            f"Database config: environment={
-                self.environment}, use_postgres={
-                self.use_postgres}")
+            f"Database config: environment={self.environment}, use_postgres={self.use_postgres}"
+        )
 
     @contextmanager
     def get_connection(self):
@@ -62,22 +60,20 @@ class DatabaseConfig:
         """Create PostgreSQL connection."""
         if not HAS_POSTGRES:
             raise ImportError(
-                "PostgreSQL dependencies not installed. Install with: pip install psycopg2-binary")
+                "PostgreSQL dependencies not installed. Install with: pip install psycopg2-binary"
+            )
 
         if not self.database_url:
             # Construct URL from environment variables
-            host = os.getenv('POSTGRES_HOST', 'localhost')
-            port = os.getenv('POSTGRES_PORT', '5432')
-            database = os.getenv('POSTGRES_DB', 'business_intelligence')
-            user = os.getenv('POSTGRES_USER', 'bi_user')
-            password = os.getenv('POSTGRES_PASSWORD', 'password')
+            host = os.getenv("POSTGRES_HOST", "localhost")
+            port = os.getenv("POSTGRES_PORT", "5432")
+            database = os.getenv("POSTGRES_DB", "business_intelligence")
+            user = os.getenv("POSTGRES_USER", "bi_user")
+            password = os.getenv("POSTGRES_PASSWORD", "password")
 
             self.database_url = f"postgresql://{user}:{password}@{host}:{port}/{database}"
 
-        return psycopg2.connect(
-            self.database_url,
-            cursor_factory=RealDictCursor
-        )
+        return psycopg2.connect(self.database_url, cursor_factory=RealDictCursor)
 
     def _get_sqlite_connection(self):
         """Create SQLite connection."""
@@ -101,7 +97,7 @@ class DatabaseConfig:
             cursor = conn.cursor()
 
             # Enable UUID extension
-            cursor.execute("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";")
+            cursor.execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";')
 
             # Business ventures table
             cursor.execute("""
@@ -175,15 +171,20 @@ class DatabaseConfig:
 
             # Create indexes for better performance
             cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_ventures_industry ON business_ventures(industry);")
+                "CREATE INDEX IF NOT EXISTS idx_ventures_industry ON business_ventures(industry);"
+            )
             cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_ventures_status ON business_ventures(status);")
+                "CREATE INDEX IF NOT EXISTS idx_ventures_status ON business_ventures(status);"
+            )
             cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_benchmarks_industry ON industry_benchmarks(industry);")
+                "CREATE INDEX IF NOT EXISTS idx_benchmarks_industry ON industry_benchmarks(industry);"
+            )
             cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_events_industry ON market_events(industry);")
+                "CREATE INDEX IF NOT EXISTS idx_events_industry ON market_events(industry);"
+            )
             cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_metrics_venture ON financial_metrics(venture_id);")
+                "CREATE INDEX IF NOT EXISTS idx_metrics_venture ON financial_metrics(venture_id);"
+            )
 
             # Create updated_at trigger function
             cursor.execute("""
@@ -198,10 +199,11 @@ class DatabaseConfig:
 
             # Create triggers for updated_at
             for table in [
-                'business_ventures',
-                'industry_benchmarks',
-                'market_events',
-                    'financial_metrics']:
+                "business_ventures",
+                "industry_benchmarks",
+                "market_events",
+                "financial_metrics",
+            ]:
                 cursor.execute(f"""
                     DROP TRIGGER IF EXISTS update_{table}_updated_at ON {table};
                     CREATE TRIGGER update_{table}_updated_at
@@ -290,15 +292,20 @@ class DatabaseConfig:
 
             # Create indexes
             cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_ventures_industry ON business_ventures(industry);")
+                "CREATE INDEX IF NOT EXISTS idx_ventures_industry ON business_ventures(industry);"
+            )
             cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_ventures_status ON business_ventures(status);")
+                "CREATE INDEX IF NOT EXISTS idx_ventures_status ON business_ventures(status);"
+            )
             cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_benchmarks_industry ON industry_benchmarks(industry);")
+                "CREATE INDEX IF NOT EXISTS idx_benchmarks_industry ON industry_benchmarks(industry);"
+            )
             cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_events_industry ON market_events(industry);")
+                "CREATE INDEX IF NOT EXISTS idx_events_industry ON market_events(industry);"
+            )
             cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_metrics_venture ON financial_metrics(venture_id);")
+                "CREATE INDEX IF NOT EXISTS idx_metrics_venture ON financial_metrics(venture_id);"
+            )
 
             conn.commit()
 

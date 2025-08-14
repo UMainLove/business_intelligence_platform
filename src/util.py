@@ -80,6 +80,7 @@ def _resolve_prices_from_env_or_models() -> Tuple[float, float, float, float]:
     in_y, out_y = _pick_prices(settings.model_synth)
     return in_s, out_s, in_y, out_y
 
+
 # ---- Token estimation ---------------------------------------------------------
 
 
@@ -89,6 +90,7 @@ def estimate_tokens_chars(messages) -> int:
         return 0
     chars = sum(len(m.get("content", "")) for m in messages)
     return max(1, chars // 4)
+
 
 # ---- Cost estimation ----------------------------------------------------------
 
@@ -100,7 +102,7 @@ def estimate_tokens_chars(messages) -> int:
 # - Enhanced agent prompts with tool descriptions
 # - Document generation and comprehensive synthesis
 BI_DEFAULT_SPLIT = {
-    "input": 0.70,         # repeated transcript/context + tool results
+    "input": 0.70,  # repeated transcript/context + tool results
     "output_specs": 0.20,  # enhanced specialists' replies with tool usage
     "output_synth": 0.05,  # comprehensive synthesis and document generation
     "tool_overhead": 0.05,  # additional tokens from tool integration
@@ -110,7 +112,7 @@ assert abs(sum(BI_DEFAULT_SPLIT.values()) - 1.0) < 1e-6
 
 # Legacy split for backward compatibility
 DEFAULT_SPLIT = {
-    "input": 0.81,        # repeated transcript/context fed to each specialist turn
+    "input": 0.81,  # repeated transcript/context fed to each specialist turn
     "output_specs": 0.15,  # specialists' combined replies
     "output_synth": 0.04,  # final one-shot report
 }
@@ -120,12 +122,12 @@ assert abs(sum(DEFAULT_SPLIT.values()) - 1.0) < 1e-6
 def estimate_cost_usd(
     approx_tokens: int,
     *,
-    price_in_specialists: Optional[float] = None,     # USD per 1K tokens (override)
-    price_out_specialists: Optional[float] = None,    # USD per 1K tokens (override)
-    price_in_synth: Optional[float] = None,           # USD per 1K tokens (override)
-    price_out_synth: Optional[float] = None,          # USD per 1K tokens (override)
-    split: Optional[Dict[str, float]] = None,         # override token split
-    use_bi_pricing: bool = True,                      # use BI platform pricing model
+    price_in_specialists: Optional[float] = None,  # USD per 1K tokens (override)
+    price_out_specialists: Optional[float] = None,  # USD per 1K tokens (override)
+    price_in_synth: Optional[float] = None,  # USD per 1K tokens (override)
+    price_out_synth: Optional[float] = None,  # USD per 1K tokens (override)
+    split: Optional[Dict[str, float]] = None,  # override token split
+    use_bi_pricing: bool = True,  # use BI platform pricing model
 ) -> Optional[float]:
     """
     Enhanced cost estimate for Business Intelligence Platform.
@@ -243,27 +245,32 @@ def get_cost_breakdown(approx_tokens: int, use_bi_pricing: bool = True) -> Dict[
             "input": {
                 "tokens": int(input_tokens),
                 "cost": input_cost,
-                "percentage": sp["input"] * 100
+                "percentage": sp["input"] * 100,
             },
             "specialists_output": {
                 "tokens": int(output_specs),
                 "cost": output_specs_cost,
-                "percentage": sp["output_specs"] * 100
+                "percentage": sp["output_specs"] * 100,
             },
             "synthesizer_output": {
                 "tokens": int(output_synth),
                 "cost": output_synth_cost,
-                "percentage": sp["output_synth"] * 100
+                "percentage": sp["output_synth"] * 100,
             },
             "tool_overhead": {
                 "tokens": int(tool_overhead),
                 "cost": tool_cost,
-                "percentage": sp.get("tool_overhead", 0) * 100
-            } if use_bi_pricing else None
+                "percentage": sp.get("tool_overhead", 0) * 100,
+            }
+            if use_bi_pricing
+            else None,
         },
         "pricing_model": "BI_Enhanced" if use_bi_pricing else "Standard",
         "cost_increase_vs_standard": (
             (total_cost / estimate_cost_usd(approx_tokens, use_bi_pricing=False) - 1) * 100
-            if estimate_cost_usd(approx_tokens, use_bi_pricing=False) else 0
-        ) if use_bi_pricing else 0
+            if estimate_cost_usd(approx_tokens, use_bi_pricing=False)
+            else 0
+        )
+        if use_bi_pricing
+        else 0,
     }
