@@ -69,9 +69,7 @@ class DocumentGenerator:
         )
 
         # Save to file
-        filename = f"business_plan_{business_data.get('name', 'unnamed').replace(' ', '_')}_{
-            datetime.now().strftime('%Y%m%d_%H%M%S')
-        }.md"
+        filename = f"business_plan_{business_data.get('name', 'unnamed').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         file_path = self.output_dir / filename
 
         with open(file_path, "w", encoding="utf-8") as f:

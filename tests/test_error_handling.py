@@ -4,7 +4,6 @@ Tests for error handling and retry logic.
 
 import pytest
 import time
-from unittest.mock import Mock, patch
 from src.error_handling import (
     BusinessIntelligenceError,
     DatabaseError,
@@ -17,7 +16,6 @@ from src.error_handling import (
     validate_input,
     ErrorTracker,
     track_errors,
-    error_tracker,
 )
 
 

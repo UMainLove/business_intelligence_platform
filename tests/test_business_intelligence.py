@@ -3,7 +3,7 @@ Tests for business intelligence integration.
 """
 
 import pytest
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import patch, Mock
 from src.business_intelligence import (
     build_bi_group,
     get_bi_capabilities,
@@ -132,6 +132,7 @@ class TestBIGroupBuilding:
 
         # First call should create components
         result1 = build_bi_group()
+        assert result1 is not None  # Use the variable
         assert mock_build.call_count == 1
 
         # Second call should return cached components

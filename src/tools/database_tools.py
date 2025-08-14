@@ -352,9 +352,7 @@ class BusinessDataDB:
             "count": len(ventures),
             "success_rate": round((successful_ventures / len(ventures) * 100), 1),
             "avg_total_funding": round(total_funding_sum / len(ventures), 0) if ventures else 0,
-            "analysis": f"Found {len(ventures)} similar ventures with {
-                round((successful_ventures / len(ventures) * 100), 1)
-            }% success rate",
+            "analysis": f"Found {len(ventures)} similar ventures with {round((successful_ventures / len(ventures) * 100), 1)}% success rate",
         }
 
     def add_venture(self, venture_data: Dict[str, Any]) -> int:

@@ -2,16 +2,11 @@
 Tests for financial modeling tools.
 """
 
-import pytest
-import numpy as np
-from unittest.mock import patch, Mock
 from src.tools.financial_tools import (
     FinancialCalculator,
-    FinancialMetrics,
     financial_tool_executor,
     create_financial_tool_spec,
 )
-from src.error_handling import ValidationError
 
 
 class TestFinancialCalculator:

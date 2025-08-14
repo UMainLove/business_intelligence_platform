@@ -2,10 +2,8 @@
 Tests for health monitoring functionality.
 """
 
-import pytest
 from unittest.mock import patch, Mock, MagicMock
 from src.health_monitor import HealthMonitor, HealthStatus, health_monitor
-from src.error_handling import error_tracker
 
 
 class TestHealthStatus:

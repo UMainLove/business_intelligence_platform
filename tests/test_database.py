@@ -2,13 +2,11 @@
 Tests for database functionality.
 """
 
-import pytest
 import sqlite3
 from unittest.mock import patch, Mock
 from src.tools.database_tools import BusinessDataDB
 from src.tools.database_production import ProductionBusinessDataDB, database_tool_executor
 from src.database_config import DatabaseConfig
-from src.error_handling import DatabaseError
 
 
 class TestBusinessDataDB:
@@ -17,6 +15,7 @@ class TestBusinessDataDB:
     def test_init_database(self, test_db_path):
         """Test database initialization."""
         db = BusinessDataDB(test_db_path)
+        assert db is not None  # Use the variable
 
         # Check that tables were created
         conn = sqlite3.connect(test_db_path)
@@ -40,6 +39,7 @@ class TestBusinessDataDB:
     def test_populate_sample_data(self, test_db_path):
         """Test sample data population."""
         db = BusinessDataDB(test_db_path)
+        assert db is not None  # Use the variable
 
         conn = sqlite3.connect(test_db_path)
         cursor = conn.cursor()
@@ -118,6 +118,7 @@ class TestProductionBusinessDataDB:
 
         with patch("src.tools.database_production.BusinessDataDB") as mock_sqlite:
             db = ProductionBusinessDataDB()
+            assert db is not None  # Use the variable
             mock_sqlite.assert_called_once()
 
     def test_query_with_sqlite_fallback(self, mock_database_config):

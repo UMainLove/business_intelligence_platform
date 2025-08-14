@@ -87,9 +87,7 @@ def retry_with_backoff(
 
                     if attempt == max_retries:
                         logger.error(
-                            f"Function {func.__name__} failed after {max_retries} retries: {
-                                str(e)
-                            }",
+                            f"Function {func.__name__} failed after {max_retries} retries: {str(e)}",
                             extra={
                                 "function": func.__name__,
                                 "attempt": attempt + 1,
