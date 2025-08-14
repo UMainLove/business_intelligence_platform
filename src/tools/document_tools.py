@@ -116,17 +116,13 @@ class DocumentGenerator:
         trends_text = ""
         if market_data.get("trends"):
             for i, trend in enumerate(market_data["trends"], 1):
-                trends_text += f"{i}. **{trend.get('name', 'Trend')}**: {
-                    trend.get('description', 'Description')
-                }\n"
+                trends_text += f"{i}. **{trend.get('name', 'Trend')}**: {trend.get('description', 'Description')}\n"
 
         # Format competitive landscape
         competitors_text = ""
         if market_data.get("competitors"):
             for competitor in market_data["competitors"]:
-                competitors_text += f"- **{competitor.get('name', 'Competitor')}**: {
-                    competitor.get('description', 'Description')
-                }\n"
+                competitors_text += f"- **{competitor.get('name', 'Competitor')}**: {competitor.get('description', 'Description')}\n"
 
         content = template.format(
             industry=market_data.get("industry", "Industry Analysis"),
@@ -142,9 +138,7 @@ class DocumentGenerator:
         )
 
         # Save to file
-        filename = f"market_analysis_{market_data.get('industry', 'industry').replace(' ', '_')}_{
-            datetime.now().strftime('%Y%m%d_%H%M%S')
-        }.md"
+        filename = f"market_analysis_{market_data.get('industry', 'industry').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         file_path = self.output_dir / filename
 
         with open(file_path, "w", encoding="utf-8") as f:
@@ -230,9 +224,7 @@ class DocumentGenerator:
         )
 
         # Save to file
-        filename = f"financial_model_{
-            financial_data.get('business_name', 'business').replace(' ', '_')
-        }_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        filename = f"financial_model_{financial_data.get('business_name', 'business').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         file_path = self.output_dir / filename
 
         with open(file_path, "w", encoding="utf-8") as f:
