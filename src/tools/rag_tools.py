@@ -73,7 +73,7 @@ class MarketResearchRAG:
         serializable_docs = []
         for doc in self.documents:
             serializable_docs.append(
-                {"id": doc.id, "content": doc.content, "metadata": doc.metadata}
+                {"id": doc.id, "title": doc.title, "content": doc.content, "metadata": doc.metadata}
             )
 
         with open(save_path, "w", encoding="utf-8") as f:
@@ -86,7 +86,12 @@ class MarketResearchRAG:
             with open(save_path, "r", encoding="utf-8") as f:
                 docs_data = json.load(f)
                 self.documents = [
-                    Document(id=doc["id"], content=doc["content"], metadata=doc["metadata"])
+                    Document(
+                        id=doc["id"], 
+                        title=doc.get("title", ""), 
+                        content=doc["content"], 
+                        metadata=doc["metadata"]
+                    )
                     for doc in docs_data
                 ]
 

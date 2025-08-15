@@ -2,6 +2,7 @@
 Mock test for Anthropic API integration without making real API calls.
 """
 
+import sys
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 
@@ -67,18 +68,20 @@ class TestAnthropicIntegration:
             messages=[{"role": "user", "content": "Reply with exactly: pong"}]
         )
 
-    @patch('src.util.get_anthropic_client')
-    def test_util_client_integration(self, mock_get_client):
-        """Test integration with util module client getter."""
-        from src.util import get_anthropic_client
+    def test_util_module_integration(self):
+        """Test integration with util module."""
+        # Since get_anthropic_client doesn't exist in util.py,
+        # test the functions that actually exist
+        from src.util import estimate_cost_usd, describe_pricing
         
-        # Mock the client
-        mock_client = Mock()
-        mock_get_client.return_value = mock_client
+        # Test cost estimation function exists and works
+        cost = estimate_cost_usd(1000, use_bi_pricing=True)
+        assert isinstance(cost, (int, float))
+        assert cost >= 0
         
-        client = get_anthropic_client()
-        assert client == mock_client
-        mock_get_client.assert_called_once()
+        # Test pricing description
+        pricing = describe_pricing()
+        assert isinstance(pricing, dict)
 
     def test_environment_variable_handling(self):
         """Test environment variable handling."""
@@ -97,21 +100,38 @@ class TestAnthropicIntegration:
     @patch('anthropic.Anthropic')
     def test_api_error_handling(self, mock_anthropic_class):
         """Test API error handling."""
-        from anthropic import AuthenticationError, Anthropic
+        from anthropic import Anthropic
+        
+        # Create a mock response and body for AuthenticationError
+        mock_response = Mock()
+        mock_response.status_code = 401
+        mock_response.headers = {"x-request-id": "test-request-id"}
+        mock_body = {"error": {"type": "authentication_error", "message": "invalid x-api-key"}}
+        
+        # Import and create proper AuthenticationError
+        from anthropic import AuthenticationError
+        auth_error = AuthenticationError(
+            message="invalid x-api-key",
+            response=mock_response,
+            body=mock_body
+        )
         
         # Mock client that raises authentication error
         mock_client = Mock()
-        mock_client.messages.create.side_effect = AuthenticationError("invalid x-api-key")
+        mock_client.messages.create.side_effect = auth_error
         mock_anthropic_class.return_value = mock_client
         
         client = Anthropic(api_key="invalid-key")
         
-        with pytest.raises(AuthenticationError, match="invalid x-api-key"):
+        with pytest.raises(AuthenticationError) as exc_info:
             client.messages.create(
                 model="test-model",
                 max_tokens=40,
                 messages=[{"role": "user", "content": "test"}]
             )
+        
+        # Verify the error message
+        assert "invalid x-api-key" in str(exc_info.value)
 
     @patch('dotenv.load_dotenv')
     def test_dotenv_loading(self, mock_load_dotenv):

@@ -155,8 +155,8 @@ def handle_errors(
                     "function": func.__name__,
                     "original_error": str(e),
                     "error_type": type(e).__name__,
-                    "args": str(args)[:200],  # Truncate for logging
-                    "kwargs": str(kwargs)[:200],
+                    "func_args": str(args)[:200],  # Truncate for logging
+                    "func_kwargs": str(kwargs)[:200],
                 }
 
                 if log_errors:

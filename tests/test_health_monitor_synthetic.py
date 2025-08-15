@@ -72,8 +72,8 @@ class TestHealthMonitor:
         }
         
         result = self.monitor.check_system_resources()
-        assert result["status"] == "healthy"
-        assert result["cpu_usage"] == 50
+        assert result.status == "healthy"
+        assert result.details["cpu_usage_percent"] == 50
         
         # Test degraded system (high CPU)
         mock_metrics.return_value = {
@@ -83,7 +83,7 @@ class TestHealthMonitor:
         }
         
         result = self.monitor.check_system_resources()
-        assert result["status"] == "degraded"
+        assert result.status == "degraded"
         
         # Test unhealthy system (very high resources)
         mock_metrics.return_value = {
@@ -93,7 +93,7 @@ class TestHealthMonitor:
         }
         
         result = self.monitor.check_system_resources()
-        assert result["status"] == "unhealthy"
+        assert result.status == "unhealthy"
 
     @patch('src.health_monitor.db_config')
     def test_check_database_health_no_connection(self, mock_db_config):
@@ -103,9 +103,8 @@ class TestHealthMonitor:
         
         result = self.monitor.check_database_health()
         
-        assert result["status"] == "unhealthy"
-        assert "error" in result
-        assert "Connection failed" in result["error"]
+        assert result.status == "unhealthy"
+        assert "Connection failed" in result.message
 
     @patch('src.health_monitor.db_config')
     def test_check_database_health_success(self, mock_db_config):
@@ -119,8 +118,8 @@ class TestHealthMonitor:
         
         result = self.monitor.check_database_health()
         
-        assert result["status"] == "healthy"
-        assert "response_time_ms" in result
+        assert result.status == "healthy"
+        assert "response_time_ms" in result.details
 
     @patch('src.health_monitor.error_tracker')
     def test_check_error_rate_healthy(self, mock_error_tracker):
@@ -132,9 +131,9 @@ class TestHealthMonitor:
         
         result = self.monitor.check_error_rate()
         
-        assert result["status"] == "healthy"
-        assert result["error_count"] == 5
-        assert result["error_types"] == {"ValueError": 3, "TypeError": 2}
+        assert result.status == "healthy"
+        assert result.details["error_count"] == 5
+        assert result.details["error_types"] == {"ValueError": 3, "TypeError": 2}
 
     @patch('src.health_monitor.error_tracker')
     def test_check_error_rate_degraded(self, mock_error_tracker):
@@ -146,8 +145,8 @@ class TestHealthMonitor:
         
         result = self.monitor.check_error_rate()
         
-        assert result["status"] == "degraded"
-        assert result["error_count"] == 25
+        assert result.status == "degraded"
+        assert result.details["error_count"] == 25
 
     @patch('src.health_monitor.error_tracker')
     def test_check_error_rate_unhealthy(self, mock_error_tracker):
@@ -159,17 +158,18 @@ class TestHealthMonitor:
         
         result = self.monitor.check_error_rate()
         
-        assert result["status"] == "unhealthy"
-        assert result["error_count"] == 60
+        assert result.status == "unhealthy"
+        assert result.details["error_count"] == 60
 
     @patch('src.health_monitor.HealthMonitor.check_system_resources')
     @patch('src.health_monitor.HealthMonitor.check_database_health')
     @patch('src.health_monitor.HealthMonitor.check_error_rate')
     def test_get_comprehensive_health_all_healthy(self, mock_error_check, mock_db_check, mock_system_check):
         """Test comprehensive health check with all systems healthy."""
-        mock_system_check.return_value = {"status": "healthy", "cpu_usage": 50}
-        mock_db_check.return_value = {"status": "healthy", "response_time_ms": 10}
-        mock_error_check.return_value = {"status": "healthy", "error_count": 2}
+        from src.health_monitor import HealthStatus
+        mock_system_check.return_value = HealthStatus(status="healthy", message="OK", details={"cpu_usage": 50}, timestamp="2024-01-01T00:00:00")
+        mock_db_check.return_value = HealthStatus(status="healthy", message="OK", details={"response_time_ms": 10}, timestamp="2024-01-01T00:00:00")
+        mock_error_check.return_value = HealthStatus(status="healthy", message="OK", details={"error_count": 2}, timestamp="2024-01-01T00:00:00")
         
         health = self.monitor.get_comprehensive_health()
         
@@ -184,9 +184,10 @@ class TestHealthMonitor:
     @patch('src.health_monitor.HealthMonitor.check_error_rate')
     def test_get_comprehensive_health_mixed(self, mock_error_check, mock_db_check, mock_system_check):
         """Test comprehensive health check with mixed statuses."""
-        mock_system_check.return_value = {"status": "healthy", "cpu_usage": 50}
-        mock_db_check.return_value = {"status": "degraded", "error": "Slow response"}
-        mock_error_check.return_value = {"status": "unhealthy", "error_count": 100}
+        from src.health_monitor import HealthStatus
+        mock_system_check.return_value = HealthStatus(status="healthy", message="OK", details={"cpu_usage": 50}, timestamp="2024-01-01T00:00:00")
+        mock_db_check.return_value = HealthStatus(status="degraded", message="Slow response", details={}, timestamp="2024-01-01T00:00:00")
+        mock_error_check.return_value = HealthStatus(status="unhealthy", message="High errors", details={"error_count": 100}, timestamp="2024-01-01T00:00:00")
         
         health = self.monitor.get_comprehensive_health()
         
@@ -217,7 +218,7 @@ class TestHealthMonitor:
         }
         
         result = self.monitor.check_system_resources()
-        assert result["status"] == "degraded"
+        assert result.status == "degraded"
 
     def test_health_checks_list(self):
         """Test that health_checks list contains expected checks."""
@@ -265,5 +266,5 @@ class TestHealthMonitor:
             result = self.monitor.check_database_health()
             
             # Response time should be approximately 50ms
-            assert "response_time_ms" in result
-            assert abs(result["response_time_ms"] - 50) < 1
+            assert "response_time_ms" in result.details
+            assert abs(result.details["response_time_ms"] - 50) < 1
