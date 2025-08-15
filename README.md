@@ -5,8 +5,8 @@ A comprehensive AI-powered business analysis platform built with AG2 (AutoGen) a
 ![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)
-![Synthetic Tests](https://img.shields.io/badge/synthetic%20tests-116%20passing-brightgreen.svg)
-![Coverage](https://img.shields.io/badge/coverage-80%25+-yellow.svg)
+![Synthetic Tests](https://img.shields.io/badge/synthetic%20tests-186%20passing-brightgreen.svg)
+![Coverage](https://img.shields.io/badge/coverage-53%25-yellow.svg)
 ![Security](https://github.com/UMainLove/business_intelligence_platform/actions/workflows/security.yml/badge.svg)
 
 ## 🚀 Features
@@ -269,4 +269,4 @@ This project is licensed under the MIT License.
 
 **Built with ❤️ using AG2, Claude AI, and modern DevOps practices**
 
-*Evolved from Business-Idea Pre-Validator to comprehensive Business Intelligence Platform - January 2025*
+*Evolved from Business-Idea Pre-Validator to comprehensive Business Intelligence Platform - August 2025*
