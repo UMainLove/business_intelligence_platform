@@ -129,8 +129,11 @@ class TestBuildGroup:
     @patch('src.chat.GroupChatManager')
     def test_build_group(self, mock_manager_class, mock_chat_class, mock_agent_class, mock_cfg):
         """Test building chat group."""
-        # Mock configuration
-        mock_cfg.return_value = {"model": "test", "api_key": "test"}
+        # Mock configuration - needs to support context manager protocol
+        mock_llm_config = Mock()
+        mock_llm_config.__enter__ = Mock(return_value=mock_llm_config)
+        mock_llm_config.__exit__ = Mock(return_value=None)
+        mock_cfg.return_value = mock_llm_config
         
         # Mock agents
         mock_agent = Mock()

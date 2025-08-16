@@ -6,7 +6,7 @@ import functools
 import logging
 import time
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional, Type
 
 logger = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ class BusinessIntelligenceError(Exception):
         self.message = message
         self.error_code = error_code
         self.details = details or {}
-        self.timestamp = datetime.utcnow()
+        self.timestamp = datetime.now(timezone.utc)
 
 
 class DatabaseError(BusinessIntelligenceError):
@@ -275,7 +275,7 @@ class ErrorTracker:
     def record_error(self, error: Exception, context: Dict[str, Any] = None):
         """Record an error for tracking."""
         error_record = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "error_type": type(error).__name__,
             "message": str(error),
             "context": context or {},
@@ -292,7 +292,7 @@ class ErrorTracker:
 
     def get_error_summary(self, hours: int = 24) -> Dict[str, Any]:
         """Get summary of recent errors."""
-        cutoff_time = datetime.utcnow().timestamp() - (hours * 3600)
+        cutoff_time = datetime.now(timezone.utc).timestamp() - (hours * 3600)
 
         recent_errors = [
             error

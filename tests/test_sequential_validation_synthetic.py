@@ -15,110 +15,58 @@ from src.workflows.sequential_validation import (
 
 
 class TestValidationPhase:
-    """Test ValidationPhase data class."""
+    """Test ValidationPhase enum."""
 
-    def test_validation_phase_creation(self):
-        """Test creating a ValidationPhase."""
-        phase = ValidationPhase(
-            name="Market Research",
-            description="Analyze market opportunity",
-            validator=lambda x: {"valid": True},
-            weight=0.25
-        )
-        
-        assert phase.name == "Market Research"
-        assert phase.description == "Analyze market opportunity"
-        assert phase.weight == 0.25
-        assert callable(phase.validator)
+    def test_validation_phase_enum_values(self):
+        """Test ValidationPhase enum values."""
+        assert ValidationPhase.IDEA_REFINEMENT.value == "idea_refinement"
+        assert ValidationPhase.MARKET_VALIDATION.value == "market_validation"
+        assert ValidationPhase.FINANCIAL_MODELING.value == "financial_modeling"
+        assert ValidationPhase.RISK_ASSESSMENT.value == "risk_assessment"
+        assert ValidationPhase.COMPETITIVE_ANALYSIS.value == "competitive_analysis"
+        assert ValidationPhase.REGULATORY_COMPLIANCE.value == "regulatory_compliance"
+        assert ValidationPhase.FINAL_SYNTHESIS.value == "final_synthesis"
 
-    def test_validation_phase_defaults(self):
-        """Test ValidationPhase with default values."""
-        phase = ValidationPhase(
-            name="Test Phase",
-            description="Test description",
-            validator=lambda x: {"valid": True}
-        )
-        
-        # Default weight should be 1.0
-        assert phase.weight == 1.0
+    def test_validation_phase_count(self):
+        """Test that ValidationPhase has expected number of values."""
+        phases = list(ValidationPhase)
+        assert len(phases) == 7
 
 
 class TestPhaseResult:
-    """Test PhaseResult data class."""
+    """Test PhaseResult dataclass."""
 
     def test_phase_result_creation(self):
         """Test creating a PhaseResult."""
         result = PhaseResult(
-            phase_name="Financial Analysis",
-            passed=True,
-            score=0.85,
-            findings={"revenue": "Strong potential"},
-            recommendations=["Focus on B2B market"]
+            phase=ValidationPhase.MARKET_VALIDATION,
+            success=True,
+            data={"market_size": "$1B"},
+            recommendations=["Conduct user interviews"],
+            next_phase=ValidationPhase.FINANCIAL_MODELING,
+            confidence_score=0.85
         )
         
-        assert result.phase_name == "Financial Analysis"
-        assert result.passed is True
-        assert result.score == 0.85
-        assert result.findings == {"revenue": "Strong potential"}
-        assert result.recommendations == ["Focus on B2B market"]
+        assert result.phase == ValidationPhase.MARKET_VALIDATION
+        assert result.success is True
+        assert result.data == {"market_size": "$1B"}
+        assert result.recommendations == ["Conduct user interviews"]
+        assert result.next_phase == ValidationPhase.FINANCIAL_MODELING
+        assert result.confidence_score == 0.85
 
     def test_phase_result_failed(self):
         """Test PhaseResult for failed validation."""
         result = PhaseResult(
-            phase_name="Legal Review",
-            passed=False,
-            score=0.3,
-            findings={"compliance": "Major issues"},
-            recommendations=["Seek legal counsel"]
+            phase=ValidationPhase.RISK_ASSESSMENT,
+            success=False,
+            data={"error": "Insufficient data"},
+            recommendations=["Gather more information"]
         )
         
-        assert result.passed is False
-        assert result.score == 0.3
-
-
-class TestValidationReport:
-    """Test ValidationReport data class."""
-
-    def test_validation_report_creation(self):
-        """Test creating a ValidationReport."""
-        phase_results = [
-            PhaseResult("Market", True, 0.9, {}, []),
-            PhaseResult("Financial", True, 0.8, {}, [])
-        ]
-        
-        report = ValidationReport(
-            overall_score=0.85,
-            passed=True,
-            phase_results=phase_results,
-            executive_summary="Strong business case",
-            next_steps=["Proceed to implementation"]
-        )
-        
-        assert report.overall_score == 0.85
-        assert report.passed is True
-        assert len(report.phase_results) == 2
-        assert report.executive_summary == "Strong business case"
-        assert report.next_steps == ["Proceed to implementation"]
-
-    def test_validation_report_to_dict(self):
-        """Test converting ValidationReport to dictionary."""
-        phase_results = [
-            PhaseResult("Market", True, 0.9, {"size": "Large"}, ["Expand"])
-        ]
-        
-        report = ValidationReport(
-            overall_score=0.9,
-            passed=True,
-            phase_results=phase_results,
-            executive_summary="Excellent opportunity",
-            next_steps=["Launch"]
-        )
-        
-        # ValidationReport should be convertible to dict
-        assert hasattr(report, '__dict__')
-        report_dict = vars(report)
-        assert 'overall_score' in report_dict
-        assert 'phase_results' in report_dict
+        assert result.success is False
+        assert result.data == {"error": "Insufficient data"}
+        assert result.next_phase is None
+        assert result.confidence_score == 0.0
 
 
 class TestSequentialValidationWorkflow:
@@ -126,424 +74,493 @@ class TestSequentialValidationWorkflow:
 
     def test_workflow_initialization(self):
         """Test workflow initialization."""
-        business_data = {
-            "idea": "AI Platform",
-            "market": "B2B SaaS",
-            "revenue_model": "Subscription"
-        }
+        workflow = SequentialValidationWorkflow()
         
-        workflow = SequentialValidationWorkflow(business_data)
-        
-        assert workflow.business_data == business_data
-        assert workflow.phases is not None
-        assert len(workflow.phases) > 0
+        assert workflow.current_phase == ValidationPhase.IDEA_REFINEMENT
+        assert isinstance(workflow.phase_results, dict)
+        assert isinstance(workflow.business_context, dict)
+        assert isinstance(workflow.agents, dict)
 
-    @patch('src.workflows.sequential_validation.ConversableAgent')
-    def test_create_validator_agent(self, mock_agent_class):
-        """Test creating a validator agent."""
-        mock_agent = Mock()
-        mock_agent_class.return_value = mock_agent
+    def test_agents_creation(self):
+        """Test that all required agents are created."""
+        workflow = SequentialValidationWorkflow()
         
-        workflow = SequentialValidationWorkflow({"idea": "Test"})
+        expected_agents = [
+            "idea_refiner",
+            "market_validator", 
+            "financial_modeler",
+            "risk_assessor",
+            "competitive_analyst",
+            "compliance_expert",
+            "synthesizer"
+        ]
         
-        agent = workflow._create_validator_agent(
-            name="MarketValidator",
-            system_message="Validate market"
+        for agent_name in expected_agents:
+            assert agent_name in workflow.agents
+            assert workflow.agents[agent_name] is not None
+
+    @patch('src.workflows.sequential_validation.rag_tool_executor')
+    @patch('src.workflows.sequential_validation.web_search_executor')
+    def test_execute_idea_refinement(self, mock_web, mock_rag):
+        """Test idea refinement phase execution."""
+        workflow = SequentialValidationWorkflow()
+        
+        # Mock agent response
+        with patch.object(workflow.agents["idea_refiner"], 'generate_reply') as mock_reply:
+            mock_reply.return_value = "Refined business concept analysis"
+            
+            input_data = {
+                "business_idea": "AI-powered analytics platform",
+                "target_market": "Enterprise customers"
+            }
+            
+            result = workflow.execute_phase(ValidationPhase.IDEA_REFINEMENT, input_data)
+            
+            assert result.phase == ValidationPhase.IDEA_REFINEMENT
+            assert result.success is True
+            assert "original_idea" in result.data
+            assert result.next_phase == ValidationPhase.MARKET_VALIDATION
+            assert result.confidence_score == 0.8
+
+    @patch('src.workflows.sequential_validation.rag_tool_executor')
+    @patch('src.workflows.sequential_validation.web_search_executor')
+    def test_execute_market_validation(self, mock_web, mock_rag):
+        """Test market validation phase execution."""
+        workflow = SequentialValidationWorkflow()
+        
+        # Mock tool responses
+        mock_rag.return_value = {"market_insights": "Strong growth"}
+        mock_web.return_value = {"trends": "Positive outlook"}
+        
+        # Mock agent response
+        with patch.object(workflow.agents["market_validator"], 'generate_reply') as mock_reply:
+            mock_reply.return_value = "Market analysis complete"
+            
+            input_data = {
+                "industry": "Technology",
+                "target_market": "B2B"
+            }
+            
+            result = workflow.execute_phase(ValidationPhase.MARKET_VALIDATION, input_data)
+            
+            assert result.phase == ValidationPhase.MARKET_VALIDATION
+            assert result.success is True
+            assert "market_size_analysis" in result.data
+            assert result.next_phase == ValidationPhase.FINANCIAL_MODELING
+            
+            # Verify tools were called
+            mock_rag.assert_called_once()
+            mock_web.assert_called_once()
+
+    @patch('src.workflows.sequential_validation.financial_tool_executor')
+    def test_execute_financial_modeling(self, mock_financial):
+        """Test financial modeling phase execution."""
+        workflow = SequentialValidationWorkflow()
+        
+        # Mock financial tool response
+        mock_financial.return_value = {"projections": "5-year forecast"}
+        
+        # Mock agent response
+        with patch.object(workflow.agents["financial_modeler"], 'generate_reply') as mock_reply:
+            mock_reply.return_value = "Financial model analysis"
+            
+            input_data = {
+                "projected_revenue": 1000000,
+                "growth_rate": 0.25,
+                "cac": 100,
+                "ltv": 1000
+            }
+            
+            result = workflow.execute_phase(ValidationPhase.FINANCIAL_MODELING, input_data)
+            
+            assert result.phase == ValidationPhase.FINANCIAL_MODELING
+            assert result.success is True
+            assert "financial_model" in result.data
+            assert result.next_phase == ValidationPhase.RISK_ASSESSMENT
+            
+            # Verify financial tools were called
+            assert mock_financial.call_count >= 1
+
+    @patch('src.workflows.sequential_validation.database_tool_executor')
+    def test_execute_risk_assessment(self, mock_database):
+        """Test risk assessment phase execution."""
+        workflow = SequentialValidationWorkflow()
+        
+        # Mock database response
+        mock_database.return_value = {"historical_data": "Industry benchmarks"}
+        
+        # Mock agent response
+        with patch.object(workflow.agents["risk_assessor"], 'generate_reply') as mock_reply:
+            mock_reply.return_value = "Risk assessment complete"
+            
+            input_data = {
+                "industry": "SaaS",
+                "business_model": "Subscription"
+            }
+            
+            result = workflow.execute_phase(ValidationPhase.RISK_ASSESSMENT, input_data)
+            
+            assert result.phase == ValidationPhase.RISK_ASSESSMENT
+            assert result.success is True
+            assert "risk_assessment" in result.data
+            assert result.next_phase == ValidationPhase.COMPETITIVE_ANALYSIS
+            
+            # Verify database tool was called
+            mock_database.assert_called_once()
+
+    @patch('src.workflows.sequential_validation.web_search_executor')
+    def test_execute_competitive_analysis(self, mock_web):
+        """Test competitive analysis phase execution."""
+        workflow = SequentialValidationWorkflow()
+        
+        # Mock web search response
+        mock_web.return_value = {"competitors": ["CompetitorA", "CompetitorB"]}
+        
+        # Mock agent response
+        with patch.object(workflow.agents["competitive_analyst"], 'generate_reply') as mock_reply:
+            mock_reply.return_value = "Competitive analysis complete"
+            
+            input_data = {
+                "business_idea": "AI analytics",
+                "target_market": "Enterprise"
+            }
+            
+            result = workflow.execute_phase(ValidationPhase.COMPETITIVE_ANALYSIS, input_data)
+            
+            assert result.phase == ValidationPhase.COMPETITIVE_ANALYSIS
+            assert result.success is True
+            assert "competitive_analysis" in result.data
+            assert result.next_phase == ValidationPhase.REGULATORY_COMPLIANCE
+            
+            # Verify web search was called
+            mock_web.assert_called_once()
+
+    @patch('src.workflows.sequential_validation.api_tool_executor')
+    def test_execute_regulatory_compliance(self, mock_api):
+        """Test regulatory compliance phase execution."""
+        workflow = SequentialValidationWorkflow()
+        
+        # Mock API response
+        mock_api.return_value = {"regulations": "GDPR, SOX compliance required"}
+        
+        # Mock agent response
+        with patch.object(workflow.agents["compliance_expert"], 'generate_reply') as mock_reply:
+            mock_reply.return_value = "Compliance analysis complete"
+            
+            input_data = {
+                "industry": "FinTech",
+                "region": "US"
+            }
+            
+            result = workflow.execute_phase(ValidationPhase.REGULATORY_COMPLIANCE, input_data)
+            
+            assert result.phase == ValidationPhase.REGULATORY_COMPLIANCE
+            assert result.success is True
+            assert "compliance_analysis" in result.data
+            assert result.next_phase == ValidationPhase.FINAL_SYNTHESIS
+            
+            # Verify API tool was called
+            mock_api.assert_called_once()
+
+    @patch('src.workflows.sequential_validation.document_tool_executor')
+    def test_execute_final_synthesis(self, mock_document):
+        """Test final synthesis phase execution."""
+        workflow = SequentialValidationWorkflow()
+        
+        # Add some phase results to synthesize
+        workflow.phase_results[ValidationPhase.MARKET_VALIDATION] = PhaseResult(
+            phase=ValidationPhase.MARKET_VALIDATION,
+            success=True,
+            data={"market_data": "validated"},
+            recommendations=[]
         )
         
-        assert agent == mock_agent
-        mock_agent_class.assert_called_once()
-
-    def test_define_validation_phases(self):
-        """Test defining validation phases."""
-        workflow = SequentialValidationWorkflow({"idea": "Test"})
+        # Mock document generation response
+        mock_document.return_value = {"document": "business_plan.pdf"}
         
-        phases = workflow._define_validation_phases()
-        
-        assert isinstance(phases, list)
-        assert len(phases) == 7  # Should have 7 phases
-        
-        phase_names = [p.name for p in phases]
-        assert "Market Research" in phase_names
-        assert "Financial Modeling" in phase_names
-        assert "Legal & Regulatory" in phase_names
-        assert "Technical Feasibility" in phase_names
-        assert "Competitive Analysis" in phase_names
-        assert "Risk Assessment" in phase_names
-        assert "Strategic Planning" in phase_names
-
-    @patch('src.workflows.sequential_validation.ConversableAgent')
-    def test_validate_market_research(self, mock_agent_class):
-        """Test market research validation phase."""
-        mock_agent = Mock()
-        mock_reply = json.dumps({
-            "tam": "$10B",
-            "sam": "$1B",
-            "som": "$100M",
-            "growth_rate": "25%",
-            "validation_passed": True,
-            "confidence_score": 0.85
-        })
-        mock_agent.generate_reply.return_value = mock_reply
-        mock_agent_class.return_value = mock_agent
-        
-        workflow = SequentialValidationWorkflow({"idea": "Test", "market": "B2B"})
-        
-        result = workflow._validate_market_research({"idea": "Test"})
-        
-        assert result["validation_passed"] is True
-        assert result["confidence_score"] == 0.85
-        assert result["tam"] == "$10B"
-
-    @patch('src.workflows.sequential_validation.ConversableAgent')
-    def test_validate_financial_modeling(self, mock_agent_class):
-        """Test financial modeling validation phase."""
-        mock_agent = Mock()
-        mock_reply = json.dumps({
-            "revenue_projections": "$1M Year 1",
-            "unit_economics": "LTV:CAC = 3:1",
-            "break_even": "Month 18",
-            "validation_passed": True,
-            "confidence_score": 0.75
-        })
-        mock_agent.generate_reply.return_value = mock_reply
-        mock_agent_class.return_value = mock_agent
-        
-        workflow = SequentialValidationWorkflow({"idea": "Test"})
-        
-        result = workflow._validate_financial_modeling({"idea": "Test"})
-        
-        assert result["validation_passed"] is True
-        assert result["confidence_score"] == 0.75
-        assert "break_even" in result
-
-    @patch('src.workflows.sequential_validation.ConversableAgent')
-    def test_validate_legal_regulatory(self, mock_agent_class):
-        """Test legal and regulatory validation phase."""
-        mock_agent = Mock()
-        mock_reply = json.dumps({
-            "compliance_requirements": ["GDPR", "SOC2"],
-            "legal_risks": "Low",
-            "validation_passed": True,
-            "confidence_score": 0.9
-        })
-        mock_agent.generate_reply.return_value = mock_reply
-        mock_agent_class.return_value = mock_agent
-        
-        workflow = SequentialValidationWorkflow({"idea": "Test"})
-        
-        result = workflow._validate_legal_regulatory({"idea": "Test"})
-        
-        assert result["validation_passed"] is True
-        assert result["legal_risks"] == "Low"
-
-    @patch('src.workflows.sequential_validation.ConversableAgent')
-    def test_validate_technical_feasibility(self, mock_agent_class):
-        """Test technical feasibility validation phase."""
-        mock_agent = Mock()
-        mock_reply = json.dumps({
-            "technical_requirements": "Standard cloud infrastructure",
-            "development_complexity": "Medium",
-            "validation_passed": True,
-            "confidence_score": 0.8
-        })
-        mock_agent.generate_reply.return_value = mock_reply
-        mock_agent_class.return_value = mock_agent
-        
-        workflow = SequentialValidationWorkflow({"idea": "Test"})
-        
-        result = workflow._validate_technical_feasibility({"idea": "Test"})
-        
-        assert result["validation_passed"] is True
-        assert result["development_complexity"] == "Medium"
-
-    @patch('src.workflows.sequential_validation.ConversableAgent')
-    def test_validate_competitive_analysis(self, mock_agent_class):
-        """Test competitive analysis validation phase."""
-        mock_agent = Mock()
-        mock_reply = json.dumps({
-            "competitors": ["Company A", "Company B"],
-            "differentiation": "Strong AI capabilities",
-            "validation_passed": True,
-            "confidence_score": 0.7
-        })
-        mock_agent.generate_reply.return_value = mock_reply
-        mock_agent_class.return_value = mock_agent
-        
-        workflow = SequentialValidationWorkflow({"idea": "Test"})
-        
-        result = workflow._validate_competitive_analysis({"idea": "Test"})
-        
-        assert result["validation_passed"] is True
-        assert len(result["competitors"]) == 2
-
-    @patch('src.workflows.sequential_validation.ConversableAgent')
-    def test_validate_risk_assessment(self, mock_agent_class):
-        """Test risk assessment validation phase."""
-        mock_agent = Mock()
-        mock_reply = json.dumps({
-            "key_risks": ["Market timing", "Funding"],
-            "risk_mitigation": "Phased approach",
-            "validation_passed": True,
-            "confidence_score": 0.65
-        })
-        mock_agent.generate_reply.return_value = mock_reply
-        mock_agent_class.return_value = mock_agent
-        
-        workflow = SequentialValidationWorkflow({"idea": "Test"})
-        
-        result = workflow._validate_risk_assessment({"idea": "Test"})
-        
-        assert result["validation_passed"] is True
-        assert "Market timing" in result["key_risks"]
-
-    @patch('src.workflows.sequential_validation.ConversableAgent')
-    def test_validate_strategic_planning(self, mock_agent_class):
-        """Test strategic planning validation phase."""
-        mock_agent = Mock()
-        mock_reply = json.dumps({
-            "go_to_market": "Direct sales + partnerships",
-            "milestones": ["MVP in Q1", "Launch in Q2"],
-            "validation_passed": True,
-            "confidence_score": 0.8
-        })
-        mock_agent.generate_reply.return_value = mock_reply
-        mock_agent_class.return_value = mock_agent
-        
-        workflow = SequentialValidationWorkflow({"idea": "Test"})
-        
-        result = workflow._validate_strategic_planning({"idea": "Test"})
-        
-        assert result["validation_passed"] is True
-        assert len(result["milestones"]) == 2
-
-    def test_calculate_overall_score(self):
-        """Test calculating overall validation score."""
-        workflow = SequentialValidationWorkflow({"idea": "Test"})
-        
-        phase_results = [
-            PhaseResult("Phase1", True, 0.9, {}, []),
-            PhaseResult("Phase2", True, 0.8, {}, []),
-            PhaseResult("Phase3", False, 0.4, {}, [])
-        ]
-        
-        # Mock phases with weights
-        workflow.phases = [
-            ValidationPhase("Phase1", "", lambda x: {}, 1.0),
-            ValidationPhase("Phase2", "", lambda x: {}, 1.0),
-            ValidationPhase("Phase3", "", lambda x: {}, 1.0)
-        ]
-        
-        score = workflow._calculate_overall_score(phase_results)
-        
-        # Average of 0.9, 0.8, 0.4 = 0.7
-        assert score == pytest.approx(0.7, rel=0.01)
-
-    def test_generate_executive_summary(self):
-        """Test generating executive summary."""
-        workflow = SequentialValidationWorkflow({"idea": "AI Platform"})
-        
-        phase_results = [
-            PhaseResult("Market Research", True, 0.9, 
-                       {"tam": "$10B"}, ["Focus on enterprise"]),
-            PhaseResult("Financial Modeling", True, 0.8,
-                       {"break_even": "Month 18"}, ["Optimize pricing"])
-        ]
-        
-        summary = workflow._generate_executive_summary(phase_results, 0.85)
-        
-        assert isinstance(summary, str)
-        assert len(summary) > 0
-        assert "validation" in summary.lower() or "score" in summary.lower()
-
-    def test_generate_next_steps(self):
-        """Test generating next steps."""
-        workflow = SequentialValidationWorkflow({"idea": "Test"})
-        
-        phase_results = [
-            PhaseResult("Market", True, 0.9, {}, ["Research competitors"]),
-            PhaseResult("Financial", True, 0.8, {}, ["Refine pricing model"])
-        ]
-        
-        next_steps = workflow._generate_next_steps(phase_results, 0.85)
-        
-        assert isinstance(next_steps, list)
-        assert len(next_steps) > 0
-
-    @patch('src.workflows.sequential_validation.logger')
-    def test_run_validation_with_logging(self, mock_logger):
-        """Test running validation with logging."""
-        workflow = SequentialValidationWorkflow({"idea": "Test"})
-        
-        # Mock all validation methods
-        with patch.object(workflow, '_validate_market_research') as mock_market:
-            with patch.object(workflow, '_validate_financial_modeling') as mock_financial:
-                mock_market.return_value = {"validation_passed": True, "confidence_score": 0.9}
-                mock_financial.return_value = {"validation_passed": True, "confidence_score": 0.8}
-                
-                # Mock other phases to return simple results
-                workflow.phases = workflow.phases[:2]  # Only use first 2 phases
-                
-                report = workflow.run_validation()
-                
-                # Should log phase execution
-                assert mock_logger.info.called
-                assert isinstance(report, ValidationReport)
-
-    def test_run_validation_with_failure(self):
-        """Test validation with failed phases."""
-        workflow = SequentialValidationWorkflow({"idea": "Test"})
-        
-        # Mock validation to fail
-        with patch.object(workflow, '_validate_market_research') as mock_market:
-            mock_market.return_value = {"validation_passed": False, "confidence_score": 0.3}
+        # Mock agent response
+        with patch.object(workflow.agents["synthesizer"], 'generate_reply') as mock_reply:
+            mock_reply.return_value = "Final synthesis complete"
             
-            # Only run one phase
-            workflow.phases = workflow.phases[:1]
+            input_data = {
+                "business_name": "Test Venture"
+            }
             
-            report = workflow.run_validation()
+            result = workflow.execute_phase(ValidationPhase.FINAL_SYNTHESIS, input_data)
             
-            assert report.overall_score < 0.5
-            assert len(report.phase_results) == 1
-            assert report.phase_results[0].passed is False
-
-    def test_validation_with_json_parse_error(self):
-        """Test handling JSON parse errors in validation."""
-        workflow = SequentialValidationWorkflow({"idea": "Test"})
-        
-        with patch('src.workflows.sequential_validation.ConversableAgent') as mock_agent_class:
-            mock_agent = Mock()
-            mock_agent.generate_reply.return_value = "Invalid JSON"
-            mock_agent_class.return_value = mock_agent
+            assert result.phase == ValidationPhase.FINAL_SYNTHESIS
+            assert result.success is True
+            assert "final_assessment" in result.data
+            assert result.next_phase is None  # Final phase
             
-            result = workflow._validate_market_research({"idea": "Test"})
+            # Verify document generation was called
+            mock_document.assert_called_once()
+
+    def test_execute_unknown_phase(self):
+        """Test execution with unknown phase."""
+        workflow = SequentialValidationWorkflow()
+        
+        # Create a mock phase that doesn't exist
+        class UnknownPhase:
+            pass
+        
+        unknown_phase = UnknownPhase()
+        result = workflow.execute_phase(unknown_phase, {})
+        
+        assert result.success is False
+        assert "error" in result.data
+        assert "Unknown phase" in result.data["error"]
+
+    def test_execute_phase_with_exception(self):
+        """Test phase execution with agent exception."""
+        workflow = SequentialValidationWorkflow()
+        
+        # Mock agent to raise exception
+        with patch.object(workflow.agents["idea_refiner"], 'generate_reply') as mock_reply:
+            mock_reply.side_effect = Exception("Agent failed")
             
-            # Should return error result
-            assert result["validation_passed"] is False
-            assert "error" in result
+            result = workflow.execute_phase(ValidationPhase.IDEA_REFINEMENT, {})
+            
+            assert result.phase == ValidationPhase.IDEA_REFINEMENT
+            assert result.success is False
+            assert "error" in result.data
 
-    def test_workflow_with_empty_business_data(self):
-        """Test workflow with empty business data."""
-        workflow = SequentialValidationWorkflow({})
+    def test_run_full_validation_success(self):
+        """Test running complete validation workflow successfully."""
+        workflow = SequentialValidationWorkflow()
         
-        assert workflow.business_data == {}
-        assert len(workflow.phases) == 7
+        # Mock all tool executors
+        with patch('src.workflows.sequential_validation.rag_tool_executor', return_value={}), \
+             patch('src.workflows.sequential_validation.web_search_executor', return_value={}), \
+             patch('src.workflows.sequential_validation.financial_tool_executor', return_value={}), \
+             patch('src.workflows.sequential_validation.database_tool_executor', return_value={}), \
+             patch('src.workflows.sequential_validation.api_tool_executor', return_value={}), \
+             patch('src.workflows.sequential_validation.document_tool_executor', return_value={}):
+            
+            # Mock all agents to return success responses
+            for agent_name, agent in workflow.agents.items():
+                agent.generate_reply = Mock(return_value=f"Success from {agent_name}")
+            
+            initial_data = {
+                "business_idea": "AI Platform",
+                "industry": "Technology",
+                "target_market": "B2B"
+            }
+            
+            results = workflow.run_full_validation(initial_data)
+            
+            assert len(results) == 7  # All phases executed
+            assert all(phase in results for phase in ValidationPhase)
+            
+            # Check business context was updated
+            assert workflow.business_context == initial_data
 
-    def test_phase_weight_calculation(self):
-        """Test that phase weights are properly considered."""
-        workflow = SequentialValidationWorkflow({"idea": "Test"})
+    def test_run_full_validation_with_failure(self):
+        """Test validation workflow stopping on failure."""
+        workflow = SequentialValidationWorkflow()
         
-        # Create phases with different weights
-        phase_results = [
-            PhaseResult("High Weight", True, 1.0, {}, []),
-            PhaseResult("Low Weight", False, 0.0, {}, [])
-        ]
+        # Mock first agent to fail, others shouldn't be called
+        call_count = 0
         
-        workflow.phases = [
-            ValidationPhase("High Weight", "", lambda x: {}, weight=0.9),
-            ValidationPhase("Low Weight", "", lambda x: {}, weight=0.1)
-        ]
+        def mock_generate_reply(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise Exception("First phase failed")
+            return "Success"
         
-        score = workflow._calculate_overall_score(phase_results)
+        for agent in workflow.agents.values():
+            agent.generate_reply = mock_generate_reply
         
-        # Weighted average: (1.0 * 0.9 + 0.0 * 0.1) / 1.0 = 0.9
-        assert score == pytest.approx(0.9, rel=0.01)
+        with patch('src.workflows.sequential_validation.rag_tool_executor', return_value={}), \
+             patch('src.workflows.sequential_validation.web_search_executor', return_value={}):
+            
+            results = workflow.run_full_validation({"business_idea": "Test"})
+            
+            # Should stop after first failure
+            assert len(results) == 1
+            assert ValidationPhase.IDEA_REFINEMENT in results
+            assert results[ValidationPhase.IDEA_REFINEMENT].success is False
 
-    def test_validation_report_serialization(self):
-        """Test that ValidationReport can be serialized."""
-        phase_results = [
-            PhaseResult("Test", True, 0.8, {"key": "value"}, ["recommendation"])
-        ]
+    def test_get_phase_summary_empty(self):
+        """Test phase summary with no completed phases."""
+        workflow = SequentialValidationWorkflow()
         
-        report = ValidationReport(
-            overall_score=0.8,
-            passed=True,
-            phase_results=phase_results,
-            executive_summary="Summary",
-            next_steps=["Step 1"]
+        summary = workflow.get_phase_summary()
+        
+        assert summary["total_phases"] == 7
+        assert summary["completed_phases"] == 0
+        assert summary["success_rate"] == 0
+        assert summary["average_confidence"] == 0
+        assert summary["phase_details"] == {}
+
+    def test_get_phase_summary_with_results(self):
+        """Test phase summary with completed phases."""
+        workflow = SequentialValidationWorkflow()
+        
+        # Add some phase results
+        workflow.phase_results[ValidationPhase.IDEA_REFINEMENT] = PhaseResult(
+            phase=ValidationPhase.IDEA_REFINEMENT,
+            success=True,
+            data={},
+            recommendations=["rec1", "rec2"],
+            confidence_score=0.8
         )
         
-        # Should be serializable to dict
-        report_dict = {
-            "overall_score": report.overall_score,
-            "passed": report.passed,
-            "executive_summary": report.executive_summary,
-            "next_steps": report.next_steps,
-            "phase_results": [
-                {
-                    "phase_name": pr.phase_name,
-                    "passed": pr.passed,
-                    "score": pr.score,
-                    "findings": pr.findings,
-                    "recommendations": pr.recommendations
-                }
-                for pr in report.phase_results
-            ]
-        }
+        workflow.phase_results[ValidationPhase.MARKET_VALIDATION] = PhaseResult(
+            phase=ValidationPhase.MARKET_VALIDATION,
+            success=False,
+            data={},
+            recommendations=["rec3"],
+            confidence_score=0.4
+        )
         
-        assert report_dict["overall_score"] == 0.8
-        assert len(report_dict["phase_results"]) == 1
+        summary = workflow.get_phase_summary()
+        
+        assert summary["total_phases"] == 7
+        assert summary["completed_phases"] == 2
+        assert summary["success_rate"] == 0.5  # 1 out of 2 successful
+        assert abs(summary["average_confidence"] - 0.6) < 0.01  # (0.8 + 0.4) / 2
+        assert len(summary["phase_details"]) == 2
+        
+        # Check phase details
+        phase_details = summary["phase_details"]
+        assert "idea_refinement" in phase_details
+        assert "market_validation" in phase_details
+        
+        idea_details = phase_details["idea_refinement"]
+        assert idea_details["success"] is True
+        assert idea_details["confidence"] == 0.8
+        assert idea_details["recommendations_count"] == 2
+        
+        market_details = phase_details["market_validation"]
+        assert market_details["success"] is False
+        assert market_details["confidence"] == 0.4
+        assert market_details["recommendations_count"] == 1
+
+    def test_create_anthropic_config(self):
+        """Test anthropic config creation."""
+        workflow = SequentialValidationWorkflow()
+        
+        config = workflow._create_anthropic_config(0.5, 1000)
+        
+        # Verify config has the expected properties and structure
+        assert hasattr(config, 'temperature')
+        assert config.temperature == 0.5
+        
+        # LLMConfig stores max_tokens in config_list
+        assert hasattr(config, 'config_list')
+        assert len(config.config_list) > 0
+        assert config.config_list[0]['max_tokens'] == 1000
+
+    def test_phase_execution_order(self):
+        """Test that phases execute in correct order."""
+        workflow = SequentialValidationWorkflow()
+        
+        # Test the phase ordering
+        expected_order = [
+            ValidationPhase.IDEA_REFINEMENT,
+            ValidationPhase.MARKET_VALIDATION,
+            ValidationPhase.FINANCIAL_MODELING,
+            ValidationPhase.RISK_ASSESSMENT,
+            ValidationPhase.COMPETITIVE_ANALYSIS,
+            ValidationPhase.REGULATORY_COMPLIANCE,
+            ValidationPhase.FINAL_SYNTHESIS,
+        ]
+        
+        # This test verifies the order is defined correctly
+        # by checking the next_phase assignments in each phase execution
+        input_data = {"test": "data"}
+        
+        # Check idea refinement -> market validation
+        with patch.object(workflow.agents["idea_refiner"], 'generate_reply', return_value="test"):
+            result = workflow.execute_phase(ValidationPhase.IDEA_REFINEMENT, input_data)
+            assert result.next_phase == ValidationPhase.MARKET_VALIDATION
+        
+        # Check market validation -> financial modeling
+        with patch('src.workflows.sequential_validation.rag_tool_executor', return_value={}), \
+             patch('src.workflows.sequential_validation.web_search_executor', return_value={}), \
+             patch.object(workflow.agents["market_validator"], 'generate_reply', return_value="test"):
+            result = workflow.execute_phase(ValidationPhase.MARKET_VALIDATION, input_data)
+            assert result.next_phase == ValidationPhase.FINANCIAL_MODELING
 
 
 class TestValidationIntegration:
-    """Test complete validation workflow integration."""
+    """Test integration scenarios."""
 
-    @patch('src.workflows.sequential_validation.ConversableAgent')
-    def test_full_validation_workflow(self, mock_agent_class):
-        """Test complete validation workflow from start to finish."""
-        # Setup mock agent
-        mock_agent = Mock()
+    def test_full_validation_workflow_integration(self):
+        """Test complete workflow integration."""
+        workflow = SequentialValidationWorkflow()
         
-        # Mock different responses for different phases
-        responses = [
-            json.dumps({"validation_passed": True, "confidence_score": 0.9, "tam": "$10B"}),
-            json.dumps({"validation_passed": True, "confidence_score": 0.85, "break_even": "Month 18"}),
-            json.dumps({"validation_passed": True, "confidence_score": 0.8, "legal_risks": "Low"}),
-            json.dumps({"validation_passed": True, "confidence_score": 0.75, "complexity": "Medium"}),
-            json.dumps({"validation_passed": True, "confidence_score": 0.7, "competitors": []}),
-            json.dumps({"validation_passed": False, "confidence_score": 0.4, "key_risks": ["High"]}),
-            json.dumps({"validation_passed": True, "confidence_score": 0.8, "milestones": []})
-        ]
-        
-        mock_agent.generate_reply.side_effect = responses
-        mock_agent_class.return_value = mock_agent
-        
-        # Run workflow
-        business_data = {
-            "idea": "AI-powered analytics platform",
-            "market": "B2B SaaS",
-            "target_customers": "Enterprise",
-            "revenue_model": "Subscription"
-        }
-        
-        workflow = SequentialValidationWorkflow(business_data)
-        report = workflow.run_validation()
-        
-        # Verify report
-        assert isinstance(report, ValidationReport)
-        assert len(report.phase_results) == 7
-        assert report.overall_score > 0
-        assert isinstance(report.executive_summary, str)
-        assert isinstance(report.next_steps, list)
-        
-        # Check that one phase failed
-        failed_phases = [pr for pr in report.phase_results if not pr.passed]
-        assert len(failed_phases) == 1
+        # Mock all external dependencies
+        with patch('src.workflows.sequential_validation.rag_tool_executor') as mock_rag, \
+             patch('src.workflows.sequential_validation.web_search_executor') as mock_web, \
+             patch('src.workflows.sequential_validation.financial_tool_executor') as mock_fin, \
+             patch('src.workflows.sequential_validation.database_tool_executor') as mock_db, \
+             patch('src.workflows.sequential_validation.api_tool_executor') as mock_api, \
+             patch('src.workflows.sequential_validation.document_tool_executor') as mock_doc:
+            
+            # Configure mock responses
+            mock_rag.return_value = {"insights": "market data"}
+            mock_web.return_value = {"trends": "positive"}
+            mock_fin.return_value = {"projections": "profitable"}
+            mock_db.return_value = {"benchmarks": "industry data"}
+            mock_api.return_value = {"regulations": "compliant"}
+            mock_doc.return_value = {"document": "business_plan"}
+            
+            # Mock all agent responses
+            for agent in workflow.agents.values():
+                agent.generate_reply = Mock(return_value="Phase completed successfully")
+            
+            business_data = {
+                "business_idea": "AI-powered analytics platform",
+                "industry": "Technology",
+                "target_market": "Enterprise",
+                "business_name": "Analytics Inc"
+            }
+            
+            results = workflow.run_full_validation(business_data)
+            
+            # Verify all phases completed
+            assert len(results) == 7
+            assert all(results[phase].success for phase in ValidationPhase)
+            
+            # Verify tools were called appropriately
+            mock_rag.assert_called()
+            mock_web.assert_called()
+            mock_fin.assert_called()
+            mock_db.assert_called()
+            mock_api.assert_called()
+            mock_doc.assert_called()
 
-    def test_validation_with_exception_handling(self):
-        """Test that exceptions are handled gracefully."""
-        workflow = SequentialValidationWorkflow({"idea": "Test"})
+    def test_validation_with_partial_failure_recovery(self):
+        """Test workflow handles partial failures gracefully."""
+        workflow = SequentialValidationWorkflow()
         
-        # Mock a phase to raise an exception
-        with patch.object(workflow, '_validate_market_research') as mock_validate:
-            mock_validate.side_effect = Exception("Network error")
-            
-            # Only test first phase
-            workflow.phases = workflow.phases[:1]
-            
-            report = workflow.run_validation()
-            
-            # Should still return a report, but with error
-            assert isinstance(report, ValidationReport)
-            assert report.phase_results[0].passed is False
-            assert "error" in report.phase_results[0].findings
+        # Mock some phases to fail, others to succeed
+        phase_results = {}
+        
+        def mock_execute_phase(phase, data):
+            if phase == ValidationPhase.FINANCIAL_MODELING:
+                return PhaseResult(
+                    phase=phase,
+                    success=False,
+                    data={"error": "Insufficient financial data"},
+                    recommendations=["Gather more financial assumptions"]
+                )
+            else:
+                return PhaseResult(
+                    phase=phase,
+                    success=True,
+                    data={"status": "completed"},
+                    recommendations=[],
+                    confidence_score=0.8
+                )
+        
+        workflow.execute_phase = mock_execute_phase
+        
+        results = workflow.run_full_validation({"business_idea": "Test"})
+        
+        # Should stop at financial modeling failure
+        assert len(results) == 3  # idea_refinement, market_validation, financial_modeling
+        assert results[ValidationPhase.FINANCIAL_MODELING].success is False

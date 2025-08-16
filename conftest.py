@@ -85,6 +85,35 @@ def clean_error_tracker():
     yield error_tracker
     error_tracker.errors.clear()
 
+
+@pytest.fixture(autouse=True)
+def reset_global_state():
+    """Reset all global singletons before each test to ensure isolation."""
+    # Import here to avoid circular imports
+    import src.chat as chat_module
+    import src.business_intelligence as bi_module
+    import src.error_handling as error_module
+    
+    # Reset all global state before each test
+    chat_module._manager = None
+    chat_module._user_proxy = None
+    chat_module._synthesizer = None
+    chat_module._memory_dict = None
+    
+    bi_module._bi_manager = None
+    bi_module._bi_user_proxy = None
+    bi_module._bi_synthesizer = None
+    bi_module._bi_workflow = None
+    bi_module._bi_swarm = None
+    
+    # Reset error tracker state
+    if hasattr(error_module.error_tracker, '_errors'):
+        error_module.error_tracker._errors.clear()
+    if hasattr(error_module.error_tracker, 'errors'):
+        error_module.error_tracker.errors.clear()
+    
+    yield  # Run the test
+
 @pytest.fixture
 def mock_streamlit():
     """Mock Streamlit for testing UI components."""

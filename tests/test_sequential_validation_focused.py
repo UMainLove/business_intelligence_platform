@@ -319,12 +319,12 @@ class TestWorkflowExecution:
         summary = workflow.get_phase_summary()
         
         assert "completed_phases" in summary
-        assert "successful_phases" in summary
-        assert "failed_phases" in summary
-        assert "recommendations" in summary
-        assert len(summary["completed_phases"]) == 2
-        assert len(summary["successful_phases"]) == 1
-        assert len(summary["failed_phases"]) == 1
+        assert "success_rate" in summary
+        assert "average_confidence" in summary
+        assert "phase_details" in summary
+        assert summary["completed_phases"] == 2
+        assert summary["success_rate"] == 0.5  # 1 success out of 2 phases
+        assert len(summary["phase_details"]) == 2
 
 
 class TestErrorHandling:
@@ -362,7 +362,8 @@ class TestErrorHandling:
         assert result.phase == ValidationPhase.IDEA_REFINEMENT
 
     @patch('src.workflows.sequential_validation.ConversableAgent')
-    def test_run_with_max_retries(self, mock_agent_class):
+    @patch('src.workflows.sequential_validation.financial_tool_executor')
+    def test_run_with_max_retries(self, mock_financial, mock_agent_class):
         """Test that max_retries is respected."""
         mock_agent = Mock()
         # Always fail to force retries
@@ -370,6 +371,9 @@ class TestErrorHandling:
             "error": "Failed"
         })
         mock_agent_class.return_value = mock_agent
+        
+        # Mock financial tool to avoid string growth_rate error
+        mock_financial.return_value = {"npv": 100000, "irr": 0.25}
         
         workflow = SequentialValidationWorkflow()
         

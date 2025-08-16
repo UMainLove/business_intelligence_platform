@@ -5,7 +5,7 @@ Health monitoring and diagnostics for Business Intelligence Platform.
 import logging
 import time
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict
 
 import psutil
@@ -72,14 +72,14 @@ class HealthMonitor:
                         "database_type": "PostgreSQL" if db_config.use_postgres else "SQLite",
                         "response_time_ms": "< 100",
                     },
-                    timestamp=datetime.utcnow().isoformat(),
+                    timestamp=datetime.now(timezone.utc).isoformat(),
                 )
             else:
                 return HealthStatus(
                     status="unhealthy",
                     message="Database query returned no result",
                     details={"database_type": "PostgreSQL" if db_config.use_postgres else "SQLite"},
-                    timestamp=datetime.utcnow().isoformat(),
+                    timestamp=datetime.now(timezone.utc).isoformat(),
                 )
 
         except Exception as e:
@@ -88,7 +88,7 @@ class HealthMonitor:
                 status="unhealthy",
                 message=f"Database connection failed: {str(e)}",
                 details={"error": str(e)},
-                timestamp=datetime.utcnow().isoformat(),
+                timestamp=datetime.now(timezone.utc).isoformat(),
             )
 
     def check_error_rate(self, hours: int = 1) -> HealthStatus:
@@ -115,7 +115,7 @@ class HealthMonitor:
                 status=status,
                 message=message,
                 details=error_summary,
-                timestamp=datetime.utcnow().isoformat(),
+                timestamp=datetime.now(timezone.utc).isoformat(),
             )
 
         except Exception as e:
@@ -124,7 +124,7 @@ class HealthMonitor:
                 status="degraded",
                 message=f"Could not check error rates: {str(e)}",
                 details={"error": str(e)},
-                timestamp=datetime.utcnow().isoformat(),
+                timestamp=datetime.now(timezone.utc).isoformat(),
             )
 
     def check_system_resources(self) -> HealthStatus:
@@ -137,7 +137,7 @@ class HealthMonitor:
                     status="degraded",
                     message="Could not retrieve system metrics",
                     details=metrics,
-                    timestamp=datetime.utcnow().isoformat(),
+                    timestamp=datetime.now(timezone.utc).isoformat(),
                 )
 
             # Check thresholds
@@ -162,7 +162,7 @@ class HealthMonitor:
                 status=status,
                 message=message,
                 details=metrics,
-                timestamp=datetime.utcnow().isoformat(),
+                timestamp=datetime.now(timezone.utc).isoformat(),
             )
 
         except Exception as e:
@@ -171,7 +171,7 @@ class HealthMonitor:
                 status="unhealthy",
                 message=f"System resource check failed: {str(e)}",
                 details={"error": str(e)},
-                timestamp=datetime.utcnow().isoformat(),
+                timestamp=datetime.now(timezone.utc).isoformat(),
             )
 
     def get_comprehensive_health(self) -> Dict[str, Any]:
@@ -193,7 +193,7 @@ class HealthMonitor:
 
         return {
             "overall_status": overall_status,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "uptime_seconds": int(time.time() - self.start_time),
             "checks": {
                 name: {
@@ -216,13 +216,13 @@ class HealthMonitor:
                 cursor.execute("SELECT 1")
                 cursor.fetchone()
 
-            return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+            return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
         except Exception as e:
             logger.error(f"Simple health check failed: {e}")
             return {
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
 
