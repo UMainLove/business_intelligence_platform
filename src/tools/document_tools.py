@@ -372,9 +372,7 @@ class DocumentGenerator:
         )
 
         # Save to file
-        filename = f"executive_summary_{
-            session_data.get('business_name', 'business').replace(' ', '_')
-        }_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        filename = f"executive_summary_{session_data.get('business_name', 'business').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         file_path = self.output_dir / filename
 
         with open(file_path, "w", encoding="utf-8") as f:
