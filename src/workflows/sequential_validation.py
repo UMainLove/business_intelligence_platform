@@ -4,7 +4,7 @@ Sequential chat workflow for phased business validation.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from autogen import ConversableAgent, LLMConfig
 
@@ -39,7 +39,7 @@ class PhaseResult:
     success: bool
     data: Dict[str, Any]
     recommendations: List[str]
-    next_phase: ValidationPhase = None
+    next_phase: Optional[ValidationPhase] = None
     confidence_score: float = 0.0
 
 
@@ -675,7 +675,7 @@ class SequentialValidationWorkflow:
 
     def get_phase_summary(self) -> Dict[str, Any]:
         """Get summary of all completed phases."""
-        summary = {
+        summary: Dict[str, Any] = {
             "total_phases": len(ValidationPhase),
             "completed_phases": len(self.phase_results),
             "success_rate": (
@@ -692,8 +692,9 @@ class SequentialValidationWorkflow:
             "phase_details": {},
         }
 
+        phase_details = summary["phase_details"]
         for phase, result in self.phase_results.items():
-            summary["phase_details"][phase.value] = {
+            phase_details[phase.value] = {
                 "success": result.success,
                 "confidence": result.confidence_score,
                 "recommendations_count": len(result.recommendations),

@@ -36,7 +36,9 @@ class MarketResearchRAG:
         """Generate unique ID for document using SHA-256."""
         return hashlib.sha256(content.encode()).hexdigest()[:12]
 
-    def add_document(self, title: str, content: str, metadata: Dict[str, Any] = None) -> str:
+    def add_document(
+        self, title: str, content: str, metadata: Optional[Dict[str, Any]] = None
+    ) -> str:
         """Add a document to the RAG system."""
         doc_id = self.generate_id(content)
         doc = Document(id=doc_id, title=title, content=content, metadata=metadata or {})
@@ -121,7 +123,9 @@ class MarketResearchRAG:
             title=f"Competitor Analysis: {company}", content=content, metadata=metadata
         )
 
-    def add_industry_report(self, title: str, report: str, metadata: Dict[str, Any] = None) -> str:
+    def add_industry_report(
+        self, title: str, report: str, metadata: Optional[Dict[str, Any]] = None
+    ) -> str:
         """Add industry report."""
         meta = metadata or {}
         meta["type"] = "industry_report"
@@ -131,7 +135,7 @@ class MarketResearchRAG:
         """Get market insights based on query."""
         relevant_docs = self.search(query, top_k=3)
 
-        insights = {
+        insights: Dict[str, Any] = {
             "query": query,
             "sources": [],
             "key_findings": [],

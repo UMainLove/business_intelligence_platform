@@ -35,7 +35,7 @@ class FinancialCalculator:
     @staticmethod
     def calculate_npv(cash_flows: List[float], discount_rate: float) -> float:
         """Calculate Net Present Value."""
-        npv = 0
+        npv = 0.0
         for t, cf in enumerate(cash_flows):
             npv += cf / ((1 + discount_rate) ** t)
         return npv
@@ -85,7 +85,7 @@ class FinancialCalculator:
     ) -> int:
         """Calculate break-even point in units."""
         if price_per_unit <= variable_cost_per_unit:
-            return float("inf")
+            return -1  # Return -1 to indicate impossible break-even
         contribution_margin = price_per_unit - variable_cost_per_unit
         return int(np.ceil(fixed_costs / contribution_margin))
 

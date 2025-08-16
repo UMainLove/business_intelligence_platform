@@ -4,7 +4,7 @@ Database integration for historical business data and benchmarks.
 
 import sqlite3
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 
 class BusinessDataDB:
@@ -284,7 +284,7 @@ class BusinessDataDB:
         results = cursor.fetchall()
         conn.close()
 
-        benchmarks = {"industry": industry, "metrics": []}
+        benchmarks: Dict[str, Any] = {"industry": industry, "metrics": []}
 
         for metric_name, value, unit, percentile, source in results:
             benchmarks["metrics"].append(
@@ -300,7 +300,7 @@ class BusinessDataDB:
         return benchmarks
 
     def analyze_similar_ventures(
-        self, industry: str, business_model: str, region: str = None
+        self, industry: str, business_model: str, region: Optional[str] = None
     ) -> Dict[str, Any]:
         """Find and analyze similar ventures."""
         conn = sqlite3.connect(self.db_path)
@@ -386,7 +386,7 @@ class BusinessDataDB:
         conn.commit()
         conn.close()
 
-        return venture_id
+        return venture_id or 0
 
 
 def create_database_tool_spec():
@@ -424,7 +424,9 @@ def database_tool_executor(query_type: str, params: Dict[str, Any]) -> Dict[str,
 
     elif query_type == "similar_ventures":
         return db.analyze_similar_ventures(
-            params["industry"], params["business_model"], params.get("region")
+            params["industry"],
+            params["business_model"],
+            params.get("region") if "region" in params else None,
         )
 
     elif query_type == "add_venture":

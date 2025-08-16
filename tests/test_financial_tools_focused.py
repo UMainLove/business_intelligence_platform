@@ -263,7 +263,7 @@ class TestFinancialCalculatorBreakEven:
             fixed_costs, price_per_unit, variable_cost_per_unit
         )
 
-        assert result == float("inf")
+        assert result == -1  # Returns -1 to indicate impossible break-even
 
     def test_calculate_break_even_negative_margin(self):
         """Test break-even calculation when price is less than variable cost."""
@@ -275,7 +275,7 @@ class TestFinancialCalculatorBreakEven:
             fixed_costs, price_per_unit, variable_cost_per_unit
         )
 
-        assert result == float("inf")
+        assert result == -1  # Returns -1 to indicate impossible break-even
 
     def test_calculate_break_even_zero_fixed_costs(self):
         """Test break-even calculation with zero fixed costs."""

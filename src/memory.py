@@ -8,9 +8,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, cast
 
 from anthropic import Anthropic
+from anthropic.types import MessageParam
 
 from .config import settings
 
@@ -102,9 +103,13 @@ def build_memory_from_messages(
         max_tokens=settings.max_tokens_memory,
         temperature=settings.temperature_memory,
         top_p=settings.top_p,
-        messages=msgs,
+        messages=cast(List[MessageParam], msgs),
     )
-    txt = resp.content[0].text.strip()
+    content_block = resp.content[0]
+    if hasattr(content_block, "text"):
+        txt = content_block.text.strip()
+    else:
+        txt = str(content_block)
     try:
         data = json.loads(txt)
     except Exception:

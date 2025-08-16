@@ -3,7 +3,7 @@ Business Intelligence Platform integration with AG2 and all tools.
 """
 
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, cast
 
 from autogen import ConversableAgent, GroupChat, GroupChatManager
 from autogen.tools import Tool
@@ -50,7 +50,9 @@ _bi_swarm = None
 class BusinessIntelligenceAgent(ConversableAgent):
     """Enhanced agent with business intelligence tools."""
 
-    def __init__(self, name: str, system_message: str, llm_config: Dict, tools: List[Tool] = None):
+    def __init__(
+        self, name: str, system_message: str, llm_config: Dict, tools: Optional[List[Tool]] = None
+    ):
         super().__init__(
             name=name,
             system_message=system_message,
@@ -155,7 +157,12 @@ def create_bi_tools_list() -> List[Dict[str, Any]]:
     ]
 
 
-@retry_with_backoff(**MODEL_RETRY_CONFIG)
+@retry_with_backoff(
+    max_retries=cast(int, MODEL_RETRY_CONFIG["max_retries"]),
+    initial_delay=cast(float, MODEL_RETRY_CONFIG["initial_delay"]),
+    max_delay=cast(float, MODEL_RETRY_CONFIG["max_delay"]),
+    exceptions=cast(tuple, MODEL_RETRY_CONFIG["exceptions"]),
+)
 @handle_errors(error_mapping={ValueError: ModelError, KeyError: ModelError})
 @track_errors
 def build_bi_group():
@@ -334,7 +341,7 @@ def run_sequential_validation(business_data: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def run_swarm_analysis(
-    business_data: Dict[str, Any], scenarios: List[str] = None
+    business_data: Dict[str, Any], scenarios: Optional[List[str]] = None
 ) -> Dict[str, Any]:
     """Run swarm scenario analysis."""
     _, _, _, _, swarm = build_bi_group()

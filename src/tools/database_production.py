@@ -4,7 +4,7 @@ Maintains the same interface as BusinessDataDB for seamless integration.
 """
 
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Optional, cast
 
 from src.database_config import db_config
 from src.error_handling import (
@@ -37,7 +37,12 @@ class ProductionBusinessDataDB:
 
         self.init_database()
 
-    @retry_with_backoff(**DATABASE_RETRY_CONFIG)
+    @retry_with_backoff(
+        max_retries=cast(int, DATABASE_RETRY_CONFIG["max_retries"]),
+        initial_delay=cast(float, DATABASE_RETRY_CONFIG["initial_delay"]),
+        max_delay=cast(float, DATABASE_RETRY_CONFIG["max_delay"]),
+        exceptions=cast(tuple, DATABASE_RETRY_CONFIG["exceptions"]),
+    )
     @handle_errors(error_mapping={ConnectionError: DatabaseError, TimeoutError: DatabaseError})
     @track_errors
     def init_database(self):
@@ -176,7 +181,12 @@ class ProductionBusinessDataDB:
 
             conn.commit()
 
-    @retry_with_backoff(**DATABASE_RETRY_CONFIG)
+    @retry_with_backoff(
+        max_retries=cast(int, DATABASE_RETRY_CONFIG["max_retries"]),
+        initial_delay=cast(float, DATABASE_RETRY_CONFIG["initial_delay"]),
+        max_delay=cast(float, DATABASE_RETRY_CONFIG["max_delay"]),
+        exceptions=cast(tuple, DATABASE_RETRY_CONFIG["exceptions"]),
+    )
     @handle_errors(error_mapping={ConnectionError: DatabaseError, TimeoutError: DatabaseError})
     @track_errors
     def query_industry_success_rates(self, industry: str) -> Dict[str, Any]:
@@ -267,7 +277,7 @@ class ProductionBusinessDataDB:
 
             results = cursor.fetchall()
 
-        benchmarks = {"industry": industry, "metrics": []}
+        benchmarks: Dict[str, Any] = {"industry": industry, "metrics": []}
 
         for row in results:
             benchmarks["metrics"].append(
@@ -283,7 +293,7 @@ class ProductionBusinessDataDB:
         return benchmarks
 
     def analyze_similar_ventures(
-        self, industry: str, business_model: str, region: str = None
+        self, industry: str, business_model: str, region: Optional[str] = None
     ) -> Dict[str, Any]:
         """Find and analyze similar ventures."""
         if not self.db_config.use_postgres:
@@ -310,8 +320,8 @@ class ProductionBusinessDataDB:
             return {"similar_ventures": [], "analysis": "No similar ventures found in database"}
 
         ventures = []
-        total_funding_sum = 0
-        successful_ventures = 0
+        total_funding_sum = 0.0
+        successful_ventures: int = 0
 
         for row in results:
             venture = {
@@ -389,7 +399,9 @@ def database_tool_executor(query_type: str, params: Dict[str, Any]) -> Dict[str,
 
     elif query_type == "similar_ventures":
         return db.analyze_similar_ventures(
-            params["industry"], params["business_model"], params.get("region")
+            params["industry"],
+            params["business_model"],
+            params.get("region") if "region" in params else None,
         )
 
     elif query_type == "add_venture":

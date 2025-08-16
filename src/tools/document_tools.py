@@ -403,7 +403,7 @@ class DocumentGenerator:
             )
 
         # Sort by creation time, newest first
-        documents.sort(key=lambda x: x["created"], reverse=True)
+        documents.sort(key=lambda x: str(x["created"]), reverse=True)
         return documents
 
 

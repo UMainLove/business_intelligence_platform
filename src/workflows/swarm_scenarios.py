@@ -5,7 +5,7 @@ Swarm intelligence for scenario analysis and stress testing business ideas.
 import concurrent.futures
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from autogen import ConversableAgent, LLMConfig
 
@@ -295,7 +295,7 @@ class SwarmScenarioAnalysis:
             )
 
     def run_swarm_analysis(
-        self, business_data: Dict[str, Any], scenarios: List[ScenarioType] = None
+        self, business_data: Dict[str, Any], scenarios: Optional[List[ScenarioType]] = None
     ) -> Dict[ScenarioType, ScenarioResult]:
         """Run parallel swarm analysis across multiple scenarios."""
 

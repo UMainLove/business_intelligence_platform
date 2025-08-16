@@ -1,4 +1,4 @@
-ag2>=0.9.8
+ag2==0.9.7
 autogen-ext==0.7.2
 anthropic==0.64.0
 streamlit>=1.36

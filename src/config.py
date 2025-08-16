@@ -1,24 +1,25 @@
 import os
 from dataclasses import dataclass
+from typing import Optional
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
-def _bool(env_value: str, default=False) -> bool:
+def _bool(env_value: Optional[str], default=False) -> bool:
     if env_value is None:
         return default
     return env_value.strip().lower() in {"1", "true", "yes", "on"}
 
 
-def _int(env_value: str, default: int) -> int:
+def _int(env_value: Optional[str], default: int) -> int:
     if env_value is None or env_value == "":
         return default
     return int(env_value)
 
 
-def _float(env_value: str, default: float) -> float:
+def _float(env_value: Optional[str], default: float) -> float:
     if env_value is None or env_value == "":
         return default
     return float(env_value)

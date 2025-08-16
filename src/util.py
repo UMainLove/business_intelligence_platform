@@ -193,7 +193,7 @@ def estimate_cost_usd(
     return cost
 
 
-def describe_pricing() -> Dict[str, float]:
+def describe_pricing() -> Dict[str, Any]:
     """
     Useful for debugging/telemetry in the UI sidebar.
     Returns a dict with the active per-1K prices.
@@ -273,8 +273,9 @@ def get_cost_breakdown(approx_tokens: int, use_bi_pricing: bool = True) -> Dict[
         "pricing_model": "BI_Enhanced" if use_bi_pricing else "Standard",
         "cost_increase_vs_standard": (
             (
-                (total_cost / estimate_cost_usd(approx_tokens, use_bi_pricing=False) - 1) * 100
-                if estimate_cost_usd(approx_tokens, use_bi_pricing=False)
+                (total_cost / standard_cost - 1) * 100
+                if (standard_cost := estimate_cost_usd(approx_tokens, use_bi_pricing=False))
+                and standard_cost > 0
                 else 0
             )
             if use_bi_pricing

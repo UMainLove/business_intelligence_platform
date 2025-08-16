@@ -4,7 +4,7 @@ External API integration tools for real-time business intelligence.
 
 import time
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 
 class ExternalAPITool:
@@ -111,7 +111,9 @@ class ExternalAPITool:
 
         return mock_response
 
-    def search_patents(self, company_name: str, keywords: List[str] = None) -> Dict[str, Any]:
+    def search_patents(
+        self, company_name: str, keywords: Optional[List[str]] = None
+    ) -> Dict[str, Any]:
         """Search for patents (mock USPTO API)."""
         mock_response = {
             "company": company_name,

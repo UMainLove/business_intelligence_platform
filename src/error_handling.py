@@ -15,7 +15,12 @@ logger = logging.getLogger(__name__)
 class BusinessIntelligenceError(Exception):
     """Base exception for Business Intelligence Platform."""
 
-    def __init__(self, message: str, error_code: str = None, details: Dict[str, Any] = None):
+    def __init__(
+        self,
+        message: str,
+        error_code: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
         super().__init__(message)
         self.message = message
         self.error_code = error_code
@@ -223,7 +228,7 @@ def safe_execute(
 
 
 def validate_input(
-    data: Dict[str, Any], required_fields: List[str], field_types: Dict[str, Type] = None
+    data: Dict[str, Any], required_fields: List[str], field_types: Optional[Dict[str, Type]] = None
 ) -> None:
     """
     Validate input data with required fields and types.
@@ -272,7 +277,7 @@ class ErrorTracker:
         self.max_errors = max_errors
         self.errors: List[Dict[str, Any]] = []
 
-    def record_error(self, error: Exception, context: Dict[str, Any] = None):
+    def record_error(self, error: Exception, context: Optional[Dict[str, Any]] = None):
         """Record an error for tracking."""
         error_record = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -282,7 +287,7 @@ class ErrorTracker:
         }
 
         if isinstance(error, BusinessIntelligenceError):
-            error_record.update({"error_code": error.error_code, "details": error.details})
+            error_record.update({"error_code": error.error_code or "", "details": error.details})
 
         self.errors.append(error_record)
 
@@ -300,7 +305,7 @@ class ErrorTracker:
             if datetime.fromisoformat(error["timestamp"]).timestamp() > cutoff_time
         ]
 
-        error_counts = {}
+        error_counts: Dict[str, int] = {}
         for error in recent_errors:
             error_type = error["error_type"]
             error_counts[error_type] = error_counts.get(error_type, 0) + 1

@@ -133,7 +133,7 @@ def _rebuild_group(
 ) -> Tuple[GroupChatManager, ConversableAgent, ConversableAgent]:
     """Rebuild agents with the latest memory; optionally keep the transcript."""
     global _manager, _user_proxy, _synthesizer
-    prev = []
+    prev: List[Any] = []
     if preserve_messages and _manager is not None:
         prev = list(_manager.groupchat.messages)
 
