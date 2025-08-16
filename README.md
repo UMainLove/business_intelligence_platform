@@ -6,7 +6,7 @@ A comprehensive AI-powered business analysis platform built with AG2 (AutoGen) a
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)
 ![Synthetic Tests](https://img.shields.io/badge/synthetic%20tests-186%20passing-brightgreen.svg)
-![Coverage](https://img.shields.io/badge/coverage-67%25-yellow.svg)
+![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen.svg)
 ![Security](https://github.com/UMainLove/business_intelligence_platform/actions/workflows/security.yml/badge.svg)
 
 ## 🚀 Features
@@ -96,7 +96,7 @@ Visit `http://localhost:8501` to access the platform.
 
 ## 🧪 Testing
 
-Comprehensive test suite with 80%+ coverage:
+Comprehensive test suite with 95%+ coverage:
 
 ```bash
 # Run all tests
@@ -200,7 +200,7 @@ Multi-scenario stress testing with 8 scenario types:
 - **Generated Documents** (Business Plans, Financial Models, Risk Assessments)
 - **Real-Time Intelligence** (Web APIs, Database, Market Research)
 - **Production Infrastructure** (Docker, K8s, PostgreSQL, Redis)
-- **Comprehensive Testing** (80%+ coverage, integration tests)
+- **Comprehensive Testing** (95%+ coverage, integration tests)
 - **Health Monitoring** (System metrics, error tracking)
 
 ## 🛠️ Development
