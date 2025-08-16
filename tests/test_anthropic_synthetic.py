@@ -201,7 +201,7 @@ class TestAnthropicIntegration:
 
                 client = Anthropic(api_key="test-key")
 
-                resp = client.messages.create(
+                client.messages.create(
                     model="test-model",
                     max_tokens=max_tokens,
                     messages=[{"role": "user", "content": "test"}],
@@ -240,7 +240,7 @@ class TestAnthropicIntegration:
 
             client = Anthropic(api_key="test-key")
 
-            resp = client.messages.create(model="test-model", max_tokens=40, messages=messages)
+            client.messages.create(model="test-model", max_tokens=40, messages=messages)
 
             # Verify messages were passed correctly
             call_args = mock_client.messages.create.call_args[1]
@@ -249,7 +249,6 @@ class TestAnthropicIntegration:
 
 if __name__ == "__main__":
     # Run basic mock test
-    import sys
 
     test = TestAnthropicIntegration()
     test.test_environment_variable_handling()

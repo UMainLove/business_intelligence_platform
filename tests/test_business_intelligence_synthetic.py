@@ -25,7 +25,7 @@ class TestBusinessIntelligenceAgent:
         """Test BusinessIntelligenceAgent initialization without tools."""
         mock_super_init.return_value = None
 
-        agent = BusinessIntelligenceAgent(
+        BusinessIntelligenceAgent(
             name="TestAgent",
             system_message="Test message",
             llm_config={"model": "test"},
@@ -52,7 +52,7 @@ class TestBusinessIntelligenceAgent:
             {"name": "market_research_rag", "description": "Search market data"},
         ]
 
-        agent = BusinessIntelligenceAgent(
+        BusinessIntelligenceAgent(
             name="TestAgent",
             system_message="Test message",
             llm_config={"model": "test"},

@@ -39,7 +39,7 @@ class TestDocumentGenerator:
     def test_initialization_creates_directories(self):
         """Test that initialization creates necessary directories."""
         nested_path = Path(self.temp_dir) / "nested" / "docs"
-        generator = DocumentGenerator(output_dir=str(nested_path))
+        DocumentGenerator(output_dir=str(nested_path))
         assert nested_path.exists()
 
     def test_generate_business_plan_basic(self):

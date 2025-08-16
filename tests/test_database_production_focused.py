@@ -62,7 +62,7 @@ class TestProductionBusinessDataDB:
 
         # Mock the populate_sample_data method to avoid complex setup
         with patch.object(ProductionBusinessDataDB, "populate_sample_data"):
-            db = ProductionBusinessDataDB()
+            ProductionBusinessDataDB()
 
         mock_db_config.init_database.assert_called_once()
 
@@ -73,7 +73,7 @@ class TestProductionBusinessDataDB:
         """Test successful database initialization with SQLite."""
         mock_db_config.use_postgres = False
 
-        db = ProductionBusinessDataDB()
+        ProductionBusinessDataDB()
 
         # SQLite initialization should be handled by BusinessDataDB
         mock_sqlite_db_class.assert_called_once()
@@ -580,9 +580,7 @@ class TestDatabaseToolExecutor:
         mock_db.analyze_similar_ventures.return_value = {"similar_ventures": [], "count": 0}
         mock_db_class.return_value = mock_db
 
-        result = database_tool_executor(
-            "similar_ventures", {"industry": "Crypto", "business_model": "DeFi"}
-        )
+        database_tool_executor("similar_ventures", {"industry": "Crypto", "business_model": "DeFi"})
 
         mock_db.analyze_similar_ventures.assert_called_once_with("Crypto", "DeFi", None)
 

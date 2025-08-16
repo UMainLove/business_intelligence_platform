@@ -530,7 +530,7 @@ class TestBuildMemoryFromMessages:
         mock_client.messages.create.return_value = mock_response
         mock_anthropic_class.return_value = mock_client
 
-        result = build_memory_from_messages([])
+        build_memory_from_messages([])
 
         # Should still work with just the prompt
         call_kwargs = mock_client.messages.create.call_args[1]

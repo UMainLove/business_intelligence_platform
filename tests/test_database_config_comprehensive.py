@@ -338,7 +338,7 @@ class TestDatabaseConfigProperties:
     @patch("src.database_config.logger")
     def test_logging_calls(self, mock_logger):
         """Test that initialization logs properly."""
-        config = DatabaseConfig()
+        DatabaseConfig()
 
         # Should log initialization info
         mock_logger.info.assert_called()

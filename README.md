@@ -5,7 +5,7 @@ A comprehensive AI-powered business analysis platform built with AG2 (AutoGen) a
 ![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Tests](https://img.shields.io/badge/tests-966%20passing-brightgreen.svg)
-![Test Coverage](https://img.shields.io/badge/test%20coverage-100%25%20suite%20passing-brightgreen.svg)
+![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen.svg)
 ![Production Ready](https://img.shields.io/badge/production-ready-brightgreen.svg)
 ![Security](https://github.com/UMainLove/business_intelligence_platform/actions/workflows/security.yml/badge.svg)
 
@@ -38,7 +38,7 @@ A comprehensive AI-powered business analysis platform built with AG2 (AutoGen) a
 - **Error Handling**: Comprehensive retry logic and graceful degradation
 
 ### ✅ **Production Quality Assurance**
-- **966 Tests Passing**: 100% test suite success rate with comprehensive coverage
+- **966 Tests Passing**: 100% test suite success rate with 98% code coverage
 - **Zero Test Isolation Issues**: Fixed global state management and test independence  
 - **Clean Deprecation Handling**: Updated all datetime usage, ag2 v0.97 stable version
 - **Robust Error Handling**: Fixed 133→0 failing tests, systematic test fixes

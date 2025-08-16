@@ -443,15 +443,9 @@ class TestSequentialValidationWorkflow:
         workflow = SequentialValidationWorkflow()
 
         # Test the phase ordering
-        expected_order = [
-            ValidationPhase.IDEA_REFINEMENT,
-            ValidationPhase.MARKET_VALIDATION,
-            ValidationPhase.FINANCIAL_MODELING,
-            ValidationPhase.RISK_ASSESSMENT,
-            ValidationPhase.COMPETITIVE_ANALYSIS,
-            ValidationPhase.REGULATORY_COMPLIANCE,
-            ValidationPhase.FINAL_SYNTHESIS,
-        ]
+        # Expected order is:
+        # IDEA_REFINEMENT -> MARKET_VALIDATION -> FINANCIAL_MODELING ->
+        # RISK_ASSESSMENT -> COMPETITIVE_ANALYSIS -> REGULATORY_COMPLIANCE -> FINAL_SYNTHESIS
 
         # This test verifies the order is defined correctly
         # by checking the next_phase assignments in each phase execution
@@ -528,7 +522,6 @@ class TestValidationIntegration:
         workflow = SequentialValidationWorkflow()
 
         # Mock some phases to fail, others to succeed
-        phase_results = {}
 
         def mock_execute_phase(phase, data):
             if phase == ValidationPhase.FINANCIAL_MODELING:

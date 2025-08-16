@@ -472,7 +472,7 @@ class TestPrivateMethods:
         - Monthly recurring revenue
         - Customer churn rate
         - Cash runway
-        
+
         Key indicators to track include market share and competitive positioning.
         Watch for signs of market saturation.
         """

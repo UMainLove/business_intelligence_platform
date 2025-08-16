@@ -66,7 +66,6 @@ class TestHealthMonitor:
         mock_psutil.disk_usage.return_value = mock_disk
 
         monitor = HealthMonitor()
-        original_start_time = monitor.start_time
         monitor.start_time = time.time() - 100  # Set 100 seconds ago
 
         metrics = monitor.get_system_metrics()
@@ -572,7 +571,6 @@ class TestIntegration:
     def test_uptime_calculation(self):
         """Test uptime calculation accuracy."""
         monitor = HealthMonitor()
-        original_start = monitor.start_time
 
         # Set start time to 60 seconds ago
         monitor.start_time = time.time() - 60

@@ -37,7 +37,7 @@ class TestBusinessDataDB:
 
     def test_init_database_creates_tables(self):
         """Test that init_database creates all required tables."""
-        db = BusinessDataDB(str(self.db_path))
+        BusinessDataDB(str(self.db_path))
 
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -60,7 +60,7 @@ class TestBusinessDataDB:
 
     def test_init_database_table_structure(self):
         """Test database table structures."""
-        db = BusinessDataDB(str(self.db_path))
+        BusinessDataDB(str(self.db_path))
 
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -107,7 +107,7 @@ class TestBusinessDataDB:
 
     def test_populate_sample_data(self):
         """Test populate_sample_data method."""
-        db = BusinessDataDB(str(self.db_path))
+        BusinessDataDB(str(self.db_path))
 
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -212,9 +212,9 @@ class TestBusinessDataDB:
         ]
 
         cursor.executemany(
-            """INSERT INTO business_ventures 
-               (name, industry, founded_date, status, initial_funding, total_funding, valuation, employees, revenue, region, business_model)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            """INSERT INTO business_ventures
+            (name, industry, founded_date, status, initial_funding, total_funding, valuation, employees, revenue, region, business_model)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             test_ventures,
         )
         conn.commit()
@@ -345,9 +345,9 @@ class TestBusinessDataDB:
         ]
 
         cursor.executemany(
-            """INSERT INTO business_ventures 
-               (name, industry, founded_date, status, initial_funding, total_funding, valuation, employees, revenue, region, business_model)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            """INSERT INTO business_ventures
+            (name, industry, founded_date, status, initial_funding, total_funding, valuation, employees, revenue, region, business_model)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             test_ventures,
         )
         conn.commit()
@@ -426,7 +426,7 @@ class TestBusinessDataDB:
         venture_id = db1.add_venture(venture_data)
 
         # Create second instance and verify data exists
-        db2 = BusinessDataDB(str(self.db_path))
+        BusinessDataDB(str(self.db_path))
 
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -544,7 +544,7 @@ class TestDatabaseToolExecutor:
         mock_db.analyze_similar_ventures.return_value = {"similar_ventures": [], "count": 0}
         mock_db_class.return_value = mock_db
 
-        result = database_tool_executor(
+        database_tool_executor(
             "similar_ventures", {"industry": "Crypto", "business_model": "DeFi", "region": "Asia"}
         )
 
@@ -646,7 +646,7 @@ class TestIntegration:
         # Test with very long paths (might cause issues)
         very_long_path = "x" * 1000 + ".db"
         try:
-            db = BusinessDataDB(very_long_path)
+            BusinessDataDB(very_long_path)
             # If it succeeds, that's fine too
         except Exception:
             # Expected for very long paths

@@ -327,7 +327,7 @@ class TestBuildMemoryFromMessages:
         messages = [{"name": "human", "content": "Test"}]
 
         # Use custom model
-        mem = build_memory_from_messages(messages, model="claude-3-opus")
+        build_memory_from_messages(messages, model="claude-3-opus")
 
         # Verify custom model was used
         mock_client.messages.create.assert_called_once()
@@ -357,7 +357,7 @@ class TestBuildMemoryFromMessages:
             {"name": "human", "content": "Another user message"},
         ]
 
-        mem = build_memory_from_messages(messages)
+        build_memory_from_messages(messages)
 
         # Check that messages were properly formatted
         call_args = mock_client.messages.create.call_args

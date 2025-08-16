@@ -160,7 +160,7 @@ class TestPostgreSQLConnection:
         config.database_url = None
         config.use_postgres = True
 
-        result = config._get_postgres_connection()
+        config._get_postgres_connection()
 
         expected_url = "postgresql://custom_user:custom_pass@custom-host:5433/custom_db"
         assert config.database_url == expected_url
@@ -178,7 +178,7 @@ class TestPostgreSQLConnection:
         config.database_url = None
         config.use_postgres = True
 
-        result = config._get_postgres_connection()
+        config._get_postgres_connection()
 
         expected_url = "postgresql://bi_user:password@localhost:5432/business_intelligence"
         assert config.database_url == expected_url
@@ -212,7 +212,7 @@ class TestPostgreSQLConnection:
         config.use_postgres = True
 
         with pytest.raises(ValueError):
-            with config.get_connection() as conn:
+            with config.get_connection():
                 raise ValueError("Test exception")
 
         mock_conn.close.assert_called_once()
@@ -445,7 +445,7 @@ class TestConnectionErrorHandling:
             config.sqlite_path = f"{temp_dir}/test.db"
 
             with pytest.raises(ValueError):
-                with config.get_connection() as conn:
+                with config.get_connection():
                     raise ValueError("Test exception")
 
     @patch("src.database_config.HAS_POSTGRES", True)
@@ -460,7 +460,7 @@ class TestConnectionErrorHandling:
         config.use_postgres = True
 
         with pytest.raises(ValueError):
-            with config.get_connection() as conn:
+            with config.get_connection():
                 raise ValueError("Test exception")
 
         mock_conn.close.assert_called_once()
@@ -549,7 +549,7 @@ class TestIntegration:
     @patch("src.database_config.logger")
     def test_logging_configuration(self, mock_logger):
         """Test that configuration is logged properly."""
-        config = DatabaseConfig()
+        DatabaseConfig()
 
         # Verify logging was called
         mock_logger.info.assert_called()
