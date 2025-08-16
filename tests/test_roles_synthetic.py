@@ -2,15 +2,7 @@
 Synthetic tests for roles.py without external dependencies.
 """
 
-import pytest
-import json
-
-from src.roles import (
-    economist_prompt,
-    lawyer_prompt,
-    sociologist_prompt,
-    synthesizer_prompt
-)
+from src.roles import economist_prompt, lawyer_prompt, sociologist_prompt, synthesizer_prompt
 
 
 class TestEconomistPrompt:
@@ -25,10 +17,10 @@ class TestEconomistPrompt:
     def test_economist_prompt_content(self):
         """Test economist prompt contains expected keywords."""
         prompt = economist_prompt()
-        
+
         # Check for role definition
         assert "Role: Economist" in prompt
-        
+
         # Check for economic concepts
         assert "market size" in prompt
         assert "TAM/SAM/SOM" in prompt
@@ -38,14 +30,14 @@ class TestEconomistPrompt:
         assert "funding options" in prompt
         assert "ROI" in prompt
         assert "risks" in prompt
-        
+
         # Check for formatting requirements
         assert "specific numbers" in prompt
         assert "calculations" in prompt
         assert "$1.2M" in prompt  # Example format
         assert "15% ROI" in prompt  # Example format
         assert "3-year payback" in prompt  # Example format
-        
+
         # Check for analysis requirements
         assert "financial projections" in prompt
         assert "break-even analysis" in prompt
@@ -71,10 +63,10 @@ class TestLawyerPrompt:
     def test_lawyer_prompt_content(self):
         """Test lawyer prompt contains expected keywords."""
         prompt = lawyer_prompt()
-        
+
         # Check for role definition
         assert "Role: Business-Law Expert" in prompt
-        
+
         # Check for legal concepts
         assert "regulatory obligations" in prompt
         assert "licensing" in prompt
@@ -87,7 +79,7 @@ class TestLawyerPrompt:
         assert "trademarks" in prompt
         assert "contractual risks" in prompt
         assert "liabilities" in prompt
-        
+
         # Check for requirements
         assert "specific" in prompt
         assert "legal requirements" in prompt
@@ -115,10 +107,10 @@ class TestSociologistPrompt:
     def test_sociologist_prompt_content(self):
         """Test sociologist prompt contains expected keywords."""
         prompt = sociologist_prompt()
-        
+
         # Check for role definition
         assert "Role: Sociologist" in prompt
-        
+
         # Check for sociological concepts
         assert "cultural fit" in prompt
         assert "adoption behavior" in prompt
@@ -126,7 +118,7 @@ class TestSociologistPrompt:
         assert "fairness/equity" in prompt
         assert "externalities" in prompt
         assert "ethical concerns" in prompt
-        
+
         # Check for analysis requirements
         assert "user segments" in prompt
         assert "pain points" in prompt
@@ -157,23 +149,23 @@ class TestSynthesizerPrompt:
     def test_synthesizer_prompt_content(self):
         """Test synthesizer prompt contains expected keywords."""
         prompt = synthesizer_prompt()
-        
+
         # Check for role definition
         assert "Role: Business Consultant" in prompt
-        
+
         # Check for instructions
         assert "FULL conversation" in prompt
         assert "ONE comprehensive report" in prompt
         assert "OUTPUT FORMAT" in prompt
         assert "valid JSON object" in prompt
-        
+
         # Check for JSON structure
         assert '"executive_summary"' in prompt
         assert '"economic_viability"' in prompt
         assert '"legal_risks"' in prompt
         assert '"social_impact"' in prompt
         assert '"next_steps"' in prompt
-        
+
         # Check for field requirements
         assert "<=200 words" in prompt
         assert "specific numbers and projections" in prompt
@@ -181,7 +173,7 @@ class TestSynthesizerPrompt:
         assert "specific regulations" in prompt
         assert "adoption analysis" in prompt
         assert "user segments" in prompt
-        
+
         # Check for formatting requirements
         assert "precise and structured" in prompt
         assert "specific metrics" in prompt
@@ -193,20 +185,20 @@ class TestSynthesizerPrompt:
     def test_synthesizer_prompt_json_structure(self):
         """Test that synthesizer prompt describes valid JSON structure."""
         prompt = synthesizer_prompt()
-        
+
         # Extract the JSON example from the prompt
-        start_idx = prompt.find('{')
-        end_idx = prompt.find('}', start_idx) + 1
+        start_idx = prompt.find("{")
+        end_idx = prompt.find("}", start_idx) + 1
         json_example = prompt[start_idx:end_idx]
-        
+
         # The example should be parseable (though with placeholder values)
-        assert '{' in json_example
-        assert '}' in json_example
-        assert 'executive_summary' in json_example
-        assert 'economic_viability' in json_example
-        assert 'legal_risks' in json_example
-        assert 'social_impact' in json_example
-        assert 'next_steps' in json_example
+        assert "{" in json_example
+        assert "}" in json_example
+        assert "executive_summary" in json_example
+        assert "economic_viability" in json_example
+        assert "legal_risks" in json_example
+        assert "social_impact" in json_example
+        assert "next_steps" in json_example
 
     def test_synthesizer_prompt_consistency(self):
         """Test that synthesizer prompt is consistent across calls."""
@@ -220,13 +212,8 @@ class TestAllPrompts:
 
     def test_all_prompts_unique(self):
         """Test that each role has a unique prompt."""
-        prompts = [
-            economist_prompt(),
-            lawyer_prompt(),
-            sociologist_prompt(),
-            synthesizer_prompt()
-        ]
-        
+        prompts = [economist_prompt(), lawyer_prompt(), sociologist_prompt(), synthesizer_prompt()]
+
         # All prompts should be unique
         assert len(prompts) == len(set(prompts))
 
@@ -236,20 +223,16 @@ class TestAllPrompts:
             "economist": economist_prompt(),
             "lawyer": lawyer_prompt(),
             "sociologist": sociologist_prompt(),
-            "synthesizer": synthesizer_prompt()
+            "synthesizer": synthesizer_prompt(),
         }
-        
+
         for name, prompt in prompts.items():
             assert "Role:" in prompt
 
     def test_all_prompts_have_important_section(self):
         """Test that specialist prompts have IMPORTANT sections."""
-        specialist_prompts = [
-            economist_prompt(),
-            lawyer_prompt(),
-            sociologist_prompt()
-        ]
-        
+        specialist_prompts = [economist_prompt(), lawyer_prompt(), sociologist_prompt()]
+
         for prompt in specialist_prompts:
             assert "IMPORTANT:" in prompt
 
@@ -259,9 +242,9 @@ class TestAllPrompts:
             "economist": economist_prompt(),
             "lawyer": lawyer_prompt(),
             "sociologist": sociologist_prompt(),
-            "synthesizer": synthesizer_prompt()
+            "synthesizer": synthesizer_prompt(),
         }
-        
+
         for name, prompt in prompts.items():
             # Prompts should be substantial but not too long
             assert 100 < len(prompt) < 1000, f"{name} prompt length is {len(prompt)}"

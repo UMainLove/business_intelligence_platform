@@ -2,11 +2,12 @@
 Synthetic tests for config.py without external dependencies.
 """
 
-import pytest
-from unittest.mock import patch
 import os
+from unittest.mock import patch
 
-from src.config import _bool, _int, _float, Settings, settings
+import pytest
+
+from src.config import Settings, _bool, _float, _int, settings
 
 
 class TestBoolConverter:
@@ -88,23 +89,28 @@ class TestSettings:
         with pytest.raises(AttributeError):
             settings.anthropic_key = "new_key"
 
-    @patch.dict(os.environ, {
-        "ANTHROPIC_API_KEY": "test-key-123",
-        "ANTHROPIC_MODEL_SPECIALISTS": "custom-model-1",
-        "MAX_TOKENS_SPECIALISTS": "2000",
-        "TEMPERATURE_ECONOMIST": "0.5",
-        "THINKING_ENABLED": "true",
-        "PRICE_IN_SPECIALISTS": "0.005"
-    })
+    @patch.dict(
+        os.environ,
+        {
+            "ANTHROPIC_API_KEY": "test-key-123",
+            "ANTHROPIC_MODEL_SPECIALISTS": "custom-model-1",
+            "MAX_TOKENS_SPECIALISTS": "2000",
+            "TEMPERATURE_ECONOMIST": "0.5",
+            "THINKING_ENABLED": "true",
+            "PRICE_IN_SPECIALISTS": "0.005",
+        },
+    )
     def test_settings_from_env(self):
         """Test that Settings reads from environment variables."""
         # Need to reimport to get new settings with patched env
         from importlib import reload
+
         import src.config as config_module
+
         reload(config_module)
-        
+
         test_settings = config_module.Settings()
-        
+
         assert test_settings.anthropic_key == "test-key-123"
         assert test_settings.model_specialists == "custom-model-1"
         assert test_settings.max_tokens_specialists == 2000
@@ -115,28 +121,28 @@ class TestSettings:
     def test_settings_defaults(self):
         """Test that Settings has sensible defaults."""
         test_settings = Settings()
-        
+
         # Check model defaults
         assert "claude" in test_settings.model_specialists.lower()
         assert "claude" in test_settings.model_synth.lower()
         assert "claude" in test_settings.model_memory.lower()
-        
+
         # Check token limits are reasonable
         assert 500 <= test_settings.max_tokens_specialists <= 5000
         assert 500 <= test_settings.max_tokens_synth <= 5000
         assert 500 <= test_settings.max_tokens_memory <= 2000
-        
+
         # Check temperatures are in valid range
         assert 0.0 <= test_settings.temperature_economist <= 1.0
         assert 0.0 <= test_settings.temperature_lawyer <= 1.0
         assert 0.0 <= test_settings.temperature_sociologist <= 1.0
         assert 0.0 <= test_settings.temperature_synth <= 1.0
         assert 0.0 <= test_settings.temperature_memory <= 1.0
-        
+
         # Check sampling parameters
         assert 0.0 < test_settings.top_p <= 1.0
         assert test_settings.top_k > 0
-        
+
         # Check pricing is positive
         assert test_settings.price_in_specialists > 0
         assert test_settings.price_out_specialists > 0
@@ -147,15 +153,26 @@ class TestSettings:
         """Test that Settings has all expected attributes."""
         expected_attrs = [
             "anthropic_key",
-            "model_specialists", "model_synth", "model_memory",
-            "max_tokens_specialists", "max_tokens_synth", "max_tokens_memory",
-            "temperature_economist", "temperature_lawyer", "temperature_sociologist",
-            "temperature_synth", "temperature_memory",
-            "top_p", "top_k",
-            "thinking_enabled", "thinking_budget_tokens",
-            "price_in_specialists", "price_out_specialists",
-            "price_in_synth", "price_out_synth"
+            "model_specialists",
+            "model_synth",
+            "model_memory",
+            "max_tokens_specialists",
+            "max_tokens_synth",
+            "max_tokens_memory",
+            "temperature_economist",
+            "temperature_lawyer",
+            "temperature_sociologist",
+            "temperature_synth",
+            "temperature_memory",
+            "top_p",
+            "top_k",
+            "thinking_enabled",
+            "thinking_budget_tokens",
+            "price_in_specialists",
+            "price_out_specialists",
+            "price_in_synth",
+            "price_out_synth",
         ]
-        
+
         for attr in expected_attrs:
             assert hasattr(settings, attr), f"Settings missing attribute: {attr}"

@@ -60,7 +60,7 @@ class TestFinancialCalculator:
     def test_calculate_payback_period(self):
         """Test payback period calculation - using actual method name calculate_payback."""
         calc = FinancialCalculator()
-        
+
         # Use the actual method signature: initial_investment, annual_cash_flow
         payback = calc.calculate_payback(initial_investment=100000, annual_cash_flow=30000)
 
@@ -71,7 +71,7 @@ class TestFinancialCalculator:
     def test_calculate_payback_period_never(self):
         """Test payback period when investment never recovered."""
         calc = FinancialCalculator()
-        
+
         # Use negative or zero cash flow
         payback = calc.calculate_payback(initial_investment=100000, annual_cash_flow=0)
 
@@ -104,9 +104,9 @@ class TestFinancialCalculator:
 
         metrics = calc.unit_economics_analysis(
             customer_acquisition_cost=100,
-            customer_lifetime_value=500, 
+            customer_lifetime_value=500,
             monthly_churn_rate=0.05,
-            average_revenue_per_user=50
+            average_revenue_per_user=50,
         )
 
         assert metrics["ltv_cac_ratio"] == 5.0
@@ -124,7 +124,7 @@ class TestFinancialCalculator:
             growth_rate=0.1,
             years=5,
             operating_margin=0.3,  # 30% margin
-            tax_rate=0.25
+            tax_rate=0.25,
         )
 
         assert "revenues" in result
@@ -163,10 +163,11 @@ class TestFinancialToolExecutor:
     def test_payback_operation(self, sample_financial_params):
         """Test payback period operation."""
         result = financial_tool_executor(
-            "payback", {
+            "payback",
+            {
                 "initial_investment": sample_financial_params["initial_investment"],
-                "annual_cash_flow": 30000
-            }
+                "annual_cash_flow": 30000,
+            },
         )
 
         assert "payback_period_years" in result
@@ -213,7 +214,7 @@ class TestFinancialToolExecutor:
                 "growth_rate": 0.1,
                 "years": 5,
                 "operating_margin": 0.3,
-                "tax_rate": 0.25
+                "tax_rate": 0.25,
             },
         )
 
@@ -232,7 +233,7 @@ class TestFinancialToolExecutor:
     def test_missing_parameters(self):
         """Test handling of missing parameters."""
         from src.error_handling import ValidationError
-        
+
         try:
             result = financial_tool_executor("npv", {})
             # If no exception, check for error in result
@@ -244,9 +245,11 @@ class TestFinancialToolExecutor:
     def test_invalid_cash_flows(self):
         """Test handling of invalid cash flows."""
         from src.error_handling import BusinessIntelligenceError
-        
+
         try:
-            result = financial_tool_executor("npv", {"cash_flows": "not_a_list", "discount_rate": 0.1})
+            result = financial_tool_executor(
+                "npv", {"cash_flows": "not_a_list", "discount_rate": 0.1}
+            )
             # If no exception, check for error in result
             assert "error" in result
         except BusinessIntelligenceError:

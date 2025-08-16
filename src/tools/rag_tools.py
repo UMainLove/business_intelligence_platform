@@ -87,10 +87,10 @@ class MarketResearchRAG:
                 docs_data = json.load(f)
                 self.documents = [
                     Document(
-                        id=doc["id"], 
-                        title=doc.get("title", ""), 
-                        content=doc["content"], 
-                        metadata=doc["metadata"]
+                        id=doc["id"],
+                        title=doc.get("title", ""),
+                        content=doc["content"],
+                        metadata=doc["metadata"],
                     )
                     for doc in docs_data
                 ]

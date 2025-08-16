@@ -4,12 +4,18 @@ from pathlib import Path
 
 import streamlit as st
 
-from src.config import settings
 from src.chat import (
-    build_group, run_synthesizer_json, get_messages, reset_messages,
-    get_memory, set_memory, clear_memory, update_memory_from_chat
+    build_group,
+    clear_memory,
+    get_memory,
+    get_messages,
+    reset_messages,
+    run_synthesizer_json,
+    set_memory,
+    update_memory_from_chat,
 )
-from src.util import estimate_tokens_chars, estimate_cost_usd
+from src.config import settings
+from src.util import estimate_cost_usd, estimate_tokens_chars
 
 st.set_page_config(page_title="Business-Idea Pre-Validator", page_icon="💬", layout="centered")
 st.title("💬 Business-Idea Pre-Validator (Economist · Lawyer · Sociologist)")
@@ -25,10 +31,12 @@ if "manager" not in st.session_state:
 if "session_name" not in st.session_state:
     st.session_state.session_name = f"session_{int(time.time())}"
 
+
 def render_history():
     for role, msg in st.session_state.history:
         with st.chat_message(role):
             st.markdown(msg)
+
 
 # Sidebar: actions & info
 with st.sidebar:
@@ -43,7 +51,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.subheader("Models & Configuration")
-    
+
     # Models
     st.caption("🧑‍💼 Specialists")
     st.code(settings.model_specialists, language="text")
@@ -51,7 +59,7 @@ with st.sidebar:
     st.code(settings.model_synth, language="text")
     st.caption("🧠 Memory Extractor")
     st.code(settings.model_memory, language="text")
-    
+
     # Temperature settings
     with st.expander("Temperature Settings", expanded=False):
         st.caption(f"Economist: {settings.temperature_economist}")
@@ -59,13 +67,13 @@ with st.sidebar:
         st.caption(f"Sociologist: {settings.temperature_sociologist}")
         st.caption(f"Synthesizer: {settings.temperature_synth}")
         st.caption(f"Memory: {settings.temperature_memory}")
-    
+
     # Token limits
     with st.expander("Token Limits", expanded=False):
         st.caption(f"Specialists: {settings.max_tokens_specialists:,}")
         st.caption(f"Synthesizer: {settings.max_tokens_synth:,}")
         st.caption(f"Memory: {settings.max_tokens_memory:,}")
-    
+
     # Advanced parameters
     with st.expander("Advanced Parameters", expanded=False):
         st.caption(f"Top-p: {settings.top_p}")
@@ -87,16 +95,18 @@ with st.sidebar:
     cur_mem = get_memory()
     mem_text = st.text_area(
         "Current memory (editable)",
-        value="\n".join([
-            f"Idea: {cur_mem.get('idea','')}",
-            f"Target market: {cur_mem.get('target_market','')}",
-            f"Customer: {cur_mem.get('customer','')}",
-            f"Region: {cur_mem.get('region','')}",
-            f"Pricing model: {cur_mem.get('pricing_model','')}",
-            f"Key constraints: {', '.join(cur_mem.get('key_constraints', []))}",
-            f"Risks: {', '.join(cur_mem.get('risks', []))}",
-            f"Assumptions: {', '.join(cur_mem.get('assumptions', []))}",
-        ]),
+        value="\n".join(
+            [
+                f"Idea: {cur_mem.get('idea', '')}",
+                f"Target market: {cur_mem.get('target_market', '')}",
+                f"Customer: {cur_mem.get('customer', '')}",
+                f"Region: {cur_mem.get('region', '')}",
+                f"Pricing model: {cur_mem.get('pricing_model', '')}",
+                f"Key constraints: {', '.join(cur_mem.get('key_constraints', []))}",
+                f"Risks: {', '.join(cur_mem.get('risks', []))}",
+                f"Assumptions: {', '.join(cur_mem.get('assumptions', []))}",
+            ]
+        ),
         height=180,
     )
     colA, colB, colC = st.columns(3)
@@ -108,24 +118,39 @@ with st.sidebar:
     with colB:
         if st.button("💾 Save edits", use_container_width=True):
             parsed = {
-                "idea": "", "target_market": "", "customer": "", "region": "",
-                "pricing_model": "", "key_constraints": [], "risks": [], "assumptions": [],
+                "idea": "",
+                "target_market": "",
+                "customer": "",
+                "region": "",
+                "pricing_model": "",
+                "key_constraints": [],
+                "risks": [],
+                "assumptions": [],
             }
             for line in mem_text.splitlines():
                 if ":" in line:
                     k, v = line.split(":", 1)
-                    k = k.strip().lower(); v = v.strip()
+                    k = k.strip().lower()
+                    v = v.strip()
                     if k in parsed and isinstance(parsed[k], list):
                         parsed[k] = [s.strip() for s in v.split(",") if s.strip()]
                     elif k in parsed:
                         parsed[k] = v
             m, u, s = set_memory(parsed)  # rebuilds agents & keeps transcript
-            st.session_state.manager, st.session_state.user_proxy, st.session_state.synthesizer = m, u, s
+            st.session_state.manager, st.session_state.user_proxy, st.session_state.synthesizer = (
+                m,
+                u,
+                s,
+            )
             st.success("Memory saved and applied to agents.")
     with colC:
         if st.button("🧹 Clear", use_container_width=True):
             m, u, s = clear_memory()  # rebuilds agents & keeps transcript
-            st.session_state.manager, st.session_state.user_proxy, st.session_state.synthesizer = m, u, s
+            st.session_state.manager, st.session_state.user_proxy, st.session_state.synthesizer = (
+                m,
+                u,
+                s,
+            )
             st.success("Memory cleared.")
             st.rerun()
 
@@ -140,13 +165,17 @@ with st.sidebar:
         price_in_synth=settings.price_in_synth,
         price_out_synth=settings.price_out_synth,
     )
-    
+
     # Show pricing info
     with st.expander("Pricing Details", expanded=False):
-        st.caption(f"Specialists: ${settings.price_in_specialists}/1K in, ${settings.price_out_specialists}/1K out")
-        st.caption(f"Synthesizer: ${settings.price_in_synth}/1K in, ${settings.price_out_synth}/1K out")
+        st.caption(
+            f"Specialists: ${settings.price_in_specialists}/1K in, ${settings.price_out_specialists}/1K out"
+        )
+        st.caption(
+            f"Synthesizer: ${settings.price_in_synth}/1K in, ${settings.price_out_synth}/1K out"
+        )
         st.caption("Heuristic: tokens ≈ chars/4")
-    
+
     col1, col2 = st.columns(2)
     with col1:
         st.metric("Approx tokens", value=f"{approx_tokens:,}")
@@ -175,11 +204,11 @@ if prompt:
         # Produce a structured final report (JSON → nice Markdown) and save .md
         report = run_synthesizer_json()
         md = (
-            f"## Executive summary\n{report.get('executive_summary','')}\n\n"
-            f"## Economic viability\n{report.get('economic_viability','')}\n\n"
-            f"## Legal risks\n{report.get('legal_risks','')}\n\n"
-            f"## Social impact\n{report.get('social_impact','')}\n\n"
-            "## Next steps\n" + "\n".join(f"- {s}" for s in report.get('next_steps', []))
+            f"## Executive summary\n{report.get('executive_summary', '')}\n\n"
+            f"## Economic viability\n{report.get('economic_viability', '')}\n\n"
+            f"## Legal risks\n{report.get('legal_risks', '')}\n\n"
+            f"## Social impact\n{report.get('social_impact', '')}\n\n"
+            "## Next steps\n" + "\n".join(f"- {s}" for s in report.get("next_steps", []))
         )
         st.session_state.history.append(("synthesizer", md))
         render_history()
@@ -198,7 +227,7 @@ if prompt:
 
         # collect new agent messages and display
         msgs = get_messages()
-        for m in msgs[st.session_state.last_len:]:
+        for m in msgs[st.session_state.last_len :]:
             st.session_state.history.append((m["name"], m["content"]))
         st.session_state.last_len = len(msgs)
 

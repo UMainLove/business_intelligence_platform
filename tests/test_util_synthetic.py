@@ -2,18 +2,17 @@
 Synthetic tests for util.py without external dependencies.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from src.util import (
-    estimate_tokens_chars,
-    estimate_cost_usd,
-    describe_pricing,
+    BI_DEFAULT_SPLIT,
+    DEFAULT_SPLIT,
+    MODEL_PRICE_MAP,
     _pick_prices,
     _resolve_prices_from_env_or_models,
-    MODEL_PRICE_MAP,
-    DEFAULT_SPLIT,
-    BI_DEFAULT_SPLIT
+    describe_pricing,
+    estimate_cost_usd,
+    estimate_tokens_chars,
 )
 
 
@@ -36,7 +35,7 @@ class TestTokenEstimation:
         messages = [
             {"content": "This is a test"},  # 14 chars
             {"content": "Another message"},  # 15 chars
-            {"content": "Final one"}  # 9 chars
+            {"content": "Final one"},  # 9 chars
         ]
         # Total: 38 chars, 38/4 = 9.5, rounded down to 9
         assert estimate_tokens_chars(messages) == 9
@@ -51,7 +50,7 @@ class TestTokenEstimation:
         messages = [
             {"role": "user"},  # No content
             {"content": "Test"},  # 4 chars
-            {"other": "field"}  # No content
+            {"other": "field"},  # No content
         ]
         assert estimate_tokens_chars(messages) == 1  # 4/4 = 1
 
@@ -98,7 +97,7 @@ class TestPricePicking:
 class TestResolveEnvPrices:
     """Test environment-based price resolution."""
 
-    @patch('src.util.settings')
+    @patch("src.util.settings")
     def test_resolve_prices_from_models(self, mock_settings):
         """Test price resolution from model names."""
         mock_settings.price_in_specialists = 0
@@ -111,7 +110,7 @@ class TestResolveEnvPrices:
         prices = _resolve_prices_from_env_or_models()
         assert prices == (0.003, 0.015, 0.003, 0.015)
 
-    @patch('src.util.settings')
+    @patch("src.util.settings")
     def test_resolve_prices_from_env_override(self, mock_settings):
         """Test price resolution with environment overrides."""
         mock_settings.price_in_specialists = 0.005
@@ -124,7 +123,7 @@ class TestResolveEnvPrices:
         prices = _resolve_prices_from_env_or_models()
         assert prices == (0.005, 0.020, 0.004, 0.018)
 
-    @patch('src.util.settings')
+    @patch("src.util.settings")
     def test_resolve_prices_partial_env_override(self, mock_settings):
         """Test price resolution with partial environment overrides."""
         mock_settings.price_in_specialists = 0.010  # Override
@@ -152,7 +151,7 @@ class TestCostEstimation:
         cost = estimate_cost_usd(1000, use_bi_pricing=True)
         assert cost is not None
         assert cost > 0
-        
+
         # Verify the calculation
         # Input: 700 tokens (70%), Output specs: 200 (20%), Output synth: 50 (5%), Tool: 50 (5%)
         # Input split: 70% specialists (490), 30% synthesizer (210)
@@ -165,7 +164,7 @@ class TestCostEstimation:
         cost = estimate_cost_usd(1000, use_bi_pricing=False)
         assert cost is not None
         assert cost > 0
-        
+
         # With legacy split: input 81%, output_specs 15%, output_synth 4%
         # Input split: 70% specialists (567), 30% synthesizer (243)
         # Cost = 567/1000 * 0.003 + 243/1000 * 0.003 + 150/1000 * 0.015 + 40/1000 * 0.015
@@ -180,7 +179,7 @@ class TestCostEstimation:
             price_out_specialists=0.050,
             price_in_synth=0.008,
             price_out_synth=0.040,
-            use_bi_pricing=True
+            use_bi_pricing=True,
         )
         assert cost is not None
         # Higher prices should result in higher cost
@@ -192,7 +191,7 @@ class TestCostEstimation:
             "input": 0.5,
             "output_specs": 0.3,
             "output_synth": 0.2,
-            "tool_overhead": 0.0
+            "tool_overhead": 0.0,
         }
         cost = estimate_cost_usd(1000, split=custom_split)
         assert cost is not None
@@ -209,13 +208,13 @@ class TestCostEstimation:
 class TestDescribePricing:
     """Test pricing description function."""
 
-    @patch('src.util._resolve_prices_from_env_or_models')
+    @patch("src.util._resolve_prices_from_env_or_models")
     def test_describe_pricing_basic(self, mock_resolve):
         """Test basic pricing description."""
         mock_resolve.return_value = (0.003, 0.015, 0.003, 0.015)
-        
+
         pricing = describe_pricing()
-        
+
         assert isinstance(pricing, dict)
         assert "specialists_in_per_1k" in pricing
         assert "specialists_out_per_1k" in pricing
@@ -224,13 +223,13 @@ class TestDescribePricing:
         assert pricing["specialists_in_per_1k"] == 0.003
         assert pricing["specialists_out_per_1k"] == 0.015
 
-    @patch('src.util._resolve_prices_from_env_or_models')
+    @patch("src.util._resolve_prices_from_env_or_models")
     def test_describe_pricing_custom(self, mock_resolve):
         """Test pricing description with custom prices."""
         mock_resolve.return_value = (0.005, 0.025, 0.004, 0.020)
-        
+
         pricing = describe_pricing()
-        
+
         assert pricing["specialists_in_per_1k"] == 0.005
         assert pricing["specialists_out_per_1k"] == 0.025
         assert pricing["synth_in_per_1k"] == 0.004

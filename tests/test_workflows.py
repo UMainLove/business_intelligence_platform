@@ -2,21 +2,14 @@
 Tests for workflow components.
 """
 
-from unittest.mock import Mock, patch, MagicMock
-from dataclasses import dataclass
-
-import pytest
+from unittest.mock import Mock, patch
 
 from src.workflows.sequential_validation import (
+    PhaseResult,
     SequentialValidationWorkflow,
     ValidationPhase,
-    PhaseResult
 )
-from src.workflows.swarm_scenarios import (
-    ScenarioType,
-    SwarmScenarioAnalysis,
-    ScenarioResult
-)
+from src.workflows.swarm_scenarios import ScenarioResult, ScenarioType, SwarmScenarioAnalysis
 
 
 class TestSequentialValidationWorkflow:
@@ -34,7 +27,7 @@ class TestSequentialValidationWorkflow:
         assert hasattr(workflow, "phase_results")
         assert hasattr(workflow, "business_context")
         assert hasattr(workflow, "agents")
-        
+
         assert workflow.current_phase == ValidationPhase.IDEA_REFINEMENT
         assert workflow.phase_results == {}
         assert workflow.business_context == {}
@@ -64,13 +57,14 @@ class TestSequentialValidationWorkflow:
         mock_agent_instance.generate_reply.return_value = "Phase analysis"
 
         # Mock all tool executors to avoid dependencies
-        with patch('src.workflows.sequential_validation.rag_tool_executor', return_value={}), \
-             patch('src.workflows.sequential_validation.web_search_executor', return_value={}), \
-             patch('src.workflows.sequential_validation.financial_tool_executor', return_value={}), \
-             patch('src.workflows.sequential_validation.database_tool_executor', return_value={}), \
-             patch('src.workflows.sequential_validation.api_tool_executor', return_value={}), \
-             patch('src.workflows.sequential_validation.document_tool_executor', return_value={}):
-
+        with (
+            patch("src.workflows.sequential_validation.rag_tool_executor", return_value={}),
+            patch("src.workflows.sequential_validation.web_search_executor", return_value={}),
+            patch("src.workflows.sequential_validation.financial_tool_executor", return_value={}),
+            patch("src.workflows.sequential_validation.database_tool_executor", return_value={}),
+            patch("src.workflows.sequential_validation.api_tool_executor", return_value={}),
+            patch("src.workflows.sequential_validation.document_tool_executor", return_value={}),
+        ):
             workflow = SequentialValidationWorkflow()
 
             test_data = {"business_idea": "AI-powered fitness app", "industry": "Health"}
@@ -92,13 +86,13 @@ class TestSequentialValidationWorkflow:
             ValidationPhase.RISK_ASSESSMENT,
             ValidationPhase.COMPETITIVE_ANALYSIS,
             ValidationPhase.REGULATORY_COMPLIANCE,
-            ValidationPhase.FINAL_SYNTHESIS
+            ValidationPhase.FINAL_SYNTHESIS,
         ]
-        
+
         for phase in expected_phases:
             assert phase.value  # Each phase has a string value
             assert isinstance(phase.value, str)
-        
+
         # Check there are 7 phases
         assert len(list(ValidationPhase)) == 7
 
@@ -117,13 +111,13 @@ class TestSwarmScenarioAnalysis:
             ScenarioType.COMPETITIVE_THREAT,
             ScenarioType.REGULATORY_CHANGE,
             ScenarioType.ECONOMIC_DOWNTURN,
-            ScenarioType.TECHNOLOGY_DISRUPTION
+            ScenarioType.TECHNOLOGY_DISRUPTION,
         ]
 
         for scenario in expected_scenarios:
             assert scenario.value  # Each scenario has a string value
             assert isinstance(scenario.value, str)
-        
+
         # Check there are 8 scenario types
         assert len(list(ScenarioType)) == 8
 
@@ -137,11 +131,11 @@ class TestSwarmScenarioAnalysis:
         # Check actual attributes from implementation
         assert hasattr(swarm, "scenario_agents")
         assert hasattr(swarm, "coordinator_agent")
-        
+
         # scenario_agents is a dict, not a list
         assert isinstance(swarm.scenario_agents, dict)
         assert len(swarm.scenario_agents) == 8  # One agent per scenario type
-        
+
         # Check all scenario types have agents
         for scenario_type in ScenarioType:
             assert scenario_type in swarm.scenario_agents
@@ -174,7 +168,7 @@ class TestSwarmScenarioAnalysis:
         swarm = SwarmScenarioAnalysis()
 
         test_business = {"business_idea": "FinTech startup", "industry": "Finance"}
-        
+
         # Mock analyze_scenario to avoid threading complexity
         def mock_analyze(scenario_type, business_data):
             return ScenarioResult(
@@ -185,16 +179,16 @@ class TestSwarmScenarioAnalysis:
                 analysis="Test analysis",
                 mitigation_strategies=["Strategy 1"],
                 key_metrics={},
-                confidence_score=0.7
+                confidence_score=0.7,
             )
-        
-        with patch.object(swarm, 'analyze_scenario', side_effect=mock_analyze):
+
+        with patch.object(swarm, "analyze_scenario", side_effect=mock_analyze):
             results = swarm.run_swarm_analysis(test_business)
 
             assert isinstance(results, dict)
             # Should have results for all scenarios by default
             assert len(results) == 8
-            
+
             # Check all results are ScenarioResult objects
             for scenario_type, result in results.items():
                 assert isinstance(scenario_type, ScenarioType)
@@ -208,8 +202,8 @@ class TestSwarmScenarioAnalysis:
         for scenario_type in ScenarioType:
             agent = swarm.scenario_agents[scenario_type]
             assert agent is not None
-            assert hasattr(agent, 'name')
-            assert hasattr(agent, 'system_message')
+            assert hasattr(agent, "name")
+            assert hasattr(agent, "system_message")
 
     @patch("src.workflows.swarm_scenarios.ConversableAgent")
     def test_risk_categorization(self, mock_agent):
@@ -230,7 +224,7 @@ class TestSwarmScenarioAnalysis:
                 analysis="High growth",
                 mitigation_strategies=[],
                 key_metrics={},
-                confidence_score=0.8
+                confidence_score=0.8,
             ),
             ScenarioType.BLACK_SWAN: ScenarioResult(
                 scenario_type=ScenarioType.BLACK_SWAN,
@@ -240,8 +234,8 @@ class TestSwarmScenarioAnalysis:
                 analysis="Low prob high impact",
                 mitigation_strategies=[],
                 key_metrics={},
-                confidence_score=0.6
-            )
+                confidence_score=0.6,
+            ),
         }
 
         synthesis = swarm.synthesize_swarm_results(mock_results, {"business_idea": "Test"})
@@ -249,7 +243,7 @@ class TestSwarmScenarioAnalysis:
         assert "synthesis_analysis" in synthesis
         assert "scenario_results" in synthesis
         assert "overall_metrics" in synthesis
-        
+
         # Check metrics calculation
         metrics = synthesis["overall_metrics"]
         assert "average_impact_score" in metrics
@@ -270,15 +264,10 @@ class TestWorkflowIntegration:
         workflow = SequentialValidationWorkflow()
 
         # Test that financial modeling phase uses financial tools
-        test_data = {
-            "projected_revenue": 1000000,
-            "growth_rate": 0.25,
-            "cac": 100,
-            "ltv": 1000
-        }
-        
+        test_data = {"projected_revenue": 1000000, "growth_rate": 0.25, "cac": 100, "ltv": 1000}
+
         result = workflow.execute_phase(ValidationPhase.FINANCIAL_MODELING, test_data)
-        
+
         # Financial tool should be called during financial modeling phase
         mock_financial.assert_called()
         assert result.phase == ValidationPhase.FINANCIAL_MODELING
@@ -294,9 +283,9 @@ class TestWorkflowIntegration:
 
         # Test that risk assessment phase uses database tools
         test_data = {"industry": "SaaS", "business_model": "Subscription"}
-        
+
         result = workflow.execute_phase(ValidationPhase.RISK_ASSESSMENT, test_data)
-        
+
         # Database tool should be called during risk assessment
         mock_database.assert_called()
         assert result.phase == ValidationPhase.RISK_ASSESSMENT
@@ -317,7 +306,7 @@ class TestWorkflowErrorHandling:
 
         # Should handle errors gracefully
         result = workflow.execute_phase(ValidationPhase.IDEA_REFINEMENT, {"business_idea": "Test"})
-        
+
         # Error should be captured in result
         assert result.success is False
         assert "error" in result.data
@@ -333,7 +322,7 @@ class TestWorkflowErrorHandling:
 
         # analyze_scenario should handle exceptions
         result = swarm.analyze_scenario(ScenarioType.OPTIMISTIC, {"business_idea": "Test"})
-        
+
         # Should return error result, not raise exception
         assert result.scenario_type == ScenarioType.OPTIMISTIC
         assert result.probability == 0.0

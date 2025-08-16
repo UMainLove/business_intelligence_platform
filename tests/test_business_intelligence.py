@@ -106,7 +106,7 @@ class TestBIGroupBuilding:
             mock_sociologist,
             mock_synthesizer,
         ]
-        
+
         # ConversableAgent instance (user_proxy)
         mock_agent.return_value = mock_user_proxy
         mock_manager.return_value = mock_manager_instance
@@ -162,8 +162,10 @@ class TestEnhancedSynthesis:
         """Test enhanced synthesis with document generation."""
         # Mock synthesizer agent
         mock_synthesizer = Mock()
-        mock_synthesizer.generate_reply.return_value = "Comprehensive business analysis of the proposed venture..."
-        
+        mock_synthesizer.generate_reply.return_value = (
+            "Comprehensive business analysis of the proposed venture..."
+        )
+
         # Mock build_bi_group to return our mock synthesizer
         mock_build_group.return_value = (Mock(), Mock(), mock_synthesizer, Mock(), Mock())
 
@@ -207,8 +209,10 @@ class TestEnhancedSynthesis:
         """Test enhanced synthesis when document generation fails."""
         # Mock synthesizer agent
         mock_synthesizer = Mock()
-        mock_synthesizer.generate_reply.return_value = "Comprehensive business analysis of the proposed venture..."
-        
+        mock_synthesizer.generate_reply.return_value = (
+            "Comprehensive business analysis of the proposed venture..."
+        )
+
         # Mock build_bi_group to return our mock synthesizer
         mock_build_group.return_value = (Mock(), Mock(), mock_synthesizer, Mock(), Mock())
 
@@ -248,10 +252,10 @@ class TestErrorHandling:
         """Test that synthesis handles errors gracefully via decorators."""
         # Test that run_enhanced_synthesis is decorated with error handling
         from src.business_intelligence import run_enhanced_synthesis
-        
+
         # Verify the function exists and is callable
         assert callable(run_enhanced_synthesis)
-        
+
         # The actual error handling is tested in the synthesis tests above
         # This test just verifies the function structure
         assert run_enhanced_synthesis.__name__ == "run_enhanced_synthesis"
