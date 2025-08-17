@@ -165,6 +165,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        pip install -r requirements.txt
         pip install safety bandit pip-audit
     
     - name: Run safety check
@@ -176,6 +177,14 @@ jobs:
     - name: Run pip-audit
       run: pip-audit --format=json --output=pip-audit-report.json || true
     
+    - name: Run Snyk security scan
+      uses: snyk/actions/python@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=medium --file=requirements.txt --json --json-file-output=snyk-report.json
+      continue-on-error: true
+    
     - name: Upload security reports
       uses: actions/upload-artifact@v4
       with:
@@ -184,6 +193,7 @@ jobs:
           safety-report.json
           bandit-report.json
           pip-audit-report.json
+          snyk-report.json
 
   build:
     name: Build & Test Docker

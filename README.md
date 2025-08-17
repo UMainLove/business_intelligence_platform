@@ -6,6 +6,7 @@ A comprehensive AI-powered business analysis platform built with AG2 (AutoGen) a
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Tests](https://img.shields.io/badge/tests-966%20passing-brightgreen.svg)
 ![Security](https://github.com/UMainLove/business_intelligence_platform/actions/workflows/security.yml/badge.svg)
+[![Snyk Security](https://github.com/UMainLove/business_intelligence_platform/actions/workflows/snyk-security.yml/badge.svg)](https://github.com/UMainLove/business_intelligence_platform/actions/workflows/snyk-security.yml)
 [![codecov](https://codecov.io/github/UMainLove/business_intelligence_platform/graph/badge.svg?token=OH6S2RUPCH)](https://codecov.io/github/UMainLove/business_intelligence_platform)
 
 
@@ -221,6 +222,45 @@ Multi-scenario stress testing with 8 scenario types:
 - **Production Infrastructure** (Docker, K8s, PostgreSQL, Redis)
 - **Comprehensive Testing** (95%+ coverage, integration tests)
 - **Health Monitoring** (System metrics, error tracking)
+
+## 🔒 Security
+
+### Multi-Layer Security Scanning
+
+The platform includes comprehensive security scanning across multiple layers:
+
+**Static Analysis:**
+- **Bandit**: Python security linter for common security issues
+- **Safety**: Checks Python dependencies for known vulnerabilities  
+- **pip-audit**: Audits Python packages for known vulnerabilities
+
+**Dynamic Analysis:**
+- **Snyk**: Multi-layer vulnerability scanning
+  - Dependency scanning for Python packages
+  - Docker image vulnerability scanning
+  - Infrastructure as Code (Kubernetes) security analysis
+  - Static application security testing (SAST)
+  - Continuous monitoring in production
+
+**Security Workflows:**
+- Daily security scans via GitHub Actions
+- Pull request security checks
+- SARIF integration with GitHub Security tab
+- Automated dependency monitoring
+
+### Security Configuration
+
+Set up Snyk integration:
+```bash
+# 1. Create Snyk account at https://snyk.io
+# 2. Get API token from account settings
+# 3. Add SNYK_TOKEN to GitHub repository secrets
+```
+
+Security reports are available in:
+- GitHub Security tab (Code scanning alerts)
+- CI/CD artifacts (JSON reports)
+- Snyk dashboard for continuous monitoring
 
 ## 🛠️ Development
 

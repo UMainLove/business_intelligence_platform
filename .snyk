@@ -1,0 +1,17 @@
+# Snyk (https://snyk.io) policy file
+version: v1.0.0
+
+# Language-specific settings
+language-settings:
+  python: '3.10'
+
+# Ignore specific vulnerabilities if needed
+# Example:
+# ignore:
+#   'SNYK-JS-LODASH-567746':
+#     - '*':
+#         reason: Example ignore rule
+#         expires: '2024-12-31T23:59:59.999Z'
+
+# Patches to be applied (auto-applied by Snyk)
+patches: {}
