@@ -42,3 +42,4 @@ pytest-mock>=3.11.0  # Enhanced mocking
 coverage>=7.3.0  # Coverage analysis
 ruff>=0.12.0  # Modern Python linter and formatter
 black>=25.1.0  # Python code formatter
+mypy>=1.17.0  # Static type checking
