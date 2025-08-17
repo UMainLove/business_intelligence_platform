@@ -82,7 +82,7 @@ jobs:
     
     - name: Run synthetic tests (no external dependencies)
       run: |
-        python -m pytest tests/test_*_synthetic.py -v --tb=short --cov=src --cov-report=xml --cov-report=term-missing --junit-xml=junit-synthetic.xml
+        python -m pytest tests/test_*_synthetic.py -v --tb=short --cov=src --cov-report=xml --cov-report=term-missing --junitxml=junit-synthetic.xml -o junit_family=legacy
       env:
         ANTHROPIC_API_KEY: test-key-12345
         ENVIRONMENT: test
@@ -91,7 +91,7 @@ jobs:
     
     - name: Run integration tests (with mocked external calls)
       run: |
-        python -m pytest tests/test_error_handling.py tests/test_health_monitor.py tests/test_financial_tools.py tests/test_database.py tests/test_workflows.py tests/test_business_intelligence.py -v --tb=short --cov=src --cov-append --cov-report=xml --junit-xml=junit-integration.xml
+        python -m pytest tests/test_error_handling.py tests/test_health_monitor.py tests/test_financial_tools.py tests/test_database.py tests/test_workflows.py tests/test_business_intelligence.py -v --tb=short --cov=src --cov-append --cov-report=xml --junitxml=junit-integration.xml -o junit_family=legacy
       env:
         ANTHROPIC_API_KEY: test-key-12345
         ENVIRONMENT: test
@@ -120,13 +120,12 @@ jobs:
         fail_ci_if_error: true
         verbose: true
     
-    # Temporarily disabled to debug coverage upload issue
-    # - name: Upload test results to Codecov
-    #   if: ${{ !cancelled() }}
-    #   uses: codecov/test-results-action@v1
-    #   with:
-    #     token: ${{ secrets.CODECOV_TOKEN }}
-    #     files: junit-synthetic.xml,junit-integration.xml
+    - name: Upload test results to Codecov
+      if: ${{ !cancelled() }}
+      uses: codecov/test-results-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: junit-synthetic.xml,junit-integration.xml
     
     - name: Test import functionality
       run: |
