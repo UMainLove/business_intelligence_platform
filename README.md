@@ -243,24 +243,34 @@ The platform includes comprehensive security scanning across multiple layers:
   - Continuous monitoring in production
 
 **Security Workflows:**
-- Daily security scans via GitHub Actions
-- Pull request security checks
+- Daily security scans via GitHub Actions (2 AM UTC)
+- Real-time PR security checks (blocks vulnerable changes)
 - SARIF integration with GitHub Security tab
-- Automated dependency monitoring
+- Automated dependency monitoring and alerting
+- Optional: Automatic fix PRs for vulnerabilities
 
 ### Security Configuration
 
-Set up Snyk integration:
+**Basic Setup (GitHub Actions only):**
 ```bash
 # 1. Create Snyk account at https://snyk.io
 # 2. Get API token from account settings
 # 3. Add SNYK_TOKEN to GitHub repository secrets
 ```
 
+**Enhanced Setup (Optional - for automatic PRs and advanced features):**
+```bash
+# 1. Connect GitHub OAuth app integration via Snyk dashboard
+# 2. Enable automatic fix PRs and dependency upgrades
+# 3. Configure PR status checks and vulnerability monitoring
+# 4. Set up branch protection rules with Snyk checks
+```
+
 Security reports are available in:
 - GitHub Security tab (Code scanning alerts)
 - CI/CD artifacts (JSON reports)
 - Snyk dashboard for continuous monitoring
+- PR checks (blocks/allows merging based on vulnerabilities)
 
 ## 🛠️ Development
 
