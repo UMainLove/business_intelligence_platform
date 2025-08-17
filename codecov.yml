@@ -5,11 +5,11 @@ codecov:
   notify:
     wait_for_ci: true
   require_ci_to_pass: true
-  max_report_age: "24h"  # Accept reports up to 24 hours old
+  max_report_age: "24h"
 
 comment:
   behavior: default
-  layout: reach,diff,flags,tree,reach
+  layout: reach,diff,flags,tree
   show_carryforward_flags: false
 
 coverage:
@@ -19,27 +19,12 @@ coverage:
     - 80.0
   round: down
   status:
-    changes: 
+    project:
       default:
-        threshold: 1%  # Allow 1% coverage decrease
-    default_rules:
-      flag_coverage_not_uploaded_behavior: include
-    patch: 
+        threshold: 1%
+    patch:
       default:
-        threshold: 80%  # Require 80% coverage on new code
-    project: 
-      default:
-        threshold: 1%  # Allow 1% project coverage decrease
-
-# Flags for different test types
-flag_management:
-  default_rules:
-    carryforward: false
-    statuses:
-      - name_prefix: project
-        type: project
-      - name_prefix: patch
-        type: patch
+        threshold: 80%
 
 # Ignore paths
 ignore:
@@ -52,5 +37,3 @@ ignore:
   - "Dockerfile"
   - "docker-compose.yml"
   - ".github/"
-
-slack_app: true
