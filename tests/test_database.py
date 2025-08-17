@@ -121,7 +121,7 @@ class TestProductionBusinessDataDB:
         with patch("src.tools.database_production.db_config") as mock_config:
             mock_config.use_postgres = False
             mock_config.environment = "test"
-            
+
             with patch("src.tools.database_production.BusinessDataDB") as mock_sqlite:
                 db = ProductionBusinessDataDB()
                 assert db is not None  # Use the variable
@@ -132,7 +132,7 @@ class TestProductionBusinessDataDB:
         with patch("src.tools.database_production.db_config") as mock_config:
             mock_config.use_postgres = False
             mock_config.environment = "test"
-            
+
             with patch("src.tools.database_production.BusinessDataDB") as mock_sqlite:
                 mock_sqlite_instance = Mock()
                 mock_sqlite.return_value = mock_sqlite_instance
