@@ -182,7 +182,7 @@ jobs:
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       with:
-        args: --severity-threshold=medium --file=requirements.txt --json --json-file-output=snyk-report.json
+        args: --severity-threshold=medium --file=requirements.txt --json-file-output=snyk-report.json
       continue-on-error: true
     
     - name: Upload security reports

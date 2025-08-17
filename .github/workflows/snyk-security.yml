@@ -70,9 +70,10 @@ jobs:
     
     - name: Upload Snyk results to GitHub Code Scanning
       uses: github/codeql-action/upload-sarif@v3
-      if: always()
+      if: always() && github.event_name != 'pull_request' # Skip SARIF upload for private repos without Advanced Security
       with:
         sarif_file: snyk.sarif
+      continue-on-error: true # Don't fail if Advanced Security is not enabled
 
   snyk-docker:
     name: Snyk Docker Image Scan
