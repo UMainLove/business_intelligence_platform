@@ -8,6 +8,7 @@ A comprehensive AI-powered business analysis platform built with AG2 (AutoGen) a
 ![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen.svg)
 ![Production Ready](https://img.shields.io/badge/production-ready-brightgreen.svg)
 ![Security](https://github.com/UMainLove/business_intelligence_platform/actions/workflows/security.yml/badge.svg)
+[![codecov](https://codecov.io/github/UMainLove/business_intelligence_platform/graph/badge.svg?token=OH6S2RUPCH)](https://codecov.io/github/UMainLove/business_intelligence_platform)
 
 ## 🚀 Features
 
