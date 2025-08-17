@@ -57,10 +57,10 @@ def memory_block(mem: Dict[str, Any]) -> str:
 
 
 def load_memory(path: str) -> Dict[str, Any]:
-    p = Path(path)
-    if not p.exists():
-        return DEFAULT_MEMORY.copy()
     try:
+        p = Path(path)
+        if not p.exists():
+            return DEFAULT_MEMORY.copy()
         return json.loads(p.read_text(encoding="utf-8"))
     except Exception:
         return DEFAULT_MEMORY.copy()

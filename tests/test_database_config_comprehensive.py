@@ -8,6 +8,11 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+try:
+    from psycopg2.extras import RealDictCursor
+except ImportError:
+    RealDictCursor = None
+
 from src.database_config import HAS_POSTGRES, DatabaseConfig, db_config, logger
 
 
@@ -15,11 +20,12 @@ class TestDatabaseConfigInit:
     """Test DatabaseConfig initialization with different environments."""
 
     @patch.dict(os.environ, {"ENVIRONMENT": "development"})
+    @patch("src.database_config.HAS_POSTGRES", False)
     def test_development_environment(self):
         """Test development environment initialization."""
         config = DatabaseConfig()
         assert config.environment == "development"
-        assert config.use_postgres is False or not HAS_POSTGRES
+        assert config.use_postgres is False
 
     @patch.dict(os.environ, {"ENVIRONMENT": "production", "DATABASE_URL": "postgresql://test"})
     @patch("src.database_config.HAS_POSTGRES", True)
@@ -73,8 +79,11 @@ class TestDatabaseConfigConnections:
     @patch("src.database_config.psycopg2")
     def test_get_postgres_connection_success(self, mock_psycopg2):
         """Test successful PostgreSQL connection."""
+        from psycopg2.extras import RealDictCursor
+
         mock_conn = Mock()
         mock_psycopg2.connect.return_value = mock_conn
+        mock_psycopg2.extras.RealDictCursor = RealDictCursor
 
         config = DatabaseConfig()
         config.use_postgres = True
@@ -83,7 +92,7 @@ class TestDatabaseConfigConnections:
         result = config._get_postgres_connection()
 
         assert result == mock_conn
-        mock_psycopg2.connect.assert_called_once_with("postgresql://test", cursor_factory=None)
+        mock_psycopg2.connect.assert_called_once_with("postgresql://test", cursor_factory=RealDictCursor)
 
     @patch("src.database_config.HAS_POSTGRES", True)
     @patch("src.database_config.psycopg2")

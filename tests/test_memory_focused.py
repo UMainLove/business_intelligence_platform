@@ -229,9 +229,14 @@ class TestLoadMemory:
 
     def test_load_memory_permission_error(self):
         """Test load_memory handles permission errors gracefully."""
-        # Use a path that might cause permission issues
-        result = load_memory("/root/inaccessible/memory.json")
-        assert result == DEFAULT_MEMORY
+        # Mock the pathlib.Path to simulate permission error
+        with patch("src.memory.Path") as mock_path_class:
+            mock_path = Mock()
+            mock_path.exists.side_effect = PermissionError("Permission denied")
+            mock_path_class.return_value = mock_path
+
+            result = load_memory("/root/inaccessible/memory.json")
+            assert result == DEFAULT_MEMORY
 
 
 class TestSaveMemory:
