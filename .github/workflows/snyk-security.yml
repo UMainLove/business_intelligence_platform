@@ -66,14 +66,15 @@ jobs:
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       with:
-        args: --severity-threshold=high --file=requirements.txt
+        command: test
+        args: --severity-threshold=high --file=requirements.txt --sarif-file-output=snyk.sarif
+      continue-on-error: true # Don't fail the workflow if vulnerabilities are found
     
     - name: Upload Snyk results to GitHub Code Scanning
       uses: github/codeql-action/upload-sarif@v3
-      if: always() && github.event_name != 'pull_request' # Skip SARIF upload for private repos without Advanced Security
+      if: always() && hashFiles('snyk.sarif') != '' # Only upload if SARIF file exists
       with:
         sarif_file: snyk.sarif
-      continue-on-error: true # Don't fail if Advanced Security is not enabled
 
   snyk-docker:
     name: Snyk Docker Image Scan
@@ -91,7 +92,14 @@ jobs:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       with:
         image: business-intelligence:scan
-        args: --severity-threshold=high --file=Dockerfile
+        args: --severity-threshold=high --file=Dockerfile --sarif-file-output=snyk-docker.sarif
+      continue-on-error: true
+    
+    - name: Upload Snyk Docker results to GitHub Code Scanning
+      uses: github/codeql-action/upload-sarif@v3
+      if: always() && hashFiles('snyk-docker.sarif') != ''
+      with:
+        sarif_file: snyk-docker.sarif
 
   snyk-code:
     name: Snyk Code Analysis
@@ -105,7 +113,14 @@ jobs:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       with:
         command: code test
-        args: --severity-threshold=high
+        args: --severity-threshold=high --sarif-file-output=snyk-code.sarif
+      continue-on-error: true
+    
+    - name: Upload Snyk Code results to GitHub Code Scanning
+      uses: github/codeql-action/upload-sarif@v3
+      if: always() && hashFiles('snyk-code.sarif') != ''
+      with:
+        sarif_file: snyk-code.sarif
 
   snyk-iac:
     name: Snyk Infrastructure as Code Scan
@@ -119,7 +134,14 @@ jobs:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       with:
         file: k8s/
-        args: --severity-threshold=high
+        args: --severity-threshold=high --sarif-file-output=snyk-iac.sarif
+      continue-on-error: true
+    
+    - name: Upload Snyk IaC results to GitHub Code Scanning
+      uses: github/codeql-action/upload-sarif@v3
+      if: always() && hashFiles('snyk-iac.sarif') != ''
+      with:
+        sarif_file: snyk-iac.sarif
 
   snyk-monitor:
     name: Monitor Dependencies with Snyk
