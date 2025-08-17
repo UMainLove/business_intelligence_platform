@@ -354,7 +354,7 @@ class TestModuleDependencies:
     def test_optional_dependency_handling(self):
         """Test handling of optional dependencies."""
         # Test that modules gracefully handle missing optional dependencies
-        with patch.dict("sys.modules", {"psycopg2": None}):
+        with patch("src.database_config.HAS_POSTGRES", False):
             try:
                 from src.database_config import DatabaseConfig
 
