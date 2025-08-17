@@ -115,6 +115,8 @@ jobs:
       with:
         files: ./coverage.xml
         token: ${{ secrets.CODECOV_TOKEN }}
+        slug: UMainLove/business_intelligence_platform
+        name: ci-coverage
         fail_ci_if_error: true
         verbose: true
     
