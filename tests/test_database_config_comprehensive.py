@@ -92,7 +92,9 @@ class TestDatabaseConfigConnections:
         result = config._get_postgres_connection()
 
         assert result == mock_conn
-        mock_psycopg2.connect.assert_called_once_with("postgresql://test", cursor_factory=RealDictCursor)
+        mock_psycopg2.connect.assert_called_once_with(
+            "postgresql://test", cursor_factory=RealDictCursor
+        )
 
     @patch("src.database_config.HAS_POSTGRES", True)
     @patch("src.database_config.psycopg2")
