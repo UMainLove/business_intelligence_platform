@@ -116,33 +116,37 @@ class TestBusinessDataDB:
 class TestProductionBusinessDataDB:
     """Test production database adapter."""
 
-    def test_init_with_sqlite_fallback(self, mock_database_config):
+    def test_init_with_sqlite_fallback(self):
         """Test initialization with SQLite fallback."""
-        mock_database_config.use_postgres = False
+        with patch("src.tools.database_production.db_config") as mock_config:
+            mock_config.use_postgres = False
+            mock_config.environment = "test"
+            
+            with patch("src.tools.database_production.BusinessDataDB") as mock_sqlite:
+                db = ProductionBusinessDataDB()
+                assert db is not None  # Use the variable
+                mock_sqlite.assert_called_once()
 
-        with patch("src.tools.database_production.BusinessDataDB") as mock_sqlite:
-            db = ProductionBusinessDataDB()
-            assert db is not None  # Use the variable
-            mock_sqlite.assert_called_once()
-
-    def test_query_with_sqlite_fallback(self, mock_database_config):
+    def test_query_with_sqlite_fallback(self):
         """Test queries with SQLite fallback."""
-        mock_database_config.use_postgres = False
+        with patch("src.tools.database_production.db_config") as mock_config:
+            mock_config.use_postgres = False
+            mock_config.environment = "test"
+            
+            with patch("src.tools.database_production.BusinessDataDB") as mock_sqlite:
+                mock_sqlite_instance = Mock()
+                mock_sqlite.return_value = mock_sqlite_instance
+                mock_sqlite_instance.query_industry_success_rates.return_value = {
+                    "industry": "SaaS",
+                    "success_rate": 75.0,
+                }
 
-        with patch("src.tools.database_production.BusinessDataDB") as mock_sqlite:
-            mock_sqlite_instance = Mock()
-            mock_sqlite.return_value = mock_sqlite_instance
-            mock_sqlite_instance.query_industry_success_rates.return_value = {
-                "industry": "SaaS",
-                "success_rate": 75.0,
-            }
+                db = ProductionBusinessDataDB()
+                result = db.query_industry_success_rates("SaaS")
 
-            db = ProductionBusinessDataDB()
-            result = db.query_industry_success_rates("SaaS")
-
-            assert result["industry"] == "SaaS"
-            assert result["success_rate"] == 75.0
-            mock_sqlite_instance.query_industry_success_rates.assert_called_once_with("SaaS")
+                assert result["industry"] == "SaaS"
+                assert result["success_rate"] == 75.0
+                mock_sqlite_instance.query_industry_success_rates.assert_called_once_with("SaaS")
 
 
 class TestDatabaseToolExecutor:
