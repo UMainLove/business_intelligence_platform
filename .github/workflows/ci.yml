@@ -154,6 +154,13 @@ jobs:
   security:
     name: Security Scan
     runs-on: ubuntu-latest
+    permissions:
+      # Required for uploading SARIF files to GitHub Advanced Security
+      security-events: write
+      # Required for checkout and basic workflow operations
+      contents: read
+      # Required for workflow run telemetry and API access
+      actions: read
     steps:
     - uses: actions/checkout@v5
     
