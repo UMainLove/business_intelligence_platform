@@ -195,10 +195,11 @@ class TestDatabaseConfig:
 
     def test_sqlite_environment(self):
         """Test SQLite configuration in development."""
-        with patch.dict("os.environ", {"ENVIRONMENT": "development"}):
-            config = DatabaseConfig()
-            assert config.environment == "development"
-            assert not config.use_postgres
+        with patch.dict("os.environ", {"ENVIRONMENT": "development", "DATABASE_URL": ""}):
+            with patch("src.database_config.HAS_POSTGRES", False):
+                config = DatabaseConfig()
+                assert config.environment == "development"
+                assert not config.use_postgres
 
     def test_postgres_environment(self):
         """Test PostgreSQL configuration in production."""

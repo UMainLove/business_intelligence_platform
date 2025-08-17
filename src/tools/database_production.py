@@ -68,9 +68,9 @@ class ProductionBusinessDataDB:
             cursor = conn.cursor()
 
             # Check if data already exists
-            cursor.execute("SELECT COUNT(*) FROM business_ventures")
+            cursor.execute("SELECT COUNT(*) as count FROM business_ventures")
             result = cursor.fetchone()
-            if result and result[0] > 0:
+            if result and result["count"] > 0:
                 return
 
             # Sample business ventures - PostgreSQL version with proper types
