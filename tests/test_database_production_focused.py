@@ -24,7 +24,7 @@ class TestProductionBusinessDataDB:
         # Mock get_connection to return a proper mock connection
         mock_conn = Mock()
         mock_cursor = Mock()
-        mock_cursor.fetchone.return_value = (1,)  # Existing data to skip population
+        mock_cursor.fetchone.return_value = {"count": 1}  # Existing data to skip population
         mock_conn.cursor.return_value = mock_cursor
         mock_conn.__enter__ = Mock(return_value=mock_conn)
         mock_conn.__exit__ = Mock(return_value=None)
@@ -110,7 +110,7 @@ class TestProductionBusinessDataDB:
         # Mock connection and cursor
         mock_conn = Mock()
         mock_cursor = Mock()
-        mock_cursor.fetchone.return_value = (5,)  # Existing data
+        mock_cursor.fetchone.return_value = {"count": 5}  # Existing data
         mock_conn.cursor.return_value = mock_cursor
         mock_conn.__enter__ = Mock(return_value=mock_conn)
         mock_conn.__exit__ = Mock(return_value=None)
@@ -124,7 +124,7 @@ class TestProductionBusinessDataDB:
         db.populate_sample_data()
 
         # Should check count and return early
-        mock_cursor.execute.assert_called_with("SELECT COUNT(*) FROM business_ventures")
+        mock_cursor.execute.assert_called_with("SELECT COUNT(*) as count FROM business_ventures")
         mock_cursor.executemany.assert_not_called()
 
     @patch("src.tools.database_production.db_config")
@@ -135,7 +135,7 @@ class TestProductionBusinessDataDB:
         # Mock connection and cursor
         mock_conn = Mock()
         mock_cursor = Mock()
-        mock_cursor.fetchone.return_value = (0,)  # No existing data
+        mock_cursor.fetchone.return_value = {"count": 0}  # No existing data
         mock_conn.cursor.return_value = mock_cursor
         mock_conn.__enter__ = Mock(return_value=mock_conn)
         mock_conn.__exit__ = Mock(return_value=None)
@@ -694,7 +694,7 @@ class TestIntegration:
         # Mock different responses for different operations
         def mock_execute(query, params=()):
             if "SELECT COUNT(*)" in query:
-                mock_cursor.fetchone.return_value = (0,)  # No existing data
+                mock_cursor.fetchone.return_value = {"count": 0}  # No existing data
             elif "SELECT\n                    status" in query:
                 mock_cursor.fetchall.return_value = [
                     {

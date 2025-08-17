@@ -1,0 +1,56 @@
+# Codecov configuration for Business Intelligence Platform
+# https://docs.codecov.com/docs/codecov-yaml
+
+codecov:
+  notify:
+    wait_for_ci: true
+  require_ci_to_pass: true
+  max_report_age: "24h"  # Accept reports up to 24 hours old
+
+comment:
+  behavior: default
+  layout: reach,diff,flags,tree,reach
+  show_carryforward_flags: false
+
+coverage:
+  precision: 2
+  range:
+    - 60.0
+    - 80.0
+  round: down
+  status:
+    changes: 
+      default:
+        threshold: 1%  # Allow 1% coverage decrease
+    default_rules:
+      flag_coverage_not_uploaded_behavior: include
+    patch: 
+      default:
+        threshold: 80%  # Require 80% coverage on new code
+    project: 
+      default:
+        threshold: 1%  # Allow 1% project coverage decrease
+
+# Flags for different test types
+flag_management:
+  default_rules:
+    carryforward: false
+    statuses:
+      - name_prefix: project
+        type: project
+      - name_prefix: patch
+        type: patch
+
+# Ignore paths
+ignore:
+  - "tests/"
+  - "scripts/"
+  - "k8s/"
+  - "data/"
+  - "*.md"
+  - "requirements*.txt"
+  - "Dockerfile"
+  - "docker-compose.yml"
+  - ".github/"
+
+slack_app: true
