@@ -110,19 +110,11 @@ jobs:
         fi
     
     - name: Upload coverage to Codecov
-      if: always() && hashFiles('coverage.xml') != ''
       uses: codecov/codecov-action@v4
       with:
-        file: ./coverage.xml
-        fail_ci_if_error: false
         token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: true
         verbose: true
-        flags: unittests
-        name: codecov-umbrella
-        override_branch: ${{ github.ref_name }}
-        override_commit: ${{ github.sha }}
-        override_pr: ${{ github.event.number }}
-        override_build: ${{ github.run_number }}
     
     - name: Upload test results to Codecov
       if: ${{ !cancelled() }}
