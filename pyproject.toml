@@ -19,6 +19,7 @@ ignore = ["E501"]  # Ignore line too long, let formatter handle it
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["D", "S", "ANN", "PLR2004", "ARG"]
 "*/__init__.py" = ["D", "F401"]
+"src/business_intelligence.py" = ["C901"]  # Allow complexity for tool factory function
 
 [tool.isort]
 profile = "black"
