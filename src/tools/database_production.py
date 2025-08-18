@@ -56,7 +56,7 @@ class ProductionBusinessDataDB:
                 pass
         except Exception as e:
             logger.error(f"Database initialization failed: {str(e)}")
-            raise DatabaseError(f"Failed to initialize database: {str(e)}")
+            raise DatabaseError(f"Failed to initialize database: {str(e)}") from e
 
     def populate_sample_data(self):
         """Add sample historical data."""

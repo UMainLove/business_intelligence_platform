@@ -35,7 +35,9 @@ if "session_name" not in st.session_state:
 def render_history():
     for role, msg in st.session_state.history:
         with st.chat_message(role):
-            st.markdown(msg)
+            # Security: Escape HTML to prevent XSS
+            import html
+            st.markdown(html.escape(msg))
 
 
 # Sidebar: actions & info

@@ -14,6 +14,10 @@ jobs:
   test:
     name: Test Suite
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
     strategy:
       matrix:
         python-version: ['3.10', '3.11', '3.12']
@@ -222,6 +226,9 @@ jobs:
   build:
     name: Build & Test Docker
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     needs: [test]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
@@ -264,6 +271,9 @@ jobs:
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
     needs: [test, security, build]
     if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
     environment: staging
@@ -280,6 +290,9 @@ jobs:
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
     needs: [test, security, build]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: production
@@ -296,6 +309,8 @@ jobs:
   notify:
     name: Notify Team
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: [test, security, build]
     if: always()
     

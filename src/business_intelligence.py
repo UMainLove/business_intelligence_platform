@@ -176,7 +176,7 @@ def build_bi_group():
         logger.info("Building Business Intelligence agent group...")
     except Exception as e:
         logger.error(f"Error in build_bi_group: {str(e)}")
-        raise ModelError(f"Failed to build BI group: {str(e)}")
+        raise ModelError(f"Failed to build BI group: {str(e)}") from e
 
     # Get all available tools
     bi_tools = create_bi_tools_list()

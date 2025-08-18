@@ -69,7 +69,17 @@ class DatabaseConfig:
             port = os.getenv("POSTGRES_PORT", "5432")
             database = os.getenv("POSTGRES_DB", "business_intelligence")
             user = os.getenv("POSTGRES_USER", "bi_user")
-            password = os.getenv("POSTGRES_PASSWORD", "password")
+            # Security: Require password in production, allow defaults in development
+            password = os.getenv("POSTGRES_PASSWORD")
+            if not password:
+                environment = os.getenv("ENVIRONMENT", "development")
+                if environment == "production":
+                    raise ValueError(
+                        "POSTGRES_PASSWORD environment variable is required for PostgreSQL connection in production"
+                    )
+                # Use a default only in development/test environments
+                password = "password"
+                logger.warning("Using default password for PostgreSQL - NOT FOR PRODUCTION USE")
 
             self.database_url = f"postgresql://{user}:{password}@{host}:{port}/{database}"
 

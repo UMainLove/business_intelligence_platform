@@ -68,12 +68,22 @@ class DocumentGenerator:
             generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         )
 
-        # Save to file
-        filename = f"business_plan_{business_data.get('name', 'unnamed').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        # Save to file with security sanitization
+        import re
+
+        # Security: Sanitize filename to prevent path traversal
+        safe_name = re.sub(r"[^a-zA-Z0-9_\-]", "_", business_data.get("name", "unnamed"))
+        filename = f"business_plan_{safe_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         file_path = self.output_dir / filename
 
+        # Security: Set restrictive file permissions for sensitive data
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(content)
+
+        # Set file permissions to owner read/write only (600)
+        import os
+
+        os.chmod(file_path, 0o600)
 
         return {
             "document_type": "business_plan",
@@ -141,8 +151,14 @@ class DocumentGenerator:
         filename = f"market_analysis_{market_data.get('industry', 'industry').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         file_path = self.output_dir / filename
 
+        # Security: Set restrictive file permissions for sensitive data
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(content)
+
+        # Set file permissions to owner read/write only (600)
+        import os
+
+        os.chmod(file_path, 0o600)
 
         return {
             "document_type": "market_analysis",
@@ -224,11 +240,21 @@ class DocumentGenerator:
         )
 
         # Save to file
-        filename = f"financial_model_{financial_data.get('business_name', 'business').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        # Security: Sanitize filename to prevent path traversal
+        import re
+
+        safe_name = re.sub(r"[^a-zA-Z0-9_\-]", "_", financial_data.get("business_name", "business"))
+        filename = f"financial_model_{safe_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         file_path = self.output_dir / filename
 
+        # Security: Set restrictive file permissions for sensitive data
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(content)
+
+        # Set file permissions to owner read/write only (600)
+        import os
+
+        os.chmod(file_path, 0o600)
 
         return {
             "document_type": "financial_model",
@@ -305,11 +331,21 @@ class DocumentGenerator:
         )
 
         # Save to file
-        filename = f"risk_assessment_{risk_data.get('business_name', 'business').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        # Security: Sanitize filename to prevent path traversal
+        import re
+
+        safe_name = re.sub(r"[^a-zA-Z0-9_\-]", "_", risk_data.get("business_name", "business"))
+        filename = f"risk_assessment_{safe_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         file_path = self.output_dir / filename
 
+        # Security: Set restrictive file permissions for sensitive data
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(content)
+
+        # Set file permissions to owner read/write only (600)
+        import os
+
+        os.chmod(file_path, 0o600)
 
         return {
             "document_type": "risk_assessment",
@@ -372,11 +408,21 @@ class DocumentGenerator:
         )
 
         # Save to file
-        filename = f"executive_summary_{session_data.get('business_name', 'business').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        # Security: Sanitize filename to prevent path traversal
+        import re
+
+        safe_name = re.sub(r"[^a-zA-Z0-9_\-]", "_", session_data.get("business_name", "business"))
+        filename = f"executive_summary_{safe_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         file_path = self.output_dir / filename
 
+        # Security: Set restrictive file permissions for sensitive data
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(content)
+
+        # Set file permissions to owner read/write only (600)
+        import os
+
+        os.chmod(file_path, 0o600)
 
         return {
             "document_type": "executive_summary",
