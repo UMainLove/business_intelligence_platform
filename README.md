@@ -4,7 +4,7 @@ A comprehensive AI-powered business analysis platform built with AG2 (AutoGen) a
 
 ![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Tests](https://img.shields.io/badge/tests-966%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-966%20passing%20%2B%2047%20integration-brightgreen.svg)
 ![Security](https://github.com/UMainLove/business_intelligence_platform/actions/workflows/security.yml/badge.svg)
 [![Snyk Security](https://github.com/UMainLove/business_intelligence_platform/actions/workflows/snyk-security.yml/badge.svg)](https://github.com/UMainLove/business_intelligence_platform/actions/workflows/snyk-security.yml)
 [![codecov](https://codecov.io/github/UMainLove/business_intelligence_platform/graph/badge.svg?token=OH6S2RUPCH)](https://codecov.io/github/UMainLove/business_intelligence_platform)
@@ -39,15 +39,18 @@ A comprehensive AI-powered business analysis platform built with AG2 (AutoGen) a
 - **Error Handling**: Comprehensive retry logic and graceful degradation
 
 ### ✅ **Production Quality Assurance**
-- **966 Tests Passing**: 100% test suite success rate with 98% code coverage
+- **1,013 Tests Passing**: 966 unit + 47 integration tests with 98% code coverage
+- **Complete Integration Testing**: True AG2 multi-agent collaboration validation
 - **Zero Test Isolation Issues**: Fixed global state management and test independence  
 - **Clean Deprecation Handling**: Updated all datetime usage, ag2 v0.97 stable version
 - **Robust Error Handling**: Fixed 133→0 failing tests, systematic test fixes
 - **Performance Validated**: All agents, workflows, and tools thoroughly tested
+- **Production-Ready Workflows**: Database switching, health monitoring, error tracking
 
 ## 📋 Quick Start
 
 ### Prerequisites
+f
 - Python 3.10+ (required for AG2/AutoGen)
 - Anthropic API Key
 - Docker (optional, for production deployment)
@@ -70,6 +73,7 @@ cp .env.example .env
 ```
 
 **Professional Configuration (.env):**
+
 ```bash
 # Core API
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
@@ -104,38 +108,115 @@ Visit `http://localhost:8501` to access the platform.
 
 ## 🧪 Testing
 
-Comprehensive test suite with 95%+ coverage across 4 specialized test types:
+**Comprehensive test suite with 98% coverage: 966 unit tests + 47 integration tests = 1,013 total tests**
 
-### Test Types
+### Test Architecture Overview
+
+The platform employs a **5-tier testing strategy** ensuring production readiness:
+
+#### **📊 Test Suite Breakdown**
+
+| Test Category | Count | Coverage | Purpose |
+|--------------|-------|----------|---------|
+| **Unit Tests** | **966** | 98% | Core functionality, individual components |
+| **Integration Tests** | **47** | 100% | Multi-component workflows, AG2 agents |
+| **Total** | **1,013** | **98%** | **Complete system validation** |
+
+#### **🔧 Unit Test Types (966 Tests)**
 
 - **`test_*_focused.py`** - High-coverage unit tests targeting 95%+ line coverage for specific modules
 - **`test_*_synthetic.py`** - AI-generated behavioral tests for realistic scenarios and edge cases  
-- **`test_*_comprehensive.py`** - Integration and end-to-end tests across multiple components
-- **`test_*.py` (untagged)** - Legacy/original test suite for basic functionality validation
+- **`test_*_comprehensive.py`** - Component integration and end-to-end functionality tests
+- **`test_*_integration.py`** - Complete system workflows tests for real-world business intelligence scenarios
+- **`test_*.py` (untagged)** - Core functionality validation and legacy test suite
 
-### Running Tests
+#### **⚡ Running Tests**
 
 ```bash
-# Run all tests
+# Run all tests (1,013 tests)
 make test
 
-# Run with coverage reporting
+# Run with coverage reporting (98% coverage)
 make test-coverage
 
 # Run specific test categories  
-make test-focused       # Coverage validation tests
-make test-synthetic     # Business scenario tests
-make test-comprehensive # Integration tests
-make test-unit          # Unit tests
-make test-integration   # Integration tests
+make test-focused       # Coverage validation tests (95%+ line coverage)
+make test-synthetic     # AI-generated behavioral tests
+make test-comprehensive # Component integration tests
+make test-unit          # All unit tests (966)
+make test-integration   # All integration tests (47)
 
-# Fast tests (exclude slow ones)
+# Fast tests (exclude slow integration tests)
 make test-fast
+
+# Performance testing
+make test-performance
+```
+
+### Integration Tests
+
+The platform includes **47 comprehensive integration tests** across 5 specialized suites that validate real-world component interactions:
+
+#### **🔗 Integration Test Suites (47/47 Passing)**
+
+| Suite | Tests | Purpose | Key Features |
+|-------|-------|---------|--------------|
+| **Agent Workflow** | **6/6** ✅ | AG2 multi-agent collaboration | Real agent-to-agent communication, tool integration |
+| **Database Switching** | **8/8** ✅ | PostgreSQL ↔ SQLite transitions | Production database switching, fallback scenarios |
+| **Financial Pipeline** | **10/10** ✅ | End-to-end financial calculations | NPV, IRR, projections with database integration |
+| **Document Generation** | **9/9** ✅ | Full report generation workflow | Business plans, risk assessments, template integration |
+| **Health Monitoring** | **14/14** ✅ | System monitoring + error tracking | Health checks, metrics, comprehensive monitoring |
+
+#### **🎯 True Multi-Agent Integration Examples**
+
+**Agent Collaboration Workflow:**
+
+```python
+# Real AG2 multi-agent collaboration test
+economist_analysis = economist_agent.generate_reply(financial_data)
+legal_analysis = lawyer_agent.generate_reply(regulatory_context) 
+social_analysis = sociologist_agent.generate_reply(market_data)
+final_synthesis = synthesizer_agent.generate_reply(combined_analyses)
+```
+
+**Database → Processing → Output Pipeline:**
+
+```python
+# End-to-end integration pipeline test
+db_data = database_tool_executor("success_rates", {"industry": "Technology"})
+financial_projections = financial_tool_executor("projection", db_enhanced_params)
+business_plan = document_tool_executor("business_plan", integrated_data)
+```
+
+#### **💡 Integration Test Features**
+
+✅ **Real Component Interactions**: No mocked integrations - actual tool usage
+✅ **Multi-Agent Communication**: AG2 agents collaborating on complex scenarios  
+✅ **Database Integration Pipelines**: PostgreSQL/SQLite switching with data flow
+✅ **Production-Grade Scenarios**: Health monitoring, error handling, system metrics
+✅ **Complex Business Workflows**: Financial analysis → Legal review → Document generation
+
+#### **🚀 Running Integration Tests**
+
+```bash
+# Run all integration tests (47 tests)
+python -m pytest tests/test_*_integration.py -v
+
+# Run specific integration suite
+python -m pytest tests/test_agent_workflow_integration.py -v
+python -m pytest tests/test_database_switching_integration.py -v
+python -m pytest tests/test_financial_pipeline_integration.py -v
+python -m pytest tests/test_document_generation_integration.py -v
+python -m pytest tests/test_health_monitoring_integration.py -v
+
+# Integration tests with coverage
+make test-integration
 ```
 
 ## 🐳 Production Deployment
 
 ### Docker Compose (Recommended)
+
 ```bash
 # Start all services
 docker-compose up -d
@@ -155,7 +236,7 @@ kubectl get pods -n business-intelligence
 
 ## 📊 Architecture
 
-```
+```mermaid
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   Streamlit UI  │────│  AG2 Multi-Agent │────│  Claude AI APIs │
 └─────────────────┘    │     Framework    │    └─────────────────┘
@@ -178,13 +259,17 @@ kubectl get pods -n business-intelligence
 ## 📱 Platform Modes
 
 ### 1. Interactive Analysis 🎯
+
 Enhanced chat interface with tool-enabled AI specialists:
+
 - Real-time business intelligence integration
 - Smart commands: `DONE`, `SEQUENTIAL`, `SWARM`
 - Visual tool usage indicators
 
 ### 2. Sequential Validation 📋
+
 Structured 7-phase business validation:
+
 1. Market Research
 2. Financial Modeling
 3. Legal & Regulatory
@@ -194,7 +279,9 @@ Structured 7-phase business validation:
 7. Strategic Planning
 
 ### 3. Scenario Analysis 🌪️
+
 Multi-scenario stress testing with 8 scenario types:
+
 - Economic Downturn
 - Competitive Disruption
 - Regulatory Changes
@@ -209,12 +296,14 @@ Multi-scenario stress testing with 8 scenario types:
 ### From Simple Validator to BI Platform
 
 **Original Tool:**
+
 - 3 AI specialists (Economist, Lawyer, Sociologist)
 - Basic chat interface
 - Simple text reports
 - Single workflow
 
 **Enhanced Platform:**
+
 - **Tool-Enhanced Specialists** with business intelligence capabilities
 - **Multi-Modal Analysis** (Interactive, Sequential, Swarm)
 - **Generated Documents** (Business Plans, Financial Models, Risk Assessments)
@@ -230,11 +319,13 @@ Multi-scenario stress testing with 8 scenario types:
 The platform includes comprehensive security scanning across multiple layers:
 
 **Static Analysis:**
+
 - **Bandit**: Python security linter for common security issues
 - **Safety**: Checks Python dependencies for known vulnerabilities  
 - **pip-audit**: Audits Python packages for known vulnerabilities
 
 **Dynamic Analysis:**
+
 - **Snyk**: Multi-layer vulnerability scanning
   - Dependency scanning for Python packages
   - Docker image vulnerability scanning
@@ -252,6 +343,7 @@ The platform includes comprehensive security scanning across multiple layers:
 ### Security Configuration
 
 **Basic Setup (GitHub Actions only):**
+
 ```bash
 # 1. Create Snyk account at https://snyk.io
 # 2. Get API token from account settings
@@ -259,6 +351,7 @@ The platform includes comprehensive security scanning across multiple layers:
 ```
 
 **Enhanced Setup (Optional - for automatic PRs and advanced features):**
+
 ```bash
 # 1. Connect GitHub OAuth app integration via Snyk dashboard
 # 2. Enable automatic fix PRs and dependency upgrades
@@ -267,6 +360,7 @@ The platform includes comprehensive security scanning across multiple layers:
 ```
 
 Security reports are available in:
+
 - GitHub Security tab (Code scanning alerts)
 - CI/CD artifacts (JSON reports)
 - Snyk dashboard for continuous monitoring
@@ -275,6 +369,7 @@ Security reports are available in:
 ## 🛠️ Development
 
 ### Environment Setup
+
 ```bash
 # Setup development environment
 make setup-dev
@@ -290,7 +385,8 @@ make type-check
 ```
 
 ### File Structure
-```
+
+```bash
 business_intelligence_platform/
 ├── src/
 │   ├── tools/              # Business Intelligence Tools
