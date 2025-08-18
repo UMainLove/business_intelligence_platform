@@ -5,17 +5,16 @@ Tests real component interactions using synthetic data.
 
 import os
 import tempfile
-from unittest.mock import Mock, patch
 from pathlib import Path
+from unittest.mock import Mock, patch
 
 import pytest
 
 from src.business_intelligence import build_bi_group, get_bi_capabilities
+from src.tools.database_production import database_tool_executor
+from src.tools.document_tools import document_tool_executor
 from src.workflows.sequential_validation import SequentialValidationWorkflow
 from src.workflows.swarm_scenarios import SwarmScenarioAnalysis
-from src.tools.database_production import database_tool_executor
-from src.tools.financial_tools import financial_tool_executor
-from src.tools.document_tools import document_tool_executor
 
 
 class TestAgentWorkflowIntegration:

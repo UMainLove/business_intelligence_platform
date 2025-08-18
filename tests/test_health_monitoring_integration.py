@@ -6,14 +6,13 @@ Tests health monitoring integration with database, error handling, and system me
 import os
 import tempfile
 import time
-from unittest.mock import Mock, patch
 from pathlib import Path
+from unittest.mock import Mock, patch
 
 import pytest
 
+from src.error_handling import BusinessIntelligenceError, error_tracker
 from src.health_monitor import HealthMonitor, HealthStatus, health_monitor
-from src.error_handling import error_tracker, BusinessIntelligenceError
-from src.database_config import DatabaseConfig
 
 
 class TestHealthMonitoringIntegration:
@@ -364,8 +363,8 @@ class TestHealthMonitoringIntegration:
 
     def test_health_monitor_thread_safety(self, temp_logs_dir):
         """Test health monitor thread safety for concurrent access."""
-        import threading
         import concurrent.futures
+        import threading
 
         monitor = HealthMonitor()
         results = []

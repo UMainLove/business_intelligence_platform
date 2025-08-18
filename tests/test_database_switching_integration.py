@@ -5,7 +5,6 @@ Tests real database connection switching using synthetic data.
 
 import os
 import tempfile
-from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest

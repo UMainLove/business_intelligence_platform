@@ -10,14 +10,13 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from src.business_intelligence import build_bi_group
 from src.tools.document_tools import (
     DocumentGenerator,
-    document_tool_executor,
     create_document_tool_spec,
+    document_tool_executor,
 )
-from src.tools.database_production import database_tool_executor
 from src.tools.financial_tools import financial_tool_executor
-from src.business_intelligence import build_bi_group
 
 
 class TestDocumentGenerationIntegration:
@@ -232,7 +231,7 @@ class TestDocumentGenerationIntegration:
 
         # Enhanced business data with financial calculations
         enhanced_data = sample_business_data.copy()
-        enhanced_data["financial_projections"] += f"\n\nFinancial Analysis:"
+        enhanced_data["financial_projections"] += "\n\nFinancial Analysis:"
         enhanced_data["financial_projections"] += f"\n- NPV: ${npv_result['npv']:,.2f}"
         enhanced_data["financial_projections"] += f"\n- IRR: {irr_result['irr'] * 100:.1f}%"
         enhanced_data[

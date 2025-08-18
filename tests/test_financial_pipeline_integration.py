@@ -5,20 +5,18 @@ Tests financial tool integration with database and agent workflows using synthet
 
 import os
 import tempfile
-from unittest.mock import Mock, patch
 from pathlib import Path
+from unittest.mock import Mock, patch
 
 import pytest
-import numpy as np
 
+from src.business_intelligence import build_bi_group
 from src.tools.financial_tools import (
     FinancialCalculator,
     FinancialMetrics,
-    financial_tool_executor,
     create_financial_tool_spec,
+    financial_tool_executor,
 )
-from src.tools.database_production import database_tool_executor
-from src.business_intelligence import build_bi_group
 
 
 class TestFinancialPipelineIntegration:
@@ -245,7 +243,7 @@ class TestFinancialPipelineIntegration:
         cursor.execute(
             "SELECT company, cash_flow, period FROM financial_projections ORDER BY company, period"
         )
-        db_data = cursor.fetchall()
+        cursor.fetchall()  # Fetch data to demonstrate database integration
 
         # Process financial data with calculator
         calc = FinancialCalculator()
