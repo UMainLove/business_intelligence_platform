@@ -188,9 +188,9 @@ class TestDocumentGenerationIntegration:
         # Create enhanced business data with database information (simulating database data)
         enhanced_data = sample_business_data.copy()
         enhanced_data["database_metrics"] = "Q1 Revenue: $500K, Q2 Revenue: $625K (25% growth)"
-        enhanced_data[
-            "financial_projections"
-        ] += f"\nDatabase Analysis: {enhanced_data['database_metrics']}"
+        enhanced_data["financial_projections"] += (
+            f"\nDatabase Analysis: {enhanced_data['database_metrics']}"
+        )
 
         result = generator.generate_business_plan(enhanced_data)
 
@@ -234,9 +234,9 @@ class TestDocumentGenerationIntegration:
         enhanced_data["financial_projections"] += "\n\nFinancial Analysis:"
         enhanced_data["financial_projections"] += f"\n- NPV: ${npv_result['npv']:,.2f}"
         enhanced_data["financial_projections"] += f"\n- IRR: {irr_result['irr'] * 100:.1f}%"
-        enhanced_data[
-            "financial_projections"
-        ] += f"\n- Payback Period: {payback_result['payback_period_years']:.1f} years"
+        enhanced_data["financial_projections"] += (
+            f"\n- Payback Period: {payback_result['payback_period_years']:.1f} years"
+        )
 
         # Generate document with financial analysis
         generator = DocumentGenerator(output_dir=str(Path(temp_docs_dir) / "docs"))
