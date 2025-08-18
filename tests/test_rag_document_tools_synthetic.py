@@ -304,8 +304,9 @@ class TestDocumentGenerator:
 
         assert result["document_type"] == "market_analysis"
         assert "filename" in result
-        assert result["filename"].startswith("market_analysis_AI_Technology_")
+        assert result["filename"].startswith("market_analysis_")  # Secure hashed filename
         assert result["filename"].endswith(".md")
+        assert result["original_identifier"] == "AI Technology"  # Original preserved for testing
         assert "content" in result
         assert "AI Technology" in result["content"]
         assert "GenAI" in result["content"]
@@ -324,7 +325,8 @@ class TestDocumentGenerator:
         result = self.doc_gen.generate_financial_model(financial_data)
 
         assert result["document_type"] == "financial_model"
-        assert result["filename"].startswith("financial_model_AI_Startup_")
+        assert result["filename"].startswith("financial_model_")  # Secure hashed filename
+        assert result["original_identifier"] == "AI Startup"  # Original preserved for testing
         assert "AI Startup" in result["content"]
         assert "Year 1:** $100,000" in result["content"]
         assert "Conservative growth estimates" in result["content"]

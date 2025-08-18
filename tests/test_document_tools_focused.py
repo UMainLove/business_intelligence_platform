@@ -53,8 +53,11 @@ class TestDocumentGenerator:
         result = self.generator.generate_business_plan(business_data)
 
         assert result["document_type"] == "business_plan"
-        assert "TechStart_Inc" in result["filename"]  # Spaces replaced with underscores in filename
+        assert result["filename"].startswith("business_plan_")  # Secure hashed filename
         assert result["filename"].endswith(".md")
+        assert (
+            result["original_identifier"] == "TechStart Inc"
+        )  # Original name preserved for testing
         assert "TechStart Inc" in result["content"]
         assert "Technology" in result["content"]
         assert "B2B Software" in result["content"]
@@ -115,8 +118,10 @@ class TestDocumentGenerator:
         result = self.generator.generate_business_plan(business_data)
 
         assert "Café & Restaurant Co." in result["content"]
-        # Filename should have spaces replaced with underscores
-        assert "Café_&_Restaurant_Co." in result["filename"]
+        # Filename should be securely hashed (no sensitive info in filename)
+        assert result["filename"].startswith("business_plan_")
+        assert result["filename"].endswith(".md")
+        assert result["original_identifier"] == "Café & Restaurant Co."
 
     def test_generate_market_analysis_basic(self):
         """Test basic market analysis generation."""
@@ -789,7 +794,10 @@ class TestIntegration:
         filenames = [r["filename"] for r in results]
         assert len(set(filenames)) == 3  # All unique
 
-        # All should start with same pattern but have different timestamps
+        # All should start with business_plan_ but have different hashes/timestamps
         for filename in filenames:
-            assert filename.startswith("business_plan_SameName_")
+            assert filename.startswith("business_plan_")
             assert filename.endswith(".md")
+            # Verify the original identifier is preserved
+        for result in results:
+            assert result["original_identifier"] == "SameName"

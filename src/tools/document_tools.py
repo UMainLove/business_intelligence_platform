@@ -2,6 +2,7 @@
 Document generation tools for business reports and analysis.
 """
 
+import hashlib
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List
@@ -13,6 +14,26 @@ class DocumentGenerator:
     def __init__(self, output_dir: str = "data/generated_docs"):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
+
+    def _generate_secure_filename(self, doc_type: str, identifier: str) -> str:
+        """Generate secure hashed filename to prevent information leakage.
+
+        Args:
+            doc_type: Type of document (business_plan, market_analysis, etc.)
+            identifier: Business name or other identifier to hash
+
+        Returns:
+            Secure filename with hashed identifier
+        """
+        # Create SHA-256 hash of the identifier
+        hash_object = hashlib.sha256(identifier.encode("utf-8"))
+        hashed_id = hash_object.hexdigest()[:16]  # Use first 16 chars for readability
+
+        # Generate timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+        # Return secure filename
+        return f"{doc_type}_{hashed_id}_{timestamp}.md"
 
     def generate_business_plan(self, business_data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate a comprehensive business plan."""
@@ -68,12 +89,23 @@ class DocumentGenerator:
             generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         )
 
-        # Save to file with security sanitization
+        # Save to file with security sanitization and hashing
         import re
 
         # Security: Sanitize filename to prevent path traversal
-        safe_name = re.sub(r"[^a-zA-Z0-9_\-]", "_", business_data.get("name", "unnamed"))
-        filename = f"business_plan_{safe_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        name = business_data.get("name", "unnamed")
+        # First replace spaces with underscores
+        safe_name = name.replace(" ", "_")
+        # Remove path traversal patterns
+        safe_name = re.sub(r"\.\./", "", safe_name)  # Remove ../
+        safe_name = re.sub(r"\.\.\\", "", safe_name)  # Remove ..\
+        # Then remove dangerous characters (path separators, null bytes, etc.)
+        safe_name = re.sub(r"[/\\\0\n\r\t<>:|?*\"]", "", safe_name)
+        # Remove leading dots (hidden files) but keep trailing dots
+        safe_name = safe_name.lstrip(".")
+
+        # Security: Hash the sanitized name to prevent information leakage in filename
+        filename = self._generate_secure_filename("business_plan", safe_name)
         file_path = self.output_dir / filename
 
         # Security: Set restrictive file permissions for sensitive data
@@ -91,6 +123,7 @@ class DocumentGenerator:
             "file_path": str(file_path),
             "content": content,
             "word_count": len(content.split()),
+            "original_identifier": business_data.get("name", "unnamed"),  # For testing/debugging
         }
 
     def generate_market_analysis_report(self, market_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -147,8 +180,19 @@ class DocumentGenerator:
             generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         )
 
-        # Save to file
-        filename = f"market_analysis_{market_data.get('industry', 'industry').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        # Save to file with security sanitization and hashing
+        import re
+
+        # Security: Sanitize filename to prevent path traversal
+        industry = market_data.get("industry", "industry")
+        safe_industry = industry.replace(" ", "_")
+        safe_industry = re.sub(r"\.\./", "", safe_industry)
+        safe_industry = re.sub(r"\.\.\\", "", safe_industry)
+        safe_industry = re.sub(r"[/\\\0\n\r\t<>:|?*\"]", "", safe_industry)
+        safe_industry = safe_industry.lstrip(".")
+
+        # Security: Hash the sanitized industry name to prevent information leakage in filename
+        filename = self._generate_secure_filename("market_analysis", safe_industry)
         file_path = self.output_dir / filename
 
         # Security: Set restrictive file permissions for sensitive data
@@ -166,6 +210,7 @@ class DocumentGenerator:
             "file_path": str(file_path),
             "content": content,
             "word_count": len(content.split()),
+            "original_identifier": market_data.get("industry", "industry"),  # For testing/debugging
         }
 
     def generate_financial_model(self, financial_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -239,12 +284,19 @@ class DocumentGenerator:
             generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         )
 
-        # Save to file
-        # Security: Sanitize filename to prevent path traversal
+        # Save to file with security sanitization and hashing
         import re
 
-        safe_name = re.sub(r"[^a-zA-Z0-9_\-]", "_", financial_data.get("business_name", "business"))
-        filename = f"financial_model_{safe_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        # Security: Sanitize filename to prevent path traversal
+        name = financial_data.get("business_name", "business")
+        safe_name = name.replace(" ", "_")
+        safe_name = re.sub(r"\.\./", "", safe_name)
+        safe_name = re.sub(r"\.\.\\", "", safe_name)
+        safe_name = re.sub(r"[/\\\0\n\r\t<>:|?*\"]", "", safe_name)
+        safe_name = safe_name.lstrip(".")
+
+        # Security: Hash the sanitized business name to prevent information leakage in filename
+        filename = self._generate_secure_filename("financial_model", safe_name)
         file_path = self.output_dir / filename
 
         # Security: Set restrictive file permissions for sensitive data
@@ -262,6 +314,9 @@ class DocumentGenerator:
             "file_path": str(file_path),
             "content": content,
             "word_count": len(content.split()),
+            "original_identifier": financial_data.get(
+                "business_name", "business"
+            ),  # For testing/debugging
         }
 
     def generate_risk_assessment(self, risk_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -330,12 +385,19 @@ class DocumentGenerator:
             generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         )
 
-        # Save to file
-        # Security: Sanitize filename to prevent path traversal
+        # Save to file with security sanitization and hashing
         import re
 
-        safe_name = re.sub(r"[^a-zA-Z0-9_\-]", "_", risk_data.get("business_name", "business"))
-        filename = f"risk_assessment_{safe_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        # Security: Sanitize filename to prevent path traversal
+        name = risk_data.get("business_name", "business")
+        safe_name = name.replace(" ", "_")
+        safe_name = re.sub(r"\.\./", "", safe_name)
+        safe_name = re.sub(r"\.\.\\", "", safe_name)
+        safe_name = re.sub(r"[/\\\0\n\r\t<>:|?*\"]", "", safe_name)
+        safe_name = safe_name.lstrip(".")
+
+        # Security: Hash the sanitized business name to prevent information leakage in filename
+        filename = self._generate_secure_filename("risk_assessment", safe_name)
         file_path = self.output_dir / filename
 
         # Security: Set restrictive file permissions for sensitive data
@@ -353,6 +415,9 @@ class DocumentGenerator:
             "file_path": str(file_path),
             "content": content,
             "word_count": len(content.split()),
+            "original_identifier": risk_data.get(
+                "business_name", "business"
+            ),  # For testing/debugging
         }
 
     def generate_executive_summary(self, session_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -407,12 +472,19 @@ class DocumentGenerator:
             generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         )
 
-        # Save to file
-        # Security: Sanitize filename to prevent path traversal
+        # Save to file with security sanitization and hashing
         import re
 
-        safe_name = re.sub(r"[^a-zA-Z0-9_\-]", "_", session_data.get("business_name", "business"))
-        filename = f"executive_summary_{safe_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        # Security: Sanitize filename to prevent path traversal
+        name = session_data.get("business_name", "business")
+        safe_name = name.replace(" ", "_")
+        safe_name = re.sub(r"\.\./", "", safe_name)
+        safe_name = re.sub(r"\.\.\\", "", safe_name)
+        safe_name = re.sub(r"[/\\\0\n\r\t<>:|?*\"]", "", safe_name)
+        safe_name = safe_name.lstrip(".")
+
+        # Security: Hash the sanitized business name to prevent information leakage in filename
+        filename = self._generate_secure_filename("executive_summary", safe_name)
         file_path = self.output_dir / filename
 
         # Security: Set restrictive file permissions for sensitive data
@@ -430,6 +502,9 @@ class DocumentGenerator:
             "file_path": str(file_path),
             "content": content,
             "word_count": len(content.split()),
+            "original_identifier": session_data.get(
+                "business_name", "business"
+            ),  # For testing/debugging
         }
 
     def list_generated_documents(self) -> List[Dict[str, Any]]:
