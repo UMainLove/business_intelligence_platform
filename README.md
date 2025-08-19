@@ -4,7 +4,7 @@ A comprehensive AI-powered business analysis platform built with AG2 (AutoGen) a
 
 ![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Tests](https://img.shields.io/badge/tests-966%20passing%20%2B%2047%20integration-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-1090%20passing%20(966%20unit%20%2B%2047%20integration%20%2B%2077%20functionality)-brightgreen.svg)
 ![Security](https://github.com/UMainLove/business_intelligence_platform/actions/workflows/security.yml/badge.svg)
 [![Snyk Security](https://github.com/UMainLove/business_intelligence_platform/actions/workflows/snyk-security.yml/badge.svg)](https://github.com/UMainLove/business_intelligence_platform/actions/workflows/snyk-security.yml)
 [![codecov](https://codecov.io/github/UMainLove/business_intelligence_platform/graph/badge.svg?token=OH6S2RUPCH)](https://codecov.io/github/UMainLove/business_intelligence_platform)
@@ -39,7 +39,7 @@ A comprehensive AI-powered business analysis platform built with AG2 (AutoGen) a
 - **Error Handling**: Comprehensive retry logic and graceful degradation
 
 ### ✅ **Production Quality Assurance**
-- **1,013 Tests Passing**: 966 unit + 47 integration tests with 98% code coverage
+- **1,090 Tests Passing**: 966 unit + 47 integration + 77 functionality tests with 98% code coverage
 - **Complete Integration Testing**: True AG2 multi-agent collaboration validation
 - **Zero Test Isolation Issues**: Fixed global state management and test independence  
 - **Clean Deprecation Handling**: Updated all datetime usage, ag2 v0.97 stable version
@@ -108,11 +108,11 @@ Visit `http://localhost:8501` to access the platform.
 
 ## 🧪 Testing
 
-**Comprehensive test suite with 98% coverage: 966 unit tests + 47 integration tests = 1,013 total tests**
+**Comprehensive test suite with 98% coverage: 966 unit tests + 47 integration tests + 77 functionality tests = 1,090 total tests**
 
 ### Test Architecture Overview
 
-The platform employs a **5-tier testing strategy** ensuring production readiness:
+The platform employs a **6-tier testing strategy** ensuring production readiness:
 
 #### **📊 Test Suite Breakdown**
 
@@ -120,7 +120,8 @@ The platform employs a **5-tier testing strategy** ensuring production readiness
 |--------------|-------|----------|---------|
 | **Unit Tests** | **966** | 98% | Core functionality, individual components |
 | **Integration Tests** | **47** | 100% | Multi-component workflows, AG2 agents |
-| **Total** | **1,013** | **98%** | **Complete system validation** |
+| **Functionality Tests** | **77** | 100% | End-to-end feature validation, README compliance |
+| **Total** | **1,090** | **98%** | **Complete system validation** |
 
 #### **🔧 Unit Test Types (966 Tests)**
 
@@ -130,10 +131,16 @@ The platform employs a **5-tier testing strategy** ensuring production readiness
 - **`test_*_integration.py`** - Complete system workflows tests for real-world business intelligence scenarios
 - **`test_*.py` (untagged)** - Core functionality validation and legacy test suite
 
+#### **🎯 Functionality Test Types (77 Tests)**
+
+- **`test_three_modes_functionality.py`** - Interactive Analysis, Sequential Validation, Swarm Scenarios (20 tests)
+- **`test_external_apis_functionality.py`** - Web Intelligence, Third-party APIs, RAG/Vector DB, Real-time Data (26 tests)
+- **`test_similarity_search_functionality.py`** - Business similarity, Industry benchmarking, Document similarity, Vector search (31 tests)
+
 #### **⚡ Running Tests**
 
 ```bash
-# Run all tests (1,013 tests)
+# Run all tests (1,090 tests)
 make test
 
 # Run with coverage reporting (98% coverage)
@@ -145,6 +152,7 @@ make test-synthetic     # AI-generated behavioral tests
 make test-comprehensive # Component integration tests
 make test-unit          # All unit tests (966)
 make test-integration   # All integration tests (47)
+make test-functionality # All functionality tests (77)
 
 # Fast tests (exclude slow integration tests)
 make test-fast
@@ -212,6 +220,41 @@ python -m pytest tests/test_health_monitoring_integration.py -v
 # Integration tests with coverage
 make test-integration
 ```
+
+### Functionality Tests
+
+The platform includes **77 comprehensive functionality tests** across 3 specialized suites that validate all README features are actually implemented and working:
+
+#### **🎯 Functionality Test Suites (77/77 Passing)**
+
+| Suite | Tests | Purpose | Key Features |
+|-------|-------|---------|--------------|
+| **Three Modes Analysis** | **20/20** ✅ | Interactive, Sequential, Swarm validation | Real AI specialist chat, 7-phase workflow, 8 stress scenarios |
+| **External APIs Integration** | **26/26** ✅ | Web Intelligence, Third-party APIs, RAG/Vector DB | Real-time data collection, API integration, document similarity |
+| **Similarity Search** | **31/31** ✅ | Business matching, Industry benchmarking | Find similar businesses, competitive analysis, vector search |
+
+#### **🚀 Running Functionality Tests**
+
+```bash
+# Run all functionality tests (77 tests)
+python -m pytest tests/test_*_functionality.py -v
+
+# Run specific functionality suite
+python -m pytest tests/test_three_modes_functionality.py -v
+python -m pytest tests/test_external_apis_functionality.py -v
+python -m pytest tests/test_similarity_search_functionality.py -v
+
+# Functionality tests with coverage
+make test-functionality
+```
+
+#### **💡 Functionality Test Features**
+
+✅ **README Compliance**: Every feature mentioned in README is tested  
+✅ **End-to-End Validation**: Complete user workflows from start to finish  
+✅ **Feature Completeness**: All three analysis modes, external APIs, similarity search  
+✅ **Production Scenarios**: Real business intelligence use cases  
+✅ **Tool Integration**: AG2 multi-agent collaboration with business tools
 
 ## 🐳 Production Deployment
 

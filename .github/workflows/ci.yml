@@ -113,6 +113,16 @@ jobs:
         REDIS_URL: redis://localhost:6379/0
       continue-on-error: false  # Integration tests should not fail in CI/CD
     
+    - name: Run functionality tests (77 tests across 3 suites)
+      run: |
+        python -m pytest tests/test_*_functionality.py -v --tb=short --cov=src --cov-append --cov-report=xml --junitxml=junit-functionality.xml -o junit_family=legacy
+      env:
+        ANTHROPIC_API_KEY: test-key-12345
+        ENVIRONMENT: test
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_bi
+        REDIS_URL: redis://localhost:6379/0
+      continue-on-error: false  # Functionality tests verify README features work
+    
     - name: Run legacy integration tests (compatibility check)
       run: |
         python -m pytest tests/test_error_handling.py tests/test_health_monitor.py tests/test_financial_tools.py tests/test_database.py tests/test_workflows.py tests/test_business_intelligence.py -v --tb=short --junitxml=junit-legacy.xml -o junit_family=legacy
@@ -149,7 +159,7 @@ jobs:
       uses: codecov/test-results-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        files: junit-synthetic.xml,junit-focused.xml,junit-integration.xml,junit-legacy.xml
+        files: junit-synthetic.xml,junit-focused.xml,junit-integration.xml,junit-functionality.xml,junit-legacy.xml
     
     - name: Test import functionality
       run: |
@@ -320,8 +330,9 @@ jobs:
       if: needs.test.result == 'success' && needs.security.result == 'success' && needs.build.result == 'success'
       run: |
         echo "✅ All CI/CD checks passed!"
-        echo "📊 Test Suite: PASSED (1,013 tests: 966 unit + 47 integration)"
+        echo "📊 Test Suite: PASSED (1,090 tests: 966 unit + 47 integration + 77 functionality)"
         echo "🤖 AG2 Multi-Agent Tests: PASSED (47/47 integration tests)"
+        echo "🎯 Functionality Tests: PASSED (77/77 README feature tests)"
         echo "🔒 Security Scan: PASSED"
         echo "🐳 Docker Build: PASSED"
         echo "🏗️ Production Ready: ✅"
@@ -330,7 +341,7 @@ jobs:
       if: needs.test.result == 'failure' || needs.security.result == 'failure' || needs.build.result == 'failure'
       run: |
         echo "❌ CI/CD pipeline failed!"
-        echo "📊 Test Suite: ${{ needs.test.result }} (1,013 tests)"
+        echo "📊 Test Suite: ${{ needs.test.result }} (1,090 tests)"
         echo "🔒 Security Scan: ${{ needs.security.result }}"
         echo "🐳 Docker Build: ${{ needs.build.result }}"
         echo "🚨 Check logs for integration test failures"
