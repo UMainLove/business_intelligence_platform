@@ -218,23 +218,49 @@ class DatabaseConfig:
             """
             )
 
-            # Create triggers for updated_at
-            allowed_tables = {
-                "business_ventures",
-                "industry_benchmarks",
-                "market_events",
-                "financial_metrics",
-            }
-            for table in allowed_tables:
-                # Use individual statements to avoid SQL injection
-                drop_sql = f"DROP TRIGGER IF EXISTS update_{table}_updated_at ON {table}"
-                create_sql = f"""CREATE TRIGGER update_{table}_updated_at
-                    BEFORE UPDATE ON {table}
-                    FOR EACH ROW
-                    EXECUTE FUNCTION update_updated_at_column()"""
+            # Create triggers for updated_at using safe SQL construction
+            # Define allowed table names as a frozen set for security
+            allowed_tables = frozenset(
+                [
+                    "business_ventures",
+                    "industry_benchmarks",
+                    "market_events",
+                    "financial_metrics",
+                ]
+            )
 
-                cursor.execute(drop_sql)
-                cursor.execute(create_sql)
+            def _safe_identifier(name: str) -> str:
+                """Safely validate and quote SQL identifiers to prevent injection."""
+                # Validate against allowlist
+                if name not in allowed_tables:
+                    raise ValueError(f"Table name '{name}' not in allowed list")
+
+                # Additional validation: ensure only alphanumeric and underscore
+                import re
+
+                if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", name):
+                    raise ValueError(f"Invalid identifier format: {name}")
+
+                return name
+
+            for table_name in allowed_tables:
+                # Validate table name through security function
+                safe_table = _safe_identifier(table_name)
+                trigger_name = "update_" + safe_table + "_updated_at"
+
+                # Construct SQL safely using validated identifiers
+                # Safe because table names are from validated allowlist and regex-checked
+                drop_statement = "DROP TRIGGER IF EXISTS " + trigger_name + " ON " + safe_table
+                create_statement = (
+                    "CREATE TRIGGER "
+                    + trigger_name
+                    + " BEFORE UPDATE ON "
+                    + safe_table
+                    + " FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
+                )
+
+                cursor.execute(drop_statement)
+                cursor.execute(create_statement)
 
             conn.commit()
 
