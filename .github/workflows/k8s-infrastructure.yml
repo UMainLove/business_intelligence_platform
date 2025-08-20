@@ -58,7 +58,7 @@ jobs:
     
     - name: Run infrastructure TDD tests
       run: |
-        python -m pytest tests/infrastructure/ -v --tb=short --junitxml=junit-k8s.xml
+        python -m pytest tests/infrastructure/ -v --tb=short --junitxml=junit-k8s.xml -o junit_family=legacy
       env:
         ANTHROPIC_API_KEY: test-key-12345
         ENVIRONMENT: test
