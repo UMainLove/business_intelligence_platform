@@ -54,6 +54,7 @@ class K8sClient(Protocol):
         """Set CPU usage for testing."""
         ...
 
+
 # Configuration constants
 DEFAULT_SCALE_UP_THRESHOLD = 5  # Scale up when CPU >= target + 5%
 DEFAULT_SCALE_DOWN_THRESHOLD = 10  # Scale down when CPU < target - 10%
@@ -309,8 +310,11 @@ class HPAScaler:
         return new_pods
 
     def _apply_scaling(
-        self, namespace: str, config: Dict[str, Union[str, int, float]],
-        metrics: Dict[str, Union[int, float]], new_pods: int
+        self,
+        namespace: str,
+        config: Dict[str, Union[str, int, float]],
+        metrics: Dict[str, Union[int, float]],
+        new_pods: int,
     ) -> Dict[str, Union[str, int]]:
         """Apply scaling changes and log the event."""
         if not self.k8s_client:
