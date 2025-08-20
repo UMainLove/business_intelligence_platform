@@ -25,31 +25,31 @@ import yaml
 
 class K8sClient(Protocol):
     """Protocol defining the interface for Kubernetes client."""
-    
+
     def get_hpa(self, namespace: str, name: str) -> Optional[Dict]:
         """Get HPA by name."""
         ...
-    
+
     def create_hpa(self, namespace: str, hpa_config: Dict) -> Dict:
         """Create HPA."""
         ...
-    
+
     def get_deployment(self, namespace: str, name: str) -> Optional[Dict]:
         """Get deployment by name."""
         ...
-    
+
     def count_pods(self, namespace: str, label_selector: str) -> int:
         """Count pods matching label selector."""
         ...
-    
+
     def update_pod_count(self, namespace: str, label_selector: str, count: int) -> None:
         """Update pod count."""
         ...
-    
+
     def get_cpu_usage(self, namespace: str, deployment: str) -> float:
         """Get CPU usage percentage."""
         ...
-    
+
     def set_cpu_usage(self, namespace: str, deployment: str, usage: float) -> None:
         """Set CPU usage for testing."""
         ...
@@ -281,7 +281,7 @@ class HPAScaler:
         """Get current CPU and pod metrics."""
         if not self.k8s_client:
             raise ValueError("K8s client is required for metrics")
-            
+
         current_cpu = self.k8s_client.get_cpu_usage(namespace, deployment)
         current_pods = self.k8s_client.count_pods(namespace, f"app={deployment}")
 
@@ -309,13 +309,13 @@ class HPAScaler:
         return new_pods
 
     def _apply_scaling(
-        self, namespace: str, config: Dict[str, Union[str, int, float]], 
+        self, namespace: str, config: Dict[str, Union[str, int, float]],
         metrics: Dict[str, Union[int, float]], new_pods: int
     ) -> Dict[str, Union[str, int]]:
         """Apply scaling changes and log the event."""
         if not self.k8s_client:
             raise ValueError("K8s client is required for scaling")
-            
+
         deployment = str(config["deployment"])
         current_pods = int(metrics["pods"])
         current_cpu = float(metrics["cpu"])

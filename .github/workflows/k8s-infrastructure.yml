@@ -58,7 +58,7 @@ jobs:
     
     - name: Run infrastructure TDD tests
       run: |
-        python -m pytest tests/infrastructure/ -v --tb=short --cov=tests/infrastructure --cov-report=xml --cov-report=term-missing --junitxml=junit-k8s.xml
+        python -m pytest tests/infrastructure/ -v --tb=short --junitxml=junit-k8s.xml
       env:
         ANTHROPIC_API_KEY: test-key-12345
         ENVIRONMENT: test
@@ -98,18 +98,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: k8s-test-results-${{ matrix.python-version }}
-        path: |
-          junit-k8s.xml
-          coverage.xml
-    
-    - name: Upload coverage to Codecov
-      if: matrix.python-version == '3.10'
-      uses: codecov/codecov-action@v5
-      with:
-        files: ./coverage.xml
-        flags: infrastructure
-        name: k8s-infrastructure
-        fail_ci_if_error: false
+        path: junit-k8s.xml
 
   k8s-manifest-security:
     name: K8s Manifest Security Scan
