@@ -4,7 +4,7 @@ A comprehensive AI-powered business analysis platform built with AG2 (AutoGen) a
 
 ![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Tests](https://img.shields.io/badge/tests-1129%20passing%20(966%20unit%20%2B%2047%20integration%20%2B%2077%20functionality%20%2B%2039%20advanced)-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-1138%20passing%20-brightgreen.svg)
 ![Security](https://github.com/UMainLove/business_intelligence_platform/actions/workflows/security.yml/badge.svg)
 [![Snyk Security](https://github.com/UMainLove/business_intelligence_platform/actions/workflows/snyk-security.yml/badge.svg)](https://github.com/UMainLove/business_intelligence_platform/actions/workflows/snyk-security.yml)
 [![codecov](https://codecov.io/github/UMainLove/business_intelligence_platform/graph/badge.svg?token=OH6S2RUPCH)](https://codecov.io/github/UMainLove/business_intelligence_platform)
@@ -39,7 +39,7 @@ A comprehensive AI-powered business analysis platform built with AG2 (AutoGen) a
 - **Error Handling**: Comprehensive retry logic and graceful degradation
 
 ### ✅ **Production Quality Assurance**
-- **1,129 Tests Passing**: 966 unit + 47 integration + 77 functionality + 39 advanced tests with 98% code coverage
+- **1,138 Tests Passing**: 966 unit + 47 integration + 77 functionality + 39 advanced + 9 infrastructure tests with 98% code coverage
 - **Complete Integration Testing**: True AG2 multi-agent collaboration validation
 - **Zero Test Isolation Issues**: Fixed global state management and test independence  
 - **Clean Deprecation Handling**: Updated all datetime usage, ag2 v0.97 stable version
@@ -50,7 +50,7 @@ A comprehensive AI-powered business analysis platform built with AG2 (AutoGen) a
 ## 📋 Quick Start
 
 ### Prerequisites
-f
+
 - Python 3.10+ (required for AG2/AutoGen)
 - Anthropic API Key
 - Docker (optional, for production deployment)
@@ -108,7 +108,7 @@ Visit `http://localhost:8501` to access the platform.
 
 ## 🧪 Testing
 
-**Comprehensive test suite with 98% coverage: 966 unit tests + 47 integration tests + 77 functionality tests + 39 advanced tests = 1,129 total tests**
+**Comprehensive test suite with 98% coverage: 966 unit tests + 47 integration tests + 77 functionality tests + 39 advanced tests + 9 infrastructure tests = 1,138 total tests**
 
 ### Test Architecture Overview
 
@@ -122,7 +122,8 @@ The platform employs a **7-tier testing strategy** ensuring production readiness
 | **Integration Tests** | **47** | 100% | Multi-component workflows, AG2 agents |
 | **Functionality Tests** | **77** | 100% | End-to-end feature validation, README compliance |
 | **Advanced Tests** | **39** | 100% | Production-ready coverage, similarity search, Redis caching |
-| **Total** | **1,129** | **98%** | **Complete system validation** |
+| **Infrastructure Tests** | **9** | N/A | Kubernetes auto-scaling, HPA configuration, TDD implementation |
+| **Total** | **1,138** | **98%** | **Complete system validation** |
 
 #### **🔧 Unit Test Types (966 Tests)**
 
@@ -155,6 +156,7 @@ make test-unit          # All unit tests (966)
 make test-integration   # All integration tests (47)
 make test-functionality # All functionality tests (77)
 make test-advanced      # All advanced tests (39)
+make test-infrastructure # All infrastructure tests (9) - TDD K8s auto-scaling
 
 # Fast tests (exclude slow integration tests)
 make test-fast
@@ -354,6 +356,98 @@ make test-advanced
 ✅ **Performance Validated**: Response time, memory usage, concurrent operations  
 ✅ **Edge Case Handling**: Null values, special characters, error scenarios  
 ✅ **Integration Pipelines**: Similarity + financial analysis + document generation
+
+### Infrastructure Tests (TDD Implementation)
+
+The platform includes **9 comprehensive infrastructure tests** using Test-Driven Development (TDD) methodology for Kubernetes auto-scaling:
+
+#### **☸️ Infrastructure Test Suite (9/9 Passing)**
+
+| Test Category | Tests | Purpose | Key Features |
+|---------------|-------|---------|--------------|
+| **HPA Configuration** | **2/2** ✅ | Validate auto-scaling setup | Min/max replicas, CPU targets, deployment references |
+| **Resource Management** | **1/1** ✅ | Verify resource limits | CPU/Memory requests and limits validation |
+| **Pod Scaling Logic** | **2/2** ✅ | Test scaling behavior | Scale up/down based on CPU load |
+| **Load Testing** | **2/2** ✅ | Validate load generation | Artificial load triggers, metrics integration |
+| **K8s Manifests** | **2/2** ✅ | Manifest validation | YAML structure, configuration correctness |
+
+#### **🔴🟢🔵 TDD Implementation Process**
+
+**RED Phase (Failing Tests):**
+```python
+# Initial failing test for HPA configuration
+def test_hpa_exists_with_correct_configuration(self):
+    hpa = self.k8s_client.get_hpa(self.namespace, self.hpa_name)
+    assert hpa["spec"]["minReplicas"] == 2  # Fails initially
+    assert hpa["spec"]["maxReplicas"] == 10
+    assert cpu_target == 70  # Target CPU utilization
+```
+
+**GREEN Phase (Implementation):**
+```yaml
+# k8s/hpa.yaml - Minimal implementation to pass tests
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+spec:
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        averageUtilization: 70
+```
+
+**REFACTOR Phase (Optimization):**
+- Extracted configuration constants
+- Added comprehensive type hints with Protocol pattern
+- Implemented error handling and edge cases
+- Optimized scaling thresholds (scale up at 75%, down at 60%)
+
+#### **🎯 Infrastructure Features Tested**
+
+**Kubernetes Auto-scaling:**
+- HPA with CPU-based scaling (70% target utilization)
+- Min replicas: 2, Max replicas: 10
+- Resource limits: CPU 100m-500m, Memory 256Mi-512Mi
+- Scaling behavior validation under load
+
+**Load Testing Utilities:**
+- `LoadGenerator` class for simulating CPU load
+- `MetricsClient` for monitoring CPU utilization
+- `HPAScaler` for scaling decision logic
+- `ScalingMonitor` for tracking scaling events
+
+**Production Manifests:**
+- Complete Kubernetes deployment configuration
+- HPA with advanced scaling policies
+- Security context (non-root, read-only filesystem)
+- Liveness and readiness probes
+
+#### **🚀 Running Infrastructure Tests**
+
+```bash
+# Run infrastructure TDD tests
+python -m pytest tests/infrastructure/ -v
+
+# Run with K8s workflow (separate CI/CD pipeline)
+# Triggered automatically on K8s manifest changes
+
+# Validate K8s manifests
+for file in k8s/*.yaml; do
+  python -c "import yaml; yaml.safe_load_all(open('$file'))"
+done
+```
+
+#### **💡 Infrastructure Test Features**
+
+✅ **TDD Methodology**: Complete RED-GREEN-REFACTOR cycle  
+✅ **Type Safety**: Protocol pattern for K8s client interface  
+✅ **CI/CD Integration**: Dedicated K8s workflow pipeline  
+✅ **Manifest Validation**: YAML structure and configuration checks  
+✅ **Security Scanning**: Kubesec integration for security best practices  
+✅ **Production Ready**: Resource limits, probes, security contexts
 
 ## 🐳 Production Deployment
 

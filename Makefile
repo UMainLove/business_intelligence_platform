@@ -1,6 +1,6 @@
 # Makefile for Business Intelligence Platform
 
-.PHONY: help install test test-unit test-integration test-functionality test-advanced test-coverage lint format clean docker-build docker-run
+.PHONY: help install test test-unit test-integration test-functionality test-advanced test-infrastructure test-coverage lint format clean docker-build docker-run
 
 # Default target
 help:
@@ -17,6 +17,7 @@ help:
 	@echo "  test-integration Run integration tests only"
 	@echo "  test-functionality Run functionality tests only"
 	@echo "  test-advanced    Run advanced tests only"
+	@echo "  test-infrastructure Run infrastructure tests only"
 	@echo "  test-coverage    Run tests with coverage report"
 	@echo "  test-fast        Run tests excluding slow ones"
 	@echo ""
@@ -52,17 +53,17 @@ install-dev:
 
 # Testing
 test:
-	python scripts/run_tests.py
+	source .venv/bin/activate && python scripts/run_tests.py
 
 test-synthetic:
 	@echo "Running synthetic tests (no external dependencies)..."
 	pytest tests/test_*_synthetic.py -v --tb=short
 
 test-unit:
-	python scripts/run_tests.py --unit
+	source .venv/bin/activate && python scripts/run_tests.py --unit
 
 test-integration:
-	python scripts/run_tests.py --integration
+	source .venv/bin/activate && python scripts/run_tests.py --integration
 
 test-functionality:
 	@echo "Running functionality tests (77 tests)..."
@@ -72,17 +73,21 @@ test-advanced:
 	@echo "Running advanced tests (39 tests)..."
 	source .venv/bin/activate && pytest tests/test_similarity_search_advanced.py tests/test_redis_caching_comprehensive.py -v --tb=short
 
+test-infrastructure:
+	@echo "Running infrastructure TDD tests (9 tests)..."
+	source .venv/bin/activate && pytest tests/infrastructure/ -v --tb=short
+
 test-coverage:
-	python scripts/run_tests.py --coverage
+	source .venv/bin/activate && python scripts/run_tests.py --coverage
 
 test-fast:
-	python scripts/run_tests.py
+	source .venv/bin/activate && python scripts/run_tests.py
 
 test-verbose:
-	python scripts/run_tests.py --verbose
+	source .venv/bin/activate && python scripts/run_tests.py --verbose
 
 test-parallel:
-	python scripts/run_tests.py --parallel
+	source .venv/bin/activate && python scripts/run_tests.py --parallel
 
 # Code Quality
 lint:
@@ -123,7 +128,7 @@ docker-compose-dev:
 
 # Database
 db-init:
-	python -c "from src.database_config import db_config; db_config.init_database(); print('Database initialized')"
+	source .venv/bin/activate && python -c "from src.database_config import db_config; db_config.init_database(); print('Database initialized')"
 
 db-migrate:
 	@echo "Running database migrations..."
@@ -131,7 +136,7 @@ db-migrate:
 
 # Health and Monitoring
 health-check:
-	python -c "from src.health_monitor import health_monitor; import json; print(json.dumps(health_monitor.get_comprehensive_health(), indent=2))"
+	source .venv/bin/activate && python -c "from src.health_monitor import health_monitor; import json; print(json.dumps(health_monitor.get_comprehensive_health(), indent=2))"
 
 # Utilities
 clean:
@@ -154,7 +159,7 @@ setup-dev: install-dev
 
 # CI/CD helpers
 ci-test:
-	python scripts/run_tests.py --coverage --parallel
+	source .venv/bin/activate && python scripts/run_tests.py --coverage --parallel
 
 ci-lint:
 	flake8 src tests --max-line-length=100 --ignore=E203,W503
@@ -177,7 +182,7 @@ docs-build:
 # Performance testing
 perf-test:
 	@echo "Running performance tests..."
-	python -c "from tests.test_integration import TestSystemPerformance; t = TestSystemPerformance(); t.test_multiple_financial_calculations(); print('Performance tests passed')"
+	source .venv/bin/activate && python -c "from tests.test_integration import TestSystemPerformance; t = TestSystemPerformance(); t.test_multiple_financial_calculations(); print('Performance tests passed')"
 
 # Full CI pipeline
 ci: ci-lint ci-type-check ci-test
