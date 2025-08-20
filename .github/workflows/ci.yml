@@ -344,6 +344,7 @@ jobs:
         echo "🤖 AG2 Multi-Agent Tests: PASSED (47/47 integration tests)"
         echo "🎯 Functionality Tests: PASSED (77/77 README feature tests)"
         echo "🚀 Advanced Tests: PASSED (39/39 production-ready tests)"
+        echo "☸️ Infrastructure Tests: Run separately in K8s workflow"
         echo "🔒 Security Scan: PASSED"
         echo "🐳 Docker Build: PASSED"
         echo "🏗️ Production Ready: ✅"
