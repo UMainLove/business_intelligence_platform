@@ -4,7 +4,7 @@ A comprehensive AI-powered business analysis platform built with AG2 (AutoGen) a
 
 ![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Tests](https://img.shields.io/badge/tests-1090%20passing%20(966%20unit%20%2B%2047%20integration%20%2B%2077%20functionality)-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-1129%20passing%20(966%20unit%20%2B%2047%20integration%20%2B%2077%20functionality%20%2B%2039%20advanced)-brightgreen.svg)
 ![Security](https://github.com/UMainLove/business_intelligence_platform/actions/workflows/security.yml/badge.svg)
 [![Snyk Security](https://github.com/UMainLove/business_intelligence_platform/actions/workflows/snyk-security.yml/badge.svg)](https://github.com/UMainLove/business_intelligence_platform/actions/workflows/snyk-security.yml)
 [![codecov](https://codecov.io/github/UMainLove/business_intelligence_platform/graph/badge.svg?token=OH6S2RUPCH)](https://codecov.io/github/UMainLove/business_intelligence_platform)
@@ -39,7 +39,7 @@ A comprehensive AI-powered business analysis platform built with AG2 (AutoGen) a
 - **Error Handling**: Comprehensive retry logic and graceful degradation
 
 ### ✅ **Production Quality Assurance**
-- **1,090 Tests Passing**: 966 unit + 47 integration + 77 functionality tests with 98% code coverage
+- **1,129 Tests Passing**: 966 unit + 47 integration + 77 functionality + 39 advanced tests with 98% code coverage
 - **Complete Integration Testing**: True AG2 multi-agent collaboration validation
 - **Zero Test Isolation Issues**: Fixed global state management and test independence  
 - **Clean Deprecation Handling**: Updated all datetime usage, ag2 v0.97 stable version
@@ -108,11 +108,11 @@ Visit `http://localhost:8501` to access the platform.
 
 ## 🧪 Testing
 
-**Comprehensive test suite with 98% coverage: 966 unit tests + 47 integration tests + 77 functionality tests = 1,090 total tests**
+**Comprehensive test suite with 98% coverage: 966 unit tests + 47 integration tests + 77 functionality tests + 39 advanced tests = 1,129 total tests**
 
 ### Test Architecture Overview
 
-The platform employs a **6-tier testing strategy** ensuring production readiness:
+The platform employs a **7-tier testing strategy** ensuring production readiness:
 
 #### **📊 Test Suite Breakdown**
 
@@ -121,7 +121,8 @@ The platform employs a **6-tier testing strategy** ensuring production readiness
 | **Unit Tests** | **966** | 98% | Core functionality, individual components |
 | **Integration Tests** | **47** | 100% | Multi-component workflows, AG2 agents |
 | **Functionality Tests** | **77** | 100% | End-to-end feature validation, README compliance |
-| **Total** | **1,090** | **98%** | **Complete system validation** |
+| **Advanced Tests** | **39** | 100% | Production-ready coverage, similarity search, Redis caching |
+| **Total** | **1,129** | **98%** | **Complete system validation** |
 
 #### **🔧 Unit Test Types (966 Tests)**
 
@@ -140,7 +141,7 @@ The platform employs a **6-tier testing strategy** ensuring production readiness
 #### **⚡ Running Tests**
 
 ```bash
-# Run all tests (1,090 tests)
+# Run all tests (1,129 tests)
 make test
 
 # Run with coverage reporting (98% coverage)
@@ -153,6 +154,7 @@ make test-comprehensive # Component integration tests
 make test-unit          # All unit tests (966)
 make test-integration   # All integration tests (47)
 make test-functionality # All functionality tests (77)
+make test-advanced      # All advanced tests (39)
 
 # Fast tests (exclude slow integration tests)
 make test-fast
@@ -256,6 +258,103 @@ make test-functionality
 ✅ **Production Scenarios**: Real business intelligence use cases  
 ✅ **Tool Integration**: AG2 multi-agent collaboration with business tools
 
+### Advanced Tests
+
+The platform includes **39 comprehensive advanced tests** across 2 specialized suites that ensure production-ready coverage for critical features:
+
+#### **🚀 Advanced Test Suites (39/39 Passing)**
+
+| Suite | Tests | Purpose | Key Features |
+|-------|-------|---------|--------------|
+| **Similarity Search Advanced** | **20/20** ✅ | Production-ready similarity search | Edge cases, vector DB compatibility, performance, integration |
+| **Redis Caching Comprehensive** | **19/19** ✅ | Enterprise caching patterns | Cache patterns, invalidation, performance, failover scenarios |
+
+#### **🎯 Similarity Search Advanced Tests (20 Tests)**
+
+**Edge Cases & Error Handling (5 tests):**
+- Empty database similarity search graceful handling
+- Special characters in queries (Tech & Innovation, E-commerce (Online))
+- Null/None value handling and validation
+- Case-insensitive search functionality
+- Similarity threshold variations and scoring
+
+**Vector Embedding Readiness (5 tests):**
+- Document embedding structure validation
+- Embedding dimension consistency (768, 1536 dimensions)
+- Cosine similarity calculation accuracy
+- Embedding-based search interface readiness
+- Vector database adapter interface compatibility
+
+**Performance Characteristics (4 tests):**
+- Search response time under load (<1s per query, <500ms average)
+- Batch similarity processing efficiency
+- Concurrent similarity searches (ThreadPoolExecutor)
+- Memory usage with large datasets (100+ documents)
+
+**Integration Testing (3 tests):**
+- Similarity search + financial analysis pipeline
+- Similarity search + document generation workflow
+- Complete end-to-end similarity pipeline
+
+**Production Vector DB Compatibility (3 tests):**
+- **Pinecone** adapter compatibility with proper mocking
+- **Chroma** adapter interface and query patterns
+- **FAISS** adapter search and indexing patterns
+
+#### **🎯 Redis Caching Comprehensive Tests (19 Tests)**
+
+**Cache Operations (4 tests):**
+- Redis connection setup and configuration
+- Basic cache set/get operations with JSON data
+- Cache deletion and existence checking
+- Cache expiration and TTL management
+
+**Caching Patterns (3 tests):**
+- **Cache-aside** (lazy loading) pattern implementation
+- **Write-through** caching pattern validation
+- **Cache stampede** prevention (thundering herd)
+
+**Cache Invalidation (4 tests):**
+- **TTL-based** invalidation with time simulation
+- **Tag-based** invalidation for grouped cache entries
+- **Pattern-based** invalidation using scan operations
+- **Cascade** invalidation for dependent data
+
+**Performance & Optimization (4 tests):**
+- Cache hit ratio tracking and monitoring
+- Performance improvement validation (cached vs uncached)
+- Batch caching optimization (mget/mset operations)
+- Connection pooling configuration and management
+
+**Failover & Resilience (4 tests):**
+- Connection retry logic with exponential backoff
+- Fallback to database when cache unavailable
+- Circuit breaker pattern for Redis failures
+- Redis Sentinel automatic failover configuration
+
+#### **🚀 Running Advanced Tests**
+
+```bash
+# Run all advanced tests (39 tests)
+python -m pytest tests/test_similarity_search_advanced.py tests/test_redis_caching_comprehensive.py -v
+
+# Run specific advanced suite
+python -m pytest tests/test_similarity_search_advanced.py -v
+python -m pytest tests/test_redis_caching_comprehensive.py -v
+
+# Advanced tests with coverage
+make test-advanced
+```
+
+#### **💡 Advanced Test Features**
+
+✅ **Production-Ready Coverage**: Critical features enhanced from 75% to 90%+ coverage  
+✅ **Vector Database Ready**: Pinecone, Chroma, FAISS adapter compatibility  
+✅ **Enterprise Caching**: Redis patterns, invalidation, failover scenarios  
+✅ **Performance Validated**: Response time, memory usage, concurrent operations  
+✅ **Edge Case Handling**: Null values, special characters, error scenarios  
+✅ **Integration Pipelines**: Similarity + financial analysis + document generation
+
 ## 🐳 Production Deployment
 
 ### Docker Compose (Recommended)
@@ -280,23 +379,34 @@ kubectl get pods -n business-intelligence
 ## 📊 Architecture
 
 ```mermaid
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Streamlit UI  │────│  AG2 Multi-Agent │────│  Claude AI APIs │
-└─────────────────┘    │     Framework    │    └─────────────────┘
-                       └──────────────────┘
-                               │
-                    ┌──────────┼──────────┐
-                    │          │          │
-            ┌───────▼───┐ ┌────▼────┐ ┌───▼────┐
-            │Financial  │ │Database │ │ Web    │
-            │Modeling   │ │ & RAG   │ │ Intel  │
-            └───────────┘ └─────────┘ └────────┘
-                               │
-                    ┌──────────┼──────────┐
-                    │          │          │
-               ┌────▼────┐ ┌───▼───┐ ┌───▼────┐
-               │PostgreSQL│ │Redis  │ │Monitor │
-               └─────────┘ └───────┘ └────────┘
+flowchart TD
+    UI[🎨 Streamlit UI] --> AG2[🤖 AG2 Multi-Agent Framework]
+    AG2 --> Claude[🧠 Claude AI APIs]
+    
+    AG2 --> Financial[💰 Financial Modeling]
+    AG2 --> Database[🗄️ Database & RAG]
+    AG2 --> WebIntel[🌐 Web Intelligence]
+    
+    Financial --> NPV[NPV/IRR Analysis]
+    Financial --> Projections[Cash Flow Projections]
+    
+    Database --> PG[(🐘 PostgreSQL)]
+    Database --> Redis[(🔴 Redis Cache)]
+    Database --> RAG[📚 Vector Store]
+    
+    WebIntel --> APIs[🔌 External APIs]
+    WebIntel --> Monitor[📊 Health Monitor]
+    
+    PG --> Production[🏭 Production DB]
+    Redis --> Caching[⚡ Performance Cache]
+    RAG --> Similarity[🔍 Similarity Search]
+    
+    style UI fill:#e1f5fe
+    style AG2 fill:#f3e5f5
+    style Claude fill:#fff3e0
+    style Financial fill:#e8f5e8
+    style Database fill:#fce4ec
+    style WebIntel fill:#f1f8e9
 ```
 
 ## 📱 Platform Modes

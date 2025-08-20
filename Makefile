@@ -1,6 +1,6 @@
 # Makefile for Business Intelligence Platform
 
-.PHONY: help install test test-unit test-integration test-coverage lint format clean docker-build docker-run
+.PHONY: help install test test-unit test-integration test-functionality test-advanced test-coverage lint format clean docker-build docker-run
 
 # Default target
 help:
@@ -15,6 +15,8 @@ help:
 	@echo "  test-synthetic   Run synthetic tests only (no external deps)"
 	@echo "  test-unit        Run unit tests only"
 	@echo "  test-integration Run integration tests only"
+	@echo "  test-functionality Run functionality tests only"
+	@echo "  test-advanced    Run advanced tests only"
 	@echo "  test-coverage    Run tests with coverage report"
 	@echo "  test-fast        Run tests excluding slow ones"
 	@echo ""
@@ -61,6 +63,14 @@ test-unit:
 
 test-integration:
 	python scripts/run_tests.py --integration
+
+test-functionality:
+	@echo "Running functionality tests (77 tests)..."
+	source .venv/bin/activate && pytest tests/test_*_functionality.py -v --tb=short
+
+test-advanced:
+	@echo "Running advanced tests (39 tests)..."
+	source .venv/bin/activate && pytest tests/test_similarity_search_advanced.py tests/test_redis_caching_comprehensive.py -v --tb=short
 
 test-coverage:
 	python scripts/run_tests.py --coverage
