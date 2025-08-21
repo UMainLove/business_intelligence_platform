@@ -110,3 +110,6 @@ redis_data/
 
 # Test reports
 junit*.xml
+.junit-advanced.xml
+.junit-advanced.xml
+.junit-k8s.xml
