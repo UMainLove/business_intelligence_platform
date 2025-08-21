@@ -39,6 +39,8 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 cover/
 
 # Virtual environments
@@ -105,3 +107,6 @@ prometheus_data/
 grafana_data/
 postgres_data/
 redis_data/
+
+# Test reports
+junit*.xml
