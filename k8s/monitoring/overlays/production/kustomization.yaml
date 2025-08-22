@@ -32,6 +32,9 @@ configMapGenerator:
       - prometheus.replicas=3
       - grafana.replicas=3
       - alertmanager.replicas=3
+  - name: environment-properties
+    literals:
+      - app.properties=ENVIRONMENT=production
 
 replicas:
   - name: prometheus

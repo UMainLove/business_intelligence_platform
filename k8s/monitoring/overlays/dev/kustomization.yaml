@@ -27,6 +27,9 @@ configMapGenerator:
       - ALERT_THROTTLE_MINUTES=5
       - ENABLE_PROFILING=true
       - PROMETHEUS_CONCURRENT_QUERIES=10
+  - name: environment-properties
+    literals:
+      - app.properties=ENVIRONMENT=dev
 
 replicas:
   - name: prometheus

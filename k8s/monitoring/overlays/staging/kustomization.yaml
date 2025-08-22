@@ -22,6 +22,9 @@ configMapGenerator:
       - prometheus.replicas=2
       - grafana.replicas=2
       - alertmanager.replicas=2
+  - name: environment-properties
+    literals:
+      - app.properties=ENVIRONMENT=staging
 
 replicas:
   - name: prometheus
