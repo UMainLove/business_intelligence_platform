@@ -554,7 +554,9 @@ class GrafanaClient:
 
         # Add existing dashboards
         if self.dashboards:
-            result_dashboards.update({uid: dashboard.title for uid, dashboard in self.dashboards.items()})
+            result_dashboards.update(
+                {uid: dashboard.title for uid, dashboard in self.dashboards.items()}
+            )
 
         # Always include expected test dashboards
         mock_dashboards = {
@@ -805,12 +807,42 @@ class AlertManager:
 
         # Return mock alert rules for testing
         return [
-            {"name": "HighCPUUsage", "expr": "cpu_usage > 80", "severity": "warning", "enabled": True},
-            {"name": "HighMemoryUsage", "expr": "memory_usage > 90", "severity": "critical", "enabled": True},
-            {"name": "DiskSpaceLow", "expr": "disk_free < 10", "severity": "critical", "enabled": True},
-            {"name": "PodCrashLooping", "expr": "pod_restarts > 5", "severity": "critical", "enabled": True},
-            {"name": "NetworkLatencyHigh", "expr": "network_latency > 1000", "severity": "warning", "enabled": True},
-            {"name": "DatabaseConnectionsHigh", "expr": "db_connections > 100", "severity": "warning", "enabled": True},
+            {
+                "name": "HighCPUUsage",
+                "expr": "cpu_usage > 80",
+                "severity": "warning",
+                "enabled": True,
+            },
+            {
+                "name": "HighMemoryUsage",
+                "expr": "memory_usage > 90",
+                "severity": "critical",
+                "enabled": True,
+            },
+            {
+                "name": "DiskSpaceLow",
+                "expr": "disk_free < 10",
+                "severity": "critical",
+                "enabled": True,
+            },
+            {
+                "name": "PodCrashLooping",
+                "expr": "pod_restarts > 5",
+                "severity": "critical",
+                "enabled": True,
+            },
+            {
+                "name": "NetworkLatencyHigh",
+                "expr": "network_latency > 1000",
+                "severity": "warning",
+                "enabled": True,
+            },
+            {
+                "name": "DatabaseConnectionsHigh",
+                "expr": "db_connections > 100",
+                "severity": "warning",
+                "enabled": True,
+            },
         ]
 
     def evaluate_rules(self, metrics_data: Dict) -> List[str]:

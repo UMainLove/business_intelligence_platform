@@ -20,9 +20,10 @@ configMapGenerator:
       - ENABLE_PROFILING=false
       - PROMETHEUS_CONCURRENT_QUERIES=20
 
-commonLabels:
-  monitoring.agentic-chat.ai/managed-by: kustomize
-  monitoring.agentic-chat.ai/version: v1.0.0
+labels:
+  - pairs:
+      monitoring.agentic-chat.ai/managed-by: kustomize
+      monitoring.agentic-chat.ai/version: v1.0.0
 
 namespace: monitoring
 

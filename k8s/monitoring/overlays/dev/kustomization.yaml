@@ -20,7 +20,7 @@ configMapGenerator:
   - name: monitoring-env-config
     behavior: merge
     literals:
-      - ENVIRONMENT=development
+      - ENVIRONMENT=dev
       - LOG_LEVEL=debug
       - DEBUG_MODE=true
       - METRICS_RETENTION_DAYS=7
