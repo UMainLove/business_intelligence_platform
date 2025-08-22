@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - name: grafana
+        resources:
+          requests:
+            memory: 256Mi
+            cpu: 100m
+          limits:
+            memory: 1Gi
+            cpu: 500m
+        env:
+        - name: GF_LOG_LEVEL
+          value: "debug"
+        - name: GF_USERS_ALLOW_SIGN_UP
+          value: "true"  # Allow sign-up in dev
+        - name: GF_AUTH_ANONYMOUS_ENABLED
+          value: "true"  # Enable anonymous access in dev

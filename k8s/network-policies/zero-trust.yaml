@@ -1,0 +1,73 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: zero-trust-dns
+  namespace: business-intelligence
+spec:
+  policyTypes:
+  - Egress
+  podSelector: {}  # Apply to all pods
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: zero-trust-monitoring
+  namespace: business-intelligence
+spec:
+  policyTypes:
+  - Egress
+  podSelector:
+    matchLabels:
+      monitoring: "enabled"
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 9090  # Prometheus
+    - protocol: TCP
+      port: 3000  # Grafana
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: zero-trust-api-access
+  namespace: business-intelligence
+spec:
+  policyTypes:
+  - Egress
+  podSelector:
+    matchLabels:
+      external-api-access: "required"
+  egress:
+  # Only specific pods can make external API calls to allowed endpoints
+  - to:
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          external-api: "allowed"
+    ports:
+    - protocol: TCP
+      port: 443
+  # DNS resolution
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53

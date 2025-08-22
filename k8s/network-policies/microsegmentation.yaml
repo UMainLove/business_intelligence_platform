@@ -1,0 +1,113 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: tier-separation
+  namespace: business-intelligence
+spec:
+  policyTypes:
+  - Ingress
+  - Egress
+  podSelector:
+    matchLabels:
+      tier: web
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 0.0.0.0/0  # Web tier accepts external traffic
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 443
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          tier: app
+    ports:
+    - protocol: TCP
+      port: 8501
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: app-tier-communication
+  namespace: business-intelligence
+spec:
+  policyTypes:
+  - Ingress
+  - Egress
+  podSelector:
+    matchLabels:
+      tier: app
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          tier: web
+    ports:
+    - protocol: TCP
+      port: 8501
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          tier: data
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+  - to:
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          external-api: "allowed"
+    ports:
+    - protocol: TCP
+      port: 443  # External API calls to allowed services
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: data-tier-isolation
+  namespace: business-intelligence
+spec:
+  policyTypes:
+  - Ingress
+  - Egress
+  podSelector:
+    matchLabels:
+      tier: data
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          tier: app
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53  # DNS only - no external access

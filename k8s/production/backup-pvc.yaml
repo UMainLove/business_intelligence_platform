@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backup-pvc
+  namespace: business-intelligence
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: cold-storage
+  resources:
+    requests:
+      storage: 50Gi

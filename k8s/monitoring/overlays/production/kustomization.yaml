@@ -1,0 +1,43 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: monitoring
+
+resources:
+  - ../../base
+
+patches:
+  - path: prometheus-patch.yaml
+    target:
+      kind: Deployment
+      name: prometheus
+  - path: grafana-patch.yaml
+    target:
+      kind: Deployment
+      name: grafana
+
+configMapGenerator:
+  - name: monitoring-env-config
+    behavior: merge
+    literals:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=warn
+      - DEBUG_MODE=false
+      - METRICS_RETENTION_DAYS=90
+      - ALERT_THROTTLE_MINUTES=15
+      - ENABLE_PROFILING=false
+      - PROMETHEUS_CONCURRENT_QUERIES=50
+      - prometheus.retention.time=90d
+      - prometheus.retention.size=500GB
+      - prometheus.replicas=3
+      - grafana.replicas=3
+      - alertmanager.replicas=3
+
+replicas:
+  - name: prometheus
+    count: 3
+  - name: grafana
+    count: 3
+  - name: alertmanager
+    count: 3
+

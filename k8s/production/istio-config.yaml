@@ -1,0 +1,41 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: bi-platform-vs
+  namespace: business-intelligence
+spec:
+  hosts:
+    - bi-platform
+  http:
+    - timeout: 30s
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+        retryOn: 5xx,reset,connect-failure
+      route:
+        - destination:
+            host: bi-platform
+            port:
+              number: 8501
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: bi-platform-dr
+  namespace: business-intelligence
+spec:
+  host: bi-platform
+  trafficPolicy:
+    outlierDetection:
+      consecutiveErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 100
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 2

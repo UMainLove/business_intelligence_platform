@@ -1,0 +1,84 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: bi-app-policy
+  namespace: business-intelligence
+spec:
+  policyTypes:
+  - Ingress
+  - Egress
+  podSelector:
+    matchLabels:
+      app: bi-platform
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          tier: web
+    ports:
+    - protocol: TCP
+      port: 8501
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53  # DNS
+    - protocol: TCP
+      port: 53  # DNS over TCP
+  - to:
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          external-api: "allowed"
+    ports:
+    - protocol: TCP
+      port: 443  # HTTPS for API calls to allowed external services
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: web-frontend-policy
+  namespace: business-intelligence
+spec:
+  policyTypes:
+  - Ingress
+  - Egress
+  podSelector:
+    matchLabels:
+      tier: web
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 0.0.0.0/0  # Allow from anywhere (public facing)
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 443
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: bi-platform
+    ports:
+    - protocol: TCP
+      port: 8501
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53  # DNS
+    - protocol: TCP
+      port: 53  # DNS over TCP

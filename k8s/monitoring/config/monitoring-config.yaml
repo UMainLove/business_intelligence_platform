@@ -1,0 +1,127 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: monitoring-config
+  namespace: monitoring
+  labels:
+    app: monitoring
+    component: configuration
+data:
+  # Prometheus Configuration
+  prometheus.retention.time: "30d"
+  prometheus.retention.size: "100GB"
+  prometheus.scrape.interval: "15s"
+  prometheus.evaluation.interval: "15s"
+  prometheus.query.max_concurrency: "20"
+  prometheus.query.timeout: "2m"
+  prometheus.log.level: "info"
+  prometheus.external.url: "http://prometheus.monitoring:9090"
+  prometheus.replicas: "2"
+  
+  # Grafana Configuration
+  grafana.server.root_url: "http://grafana.monitoring:3000"
+  grafana.log.level: "info"
+  grafana.analytics.reporting_enabled: "false"
+  grafana.analytics.check_for_updates: "false"
+  grafana.users.allow_sign_up: "false"
+  grafana.auth.anonymous.enabled: "false"
+  grafana.auth.basic.enabled: "true"
+  grafana.replicas: "2"
+  
+  # AlertManager Configuration
+  alertmanager.retention: "120h"
+  alertmanager.cpu.request: "50m"
+  alertmanager.memory.request: "128Mi"
+  alertmanager.replicas: "2"
+  
+  # Monitoring Targets
+  monitoring.namespace: "monitoring"
+  target.namespace: "business-intelligence"
+  
+  # Storage Configuration
+  storage.class: "fast"
+  prometheus.storage.size: "100Gi"
+  grafana.storage.size: "10Gi"
+  alertmanager.storage.size: "5Gi"
+  
+  # Resource Limits
+  prometheus.cpu.limit: "2000m"
+  prometheus.memory.limit: "4Gi"
+  grafana.cpu.limit: "1000m"
+  grafana.memory.limit: "2Gi"
+  alertmanager.cpu.limit: "500m"
+  alertmanager.memory.limit: "512Mi"
+  
+  # Network Configuration
+  prometheus.port: "9090"
+  grafana.port: "3000"
+  alertmanager.port: "9093"
+  
+  # Feature Flags
+  enable.high_availability: "true"
+  enable.network_policies: "true"
+  enable.pod_security_policies: "true"
+  enable.service_monitors: "true"
+  enable.prometheus_rules: "true"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: monitoring-env-config
+  namespace: monitoring
+  labels:
+    app: monitoring
+    component: configuration
+    environment: production
+data:
+  # Environment-specific overrides
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "info"
+  DEBUG_MODE: "false"
+  METRICS_RETENTION_DAYS: "30"
+  ALERT_THROTTLE_MINUTES: "15"
+  MAX_QUERY_LOOKBACK: "30d"
+  ENABLE_PROFILING: "false"
+  ENABLE_ADMIN_API: "true"
+  ENABLE_LIFECYCLE_API: "true"
+  
+  # Alert notification channels
+  SLACK_WEBHOOK_URL: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+  PAGERDUTY_INTEGRATION_KEY: "YOUR_PAGERDUTY_KEY"
+  EMAIL_SMTP_HOST: "smtp.gmail.com:587"
+  EMAIL_FROM_ADDRESS: "monitoring@company.com"
+  
+  # External integrations
+  S3_BACKUP_BUCKET: "monitoring-backups"
+  S3_BACKUP_REGION: "us-west-2"
+  ENABLE_REMOTE_WRITE: "false"
+  REMOTE_WRITE_URL: ""
+  
+  # Performance tuning
+  PROMETHEUS_CONCURRENT_QUERIES: "20"
+  PROMETHEUS_SAMPLE_LIMIT: "50000000"
+  PROMETHEUS_TARGET_LIMIT: "1000"
+  GRAFANA_DASHBOARD_CACHE_TTL: "300"
+  GRAFANA_QUERY_CACHE_TTL: "60"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: monitoring-secrets
+  namespace: monitoring
+  labels:
+    app: monitoring
+    component: configuration
+type: Opaque
+data:
+  # Base64 encoded secrets
+  grafana-admin-password: YWRtaW5AMTIzIyQ=  # admin@123#$
+  prometheus-basic-auth-password: cHJvbWV0aGV1c0AxMjM=  # prometheus@123
+  alertmanager-webhook-secret: d2ViaG9va1NlY3JldEAxMjM=  # webhookSecret@123
+  slack-webhook-url: aHR0cHM6Ly9ob29rcy5zbGFjay5jb20vc2VydmljZXMvWU9VUi9TTEFDS19VUkw=
+  pagerduty-integration-key: WU9VUl9QQUdFUkRVVFlfS0VZ
+  smtp-password: c210cFBhc3N3b3JkQDEyMw==  # smtpPassword@123
+  s3-access-key: QUtJQUlPU0ZPRE5ON0VYQU1QTEU=
+  s3-secret-key: d0phbHJYVXRuRkVNSS9LN01ERU5HL2JQeFJmaUNZRVhBTVBMRUtFWQ==

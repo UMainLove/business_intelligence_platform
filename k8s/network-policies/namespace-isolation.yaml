@@ -1,0 +1,45 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: namespace-isolation
+  namespace: business-intelligence
+spec:
+  policyTypes:
+  - Ingress
+  - Egress
+  podSelector: {}  # Apply to all pods
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: business-intelligence
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: business-intelligence
+  # Allow essential system access
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53  # DNS
+    - protocol: TCP
+      port: 53  # DNS over TCP
+    - protocol: TCP
+      port: 443  # Kubernetes API
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cross-namespace-deny
+  namespace: business-intelligence
+spec:
+  policyTypes:
+  - Ingress
+  - Egress
+  podSelector: {}
+  # No ingress/egress rules = deny all cross-namespace traffic
+  # (combined with namespace-isolation for allowed same-namespace traffic)

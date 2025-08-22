@@ -17,9 +17,6 @@ Functions:
     validate_production_readiness: Validates production infrastructure
 """
 
-import json
-import os
-import subprocess
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -158,18 +155,18 @@ class PVCManager:
             "postgres-pvc": {
                 "storage": "20Gi",
                 "storageClass": "fast-ssd",
-                "accessMode": "ReadWriteOnce"
+                "accessMode": "ReadWriteOnce",
             },
             "redis-pvc": {
                 "storage": "5Gi",
                 "storageClass": "standard",
-                "accessMode": "ReadWriteOnce"
+                "accessMode": "ReadWriteOnce",
             },
             "backup-pvc": {
                 "storage": "50Gi",
                 "storageClass": "cold-storage",
-                "accessMode": "ReadWriteMany"
-            }
+                "accessMode": "ReadWriteMany",
+            },
         }
 
         results = {}
@@ -197,19 +194,12 @@ class PVCManager:
         pvc_manifest = {
             "apiVersion": "v1",
             "kind": "PersistentVolumeClaim",
-            "metadata": {
-                "name": name,
-                "namespace": namespace
-            },
+            "metadata": {"name": name, "namespace": namespace},
             "spec": {
                 "accessModes": [config.get("accessMode", "ReadWriteOnce")],
                 "storageClassName": config.get("storageClass", DEFAULT_PVC_STORAGE_CLASS),
-                "resources": {
-                    "requests": {
-                        "storage": config["storage"]
-                    }
-                }
-            }
+                "resources": {"requests": {"storage": config["storage"]}},
+            },
         }
 
         created_pvc = self.k8s_client.create_pvc(namespace, pvc_manifest)
@@ -271,10 +261,10 @@ class ServiceMeshValidator:
         """
         # Create VirtualService
         vs_created = self.create_virtual_service(namespace, "bi-platform-vs")
-        
+
         # Create DestinationRule
         dr_created = self.create_destination_rule(namespace, "bi-platform-dr")
-        
+
         return vs_created and dr_created
 
     def create_virtual_service(self, namespace: str, name: str) -> bool:
@@ -294,27 +284,23 @@ class ServiceMeshValidator:
         vs_manifest = {
             "apiVersion": "networking.istio.io/v1beta1",
             "kind": "VirtualService",
-            "metadata": {
-                "name": name,
-                "namespace": namespace
-            },
+            "metadata": {"name": name, "namespace": namespace},
             "spec": {
                 "hosts": ["bi-platform"],
-                "http": [{
-                    "timeout": f"{DEFAULT_TIMEOUT_SECONDS}s",
-                    "retries": {
-                        "attempts": DEFAULT_RETRY_ATTEMPTS,
-                        "perTryTimeout": "10s",
-                        "retryOn": "5xx,reset,connect-failure"
-                    },
-                    "route": [{
-                        "destination": {
-                            "host": "bi-platform",
-                            "port": {"number": 8501}
-                        }
-                    }]
-                }]
-            }
+                "http": [
+                    {
+                        "timeout": f"{DEFAULT_TIMEOUT_SECONDS}s",
+                        "retries": {
+                            "attempts": DEFAULT_RETRY_ATTEMPTS,
+                            "perTryTimeout": "10s",
+                            "retryOn": "5xx,reset,connect-failure",
+                        },
+                        "route": [
+                            {"destination": {"host": "bi-platform", "port": {"number": 8501}}}
+                        ],
+                    }
+                ],
+            },
         }
 
         created_vs = self.k8s_client.create_virtual_service(namespace, vs_manifest)
@@ -334,10 +320,7 @@ class ServiceMeshValidator:
         dr_manifest = {
             "apiVersion": "networking.istio.io/v1beta1",
             "kind": "DestinationRule",
-            "metadata": {
-                "name": name,
-                "namespace": namespace
-            },
+            "metadata": {"name": name, "namespace": namespace},
             "spec": {
                 "host": "bi-platform",
                 "trafficPolicy": {
@@ -346,20 +329,18 @@ class ServiceMeshValidator:
                         "interval": "30s",
                         "baseEjectionTime": "30s",
                         "maxEjectionPercent": 50,
-                        "minHealthPercent": 30
+                        "minHealthPercent": 30,
                     },
                     "connectionPool": {
-                        "tcp": {
-                            "maxConnections": 100
-                        },
+                        "tcp": {"maxConnections": 100},
                         "http": {
                             "http1MaxPendingRequests": 100,
                             "http2MaxRequests": 100,
-                            "maxRequestsPerConnection": 2
-                        }
-                    }
-                }
-            }
+                            "maxRequestsPerConnection": 2,
+                        },
+                    },
+                },
+            },
         }
 
         # Store for later retrieval
@@ -409,10 +390,7 @@ class BackupManager:
         cronjob_manifest = {
             "apiVersion": "batch/v1",
             "kind": "CronJob",
-            "metadata": {
-                "name": "postgres-backup",
-                "namespace": namespace
-            },
+            "metadata": {"name": "postgres-backup", "namespace": namespace},
             "spec": {
                 "schedule": DEFAULT_BACKUP_SCHEDULE,
                 "successfulJobsHistoryLimit": DEFAULT_BACKUP_RETENTION_DAYS,
@@ -421,34 +399,39 @@ class BackupManager:
                     "spec": {
                         "template": {
                             "spec": {
-                                "containers": [{
-                                    "name": "backup",
-                                    "image": "postgres:14-alpine",
-                                    "command": ["/bin/sh", "-c"],
-                                    "args": ["pg_dump -h postgres -U postgres -d bi_platform > /backup/$(date +%Y%m%d-%H%M%S).sql"],
-                                    "volumeMounts": [{
-                                        "name": "backup-storage",
-                                        "mountPath": "/backup"
-                                    }]
-                                }],
-                                "volumes": [{
-                                    "name": "backup-storage",
-                                    "persistentVolumeClaim": {
-                                        "claimName": "backup-pvc"
+                                "containers": [
+                                    {
+                                        "name": "backup",
+                                        "image": "postgres:14-alpine",
+                                        "command": ["/bin/sh", "-c"],
+                                        "args": [
+                                            "pg_dump -h postgres -U postgres -d bi_platform > /backup/$(date +%Y%m%d-%H%M%S).sql"
+                                        ],
+                                        "volumeMounts": [
+                                            {"name": "backup-storage", "mountPath": "/backup"}
+                                        ],
                                     }
-                                }],
-                                "restartPolicy": "OnFailure"
+                                ],
+                                "volumes": [
+                                    {
+                                        "name": "backup-storage",
+                                        "persistentVolumeClaim": {"claimName": "backup-pvc"},
+                                    }
+                                ],
+                                "restartPolicy": "OnFailure",
                             }
                         }
                     }
-                }
-            }
+                },
+            },
         }
 
         created_cronjob = self.k8s_client.create_cronjob(namespace, cronjob_manifest)
         return created_cronjob is not None
 
-    def create_backup(self, namespace: str, database: str, include_wal: bool = False) -> Optional[str]:
+    def create_backup(
+        self, namespace: str, database: str, include_wal: bool = False
+    ) -> Optional[str]:
         """
         Create a database backup.
 
@@ -464,7 +447,7 @@ class BackupManager:
             return None
 
         backup_id = self.k8s_client.trigger_backup(namespace, database)
-        
+
         # Store backup metadata
         self.backups[backup_id] = {
             "id": backup_id,
@@ -473,7 +456,7 @@ class BackupManager:
             "timestamp": datetime.now().isoformat(),
             "include_wal": include_wal,
             "status": "completed",
-            "size_mb": 1024  # Mock size
+            "size_mb": 1024,  # Mock size
         }
 
         return backup_id
@@ -497,11 +480,11 @@ class BackupManager:
             return False
 
         success = self.k8s_client.restore_backup(backup_id)
-        
+
         if verify and success:
             # Verify data integrity
             return self._verify_restoration(backup_id)
-        
+
         return success
 
     def _verify_restoration(self, backup_id: str) -> bool:
@@ -538,14 +521,14 @@ class MonitoringClient:
             {"name": "HighCPUUsage", "expr": "cpu_usage > 80", "severity": "warning"},
             {"name": "HighMemoryUsage", "expr": "memory_usage > 90", "severity": "critical"},
             {"name": "DiskSpaceLow", "expr": "disk_free < 10", "severity": "critical"},
-            {"name": "PodCrashLooping", "expr": "pod_restarts > 5", "severity": "critical"}
+            {"name": "PodCrashLooping", "expr": "pod_restarts > 5", "severity": "critical"},
         ]
-        
+
         # Default dashboards
         self.dashboards = {
             "business-intelligence-overview": {"id": "bi-001", "title": "BI Platform Overview"},
             "database-performance": {"id": "db-001", "title": "Database Performance"},
-            "api-metrics": {"id": "api-001", "title": "API Metrics"}
+            "api-metrics": {"id": "api-001", "title": "API Metrics"},
         }
 
     def get_pod_metrics(self, namespace: str, label_selector: str) -> Optional[Dict]:
@@ -619,15 +602,15 @@ class HAValidator:
             Dictionary mapping StatefulSet names to creation status
         """
         results = {}
-        
+
         # Create PostgreSQL HA StatefulSet
         postgres_created = self.create_postgres_ha(namespace)
         results["postgres-ha"] = postgres_created
-        
+
         # Create Redis HA StatefulSet
         redis_created = self.create_redis_ha(namespace)
         results["redis-ha"] = redis_created
-        
+
         return results
 
     def create_postgres_ha(self, namespace: str) -> bool:
@@ -638,56 +621,51 @@ class HAValidator:
         sts_manifest = {
             "apiVersion": "apps/v1",
             "kind": "StatefulSet",
-            "metadata": {
-                "name": "postgres-ha",
-                "namespace": namespace
-            },
+            "metadata": {"name": "postgres-ha", "namespace": namespace},
             "spec": {
                 "replicas": DEFAULT_REPLICA_COUNT,
                 "serviceName": "postgres-ha",
-                "selector": {
-                    "matchLabels": {"app": "postgres-ha"}
-                },
+                "selector": {"matchLabels": {"app": "postgres-ha"}},
                 "template": {
-                    "metadata": {
-                        "labels": {"app": "postgres-ha"}
-                    },
+                    "metadata": {"labels": {"app": "postgres-ha"}},
                     "spec": {
                         "affinity": {
                             "podAntiAffinity": {
-                                "requiredDuringSchedulingIgnoredDuringExecution": [{
-                                    "labelSelector": {
-                                        "matchExpressions": [{
-                                            "key": "app",
-                                            "operator": "In",
-                                            "values": ["postgres-ha"]
-                                        }]
-                                    },
-                                    "topologyKey": "kubernetes.io/hostname"
-                                }]
+                                "requiredDuringSchedulingIgnoredDuringExecution": [
+                                    {
+                                        "labelSelector": {
+                                            "matchExpressions": [
+                                                {
+                                                    "key": "app",
+                                                    "operator": "In",
+                                                    "values": ["postgres-ha"],
+                                                }
+                                            ]
+                                        },
+                                        "topologyKey": "kubernetes.io/hostname",
+                                    }
+                                ]
                             }
                         },
-                        "containers": [{
-                            "name": "postgres",
-                            "image": "postgres:14",
-                            "readinessProbe": {
-                                "exec": {
-                                    "command": ["pg_isready", "-U", "postgres"]
+                        "containers": [
+                            {
+                                "name": "postgres",
+                                "image": "postgres:14",
+                                "readinessProbe": {
+                                    "exec": {"command": ["pg_isready", "-U", "postgres"]},
+                                    "initialDelaySeconds": 30,
+                                    "periodSeconds": 10,
                                 },
-                                "initialDelaySeconds": 30,
-                                "periodSeconds": 10
-                            },
-                            "livenessProbe": {
-                                "exec": {
-                                    "command": ["pg_isready", "-U", "postgres"]
+                                "livenessProbe": {
+                                    "exec": {"command": ["pg_isready", "-U", "postgres"]},
+                                    "initialDelaySeconds": 60,
+                                    "periodSeconds": 30,
                                 },
-                                "initialDelaySeconds": 60,
-                                "periodSeconds": 30
                             }
-                        }]
-                    }
-                }
-            }
+                        ],
+                    },
+                },
+            },
         }
 
         created_sts = self.k8s_client.create_statefulset(namespace, sts_manifest)
@@ -701,28 +679,16 @@ class HAValidator:
         sts_manifest = {
             "apiVersion": "apps/v1",
             "kind": "StatefulSet",
-            "metadata": {
-                "name": "redis-ha",
-                "namespace": namespace
-            },
+            "metadata": {"name": "redis-ha", "namespace": namespace},
             "spec": {
                 "replicas": DEFAULT_REPLICA_COUNT,
                 "serviceName": "redis-ha",
-                "selector": {
-                    "matchLabels": {"app": "redis-ha"}
-                },
+                "selector": {"matchLabels": {"app": "redis-ha"}},
                 "template": {
-                    "metadata": {
-                        "labels": {"app": "redis-ha"}
-                    },
-                    "spec": {
-                        "containers": [{
-                            "name": "redis",
-                            "image": "redis:7-alpine"
-                        }]
-                    }
-                }
-            }
+                    "metadata": {"labels": {"app": "redis-ha"}},
+                    "spec": {"containers": [{"name": "redis", "image": "redis:7-alpine"}]},
+                },
+            },
         }
 
         created_sts = self.k8s_client.create_statefulset(namespace, sts_manifest)
@@ -744,20 +710,17 @@ class DisasterRecovery:
         status = dr.get_replication_status()
     """
 
-    def __init__(self, k8s_client: Optional[K8sClient] = None, 
-                 backup_manager: Optional[BackupManager] = None) -> None:
+    def __init__(
+        self, k8s_client: Optional[K8sClient] = None, backup_manager: Optional[BackupManager] = None
+    ) -> None:
         """Initialize disaster recovery manager."""
         self.k8s_client = k8s_client
         self.backup_manager = backup_manager
-        self.replication_config = {
-            "enabled": True,
-            "target_regions": 2,
-            "lag_seconds": 120
-        }
+        self.replication_config = {"enabled": True, "target_regions": 2, "lag_seconds": 120}
         self.failover_config = {
             "automatic": True,
             "health_check_interval_seconds": 30,
-            "failure_threshold": 3
+            "failure_threshold": 3,
         }
 
     def get_replication_status(self) -> Dict:
@@ -773,17 +736,17 @@ class DisasterRecovery:
         """
         # Simulate recovery process
         recovery_start = datetime.now()
-        
+
         # Mock recovery steps
         time.sleep(0.1)  # Simulate recovery time
-        
+
         recovery_end = datetime.now()
         recovery_time = (recovery_end - recovery_start).total_seconds() / 60
-        
+
         return {
             "recovery_time_minutes": recovery_time * 100,  # Scale for realistic time
             "data_loss_minutes": 30,  # Mock data loss
-            "recovery_point": (datetime.now() - timedelta(minutes=30)).isoformat()
+            "recovery_point": (datetime.now() - timedelta(minutes=30)).isoformat(),
         }
 
     def get_failover_config(self) -> Dict:
@@ -808,16 +771,16 @@ class DisasterRecovery:
 def load_k8s_manifest(manifest_path: str) -> Union[Dict, List[Dict]]:
     """Load and parse Kubernetes manifest file."""
     path = Path(manifest_path)
-    
+
     if not path.exists():
         raise FileNotFoundError(f"Manifest file not found: {manifest_path}")
-    
+
     with open(path, "r") as f:
         content = f.read()
-    
+
     # Handle multi-document YAML files
     documents = list(yaml.safe_load_all(content))
-    
+
     # Return single document or list
     if len(documents) == 1:
         return documents[0]
@@ -836,25 +799,27 @@ def validate_production_readiness(namespace: str, k8s_client: K8sClient) -> Dict
         Dictionary of validation results
     """
     results = {}
-    
+
     # Check PVCs
     pvcs = ["postgres-pvc", "redis-pvc", "backup-pvc"]
     for pvc_name in pvcs:
         pvc = k8s_client.get_pvc(namespace, pvc_name)
-        results[f"pvc_{pvc_name}"] = pvc is not None and pvc.get("status", {}).get("phase") == "Bound"
-    
+        results[f"pvc_{pvc_name}"] = (
+            pvc is not None and pvc.get("status", {}).get("phase") == "Bound"
+        )
+
     # Check StatefulSets
     statefulsets = ["postgres-ha", "redis-ha"]
     for sts_name in statefulsets:
         sts = k8s_client.get_statefulset(namespace, sts_name)
         results[f"statefulset_{sts_name}"] = sts is not None and sts["spec"]["replicas"] >= 3
-    
+
     # Check backup CronJob
     cronjob = k8s_client.get_cronjob(namespace, "postgres-backup")
     results["backup_cronjob"] = cronjob is not None
-    
+
     # Check service mesh
     vs = k8s_client.get_virtual_service(namespace, "bi-platform-vs")
     results["service_mesh"] = vs is not None
-    
+
     return results

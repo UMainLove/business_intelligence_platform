@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: business-intelligence
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  successfulJobsHistoryLimit: 30
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: backup
+            image: postgres:14-alpine
+            command:
+              - /bin/sh
+              - -c
+            args:
+              - |
+                set -e
+                DATE=$(date +%Y%m%d-%H%M%S)
+                BACKUP_FILE="/backup/bi-platform-${DATE}.sql"
+                echo "Starting backup to ${BACKUP_FILE}"
+                PGPASSWORD=${POSTGRES_PASSWORD} pg_dump \
+                  -h postgres-service \
+                  -U bi_user \
+                  -d business_intelligence \
+                  --verbose \
+                  --no-password \
+                  > ${BACKUP_FILE}
+                echo "Backup completed: ${BACKUP_FILE}"
+                # Cleanup old backups (keep last 30 days)
+                find /backup -name "*.sql" -mtime +30 -delete
+            env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: bi-secrets
+                  key: postgres-password
+            volumeMounts:
+            - name: backup-storage
+              mountPath: /backup
+          volumes:
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-pvc
+          restartPolicy: OnFailure

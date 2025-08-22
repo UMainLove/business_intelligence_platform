@@ -1,0 +1,148 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: bi-platform-monitor
+  namespace: business-intelligence
+  labels:
+    app: bi-platform
+    monitoring: enabled
+spec:
+  selector:
+    matchLabels:
+      app: bi-platform
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+      honorLabels: true
+    - port: http
+      path: /actuator/prometheus
+      interval: 30s
+      scrapeTimeout: 10s
+      honorLabels: true
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: postgres-monitor
+  namespace: business-intelligence
+  labels:
+    app: postgres-exporter
+    monitoring: enabled
+spec:
+  selector:
+    matchLabels:
+      app: postgres-exporter
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+      relabelings:
+        - sourceLabels: [__address__]
+          targetLabel: __param_target
+        - sourceLabels: [__param_target]
+          targetLabel: instance
+        - targetLabel: __address__
+          replacement: postgres-exporter:9187
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: redis-monitor
+  namespace: business-intelligence
+  labels:
+    app: redis-exporter
+    monitoring: enabled
+spec:
+  selector:
+    matchLabels:
+      app: redis-exporter
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: prometheus-monitor
+  namespace: monitoring
+  labels:
+    app: prometheus
+    monitoring: enabled
+spec:
+  selector:
+    matchLabels:
+      app: prometheus
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: grafana-monitor
+  namespace: monitoring
+  labels:
+    app: grafana
+    monitoring: enabled
+spec:
+  selector:
+    matchLabels:
+      app: grafana
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: alertmanager-monitor
+  namespace: monitoring
+  labels:
+    app: alertmanager
+    monitoring: enabled
+spec:
+  selector:
+    matchLabels:
+      app: alertmanager
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: bi-platform-metrics
+  namespace: business-intelligence
+  labels:
+    app: bi-platform-metrics
+    monitoring: enabled
+spec:
+  selector:
+    matchLabels:
+      app: bi-platform-metrics
+  endpoints:
+    - port: metrics
+      path: /custom-metrics
+      interval: 15s
+      scrapeTimeout: 5s
+      metricRelabelings:
+        - sourceLabels: [__name__]
+          regex: 'bi_.*'
+          action: keep

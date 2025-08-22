@@ -1,0 +1,269 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules
+  namespace: monitoring
+data:
+  bi-platform-alerts.yml: |
+    groups:
+      - name: bi-platform.rules
+        interval: 30s
+        rules:
+          # SLI Recording Rules
+          - record: bi_platform:availability_5m
+            expr: avg(up{job="bi-platform"})
+
+          - record: bi_platform:latency_p95_5m
+            expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="bi-platform"}[5m]))
+
+          - record: bi_platform:latency_p99_5m
+            expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job="bi-platform"}[5m]))
+
+          - record: bi_platform:error_rate_5m
+            expr: rate(http_requests_total{job="bi-platform",status=~"5.."}[5m]) / rate(http_requests_total{job="bi-platform"}[5m])
+
+          - record: bi_platform:throughput_5m
+            expr: rate(http_requests_total{job="bi-platform"}[5m])
+
+          # Alert Rules
+          - alert: HighErrorRate
+            expr: bi_platform:error_rate_5m > 0.1
+            for: 5m
+            labels:
+              severity: critical
+              team: backend
+              service: bi-platform
+            annotations:
+              summary: "High error rate detected for BI Platform"
+              description: "Error rate is {{ $value | humanizePercentage }} which is above the 10% threshold"
+              runbook_url: "https://runbook.bi-platform.com/alerts/high-error-rate"
+
+          - alert: HighResponseTime
+            expr: bi_platform:latency_p95_5m > 2.0
+            for: 5m
+            labels:
+              severity: critical
+              team: backend
+              service: bi-platform
+            annotations:
+              summary: "High response time detected for BI Platform"
+              description: "P95 response time is {{ $value }}s which is above the 2s threshold"
+              runbook_url: "https://runbook.bi-platform.com/alerts/high-latency"
+
+          - alert: HighCPUUsage
+            expr: rate(container_cpu_usage_seconds_total{pod=~"bi-platform-.*"}[5m]) > 0.8
+            for: 5m
+            labels:
+              severity: warning
+              team: infrastructure
+              service: bi-platform
+            annotations:
+              summary: "High CPU usage detected for BI Platform"
+              description: "CPU usage is {{ $value | humanizePercentage }} which is above the 80% threshold"
+              runbook_url: "https://runbook.bi-platform.com/alerts/high-cpu"
+
+          - alert: HighMemoryUsage
+            expr: container_memory_usage_bytes{pod=~"bi-platform-.*"} / container_spec_memory_limit_bytes{pod=~"bi-platform-.*"} > 0.8
+            for: 5m
+            labels:
+              severity: warning
+              team: infrastructure
+              service: bi-platform
+            annotations:
+              summary: "High memory usage detected for BI Platform"
+              description: "Memory usage is {{ $value | humanizePercentage }} which is above the 80% threshold"
+              runbook_url: "https://runbook.bi-platform.com/alerts/high-memory"
+
+          - alert: ServiceDown
+            expr: up{job="bi-platform"} == 0
+            for: 1m
+            labels:
+              severity: critical
+              team: backend
+              service: bi-platform
+            annotations:
+              summary: "BI Platform service is down"
+              description: "BI Platform instance {{ $labels.instance }} is down"
+              runbook_url: "https://runbook.bi-platform.com/alerts/service-down"
+
+          - alert: LowThroughput
+            expr: bi_platform:throughput_5m < 1
+            for: 10m
+            labels:
+              severity: warning
+              team: backend
+              service: bi-platform
+            annotations:
+              summary: "Low throughput detected for BI Platform"
+              description: "Throughput is {{ $value }} RPS which is below normal levels"
+
+      - name: database.rules
+        interval: 30s
+        rules:
+          - alert: PostgresDown
+            expr: up{job="postgres-exporter"} == 0
+            for: 1m
+            labels:
+              severity: critical
+              team: database
+              service: postgresql
+            annotations:
+              summary: "PostgreSQL is down"
+              description: "PostgreSQL instance {{ $labels.instance }} is down"
+
+          - alert: HighConnectionCount
+            expr: pg_stat_database_numbackends / pg_settings_max_connections > 0.8
+            for: 5m
+            labels:
+              severity: warning
+              team: database
+              service: postgresql
+            annotations:
+              summary: "High PostgreSQL connection count"
+              description: "Connection count is {{ $value | humanizePercentage }} of max connections"
+
+          - alert: SlowQueries
+            expr: pg_stat_database_tup_returned / pg_stat_database_tup_fetched < 0.1
+            for: 10m
+            labels:
+              severity: warning
+              team: database
+              service: postgresql
+            annotations:
+              summary: "PostgreSQL slow queries detected"
+              description: "Query efficiency is low at {{ $value | humanizePercentage }}"
+
+  slo-alerts.yml: |
+    groups:
+      - name: slo-burn-rate.rules
+        interval: 30s
+        rules:
+          # SLO Burn Rate Recording Rules
+          - record: bi_platform:availability_slo_burn_rate_1h
+            expr: (1 - bi_platform:availability_5m) / (1 - 0.999) 
+
+          - record: bi_platform:latency_slo_burn_rate_1h
+            expr: (bi_platform:latency_p95_5m - 1.0) / 1.0
+
+          - record: bi_platform:error_rate_slo_burn_rate_1h
+            expr: bi_platform:error_rate_5m / 0.001
+
+          # Error Budget Alerts
+          - alert: ErrorBudgetBurnRateCritical
+            expr: bi_platform:error_rate_slo_burn_rate_1h > 14.4
+            for: 2m
+            labels:
+              severity: critical
+              team: backend
+              service: bi-platform
+              slo_type: error_budget
+            annotations:
+              summary: "Error budget burning critically fast"
+              description: "Error budget will be exhausted in {{ $value | humanizeDuration }}"
+              runbook_url: "https://runbook.bi-platform.com/slo/error-budget-critical"
+
+          - alert: ErrorBudgetBurnRateHigh
+            expr: bi_platform:error_rate_slo_burn_rate_1h > 6
+            for: 15m
+            labels:
+              severity: warning
+              team: backend
+              service: bi-platform
+              slo_type: error_budget
+            annotations:
+              summary: "Error budget burning fast"
+              description: "Error budget burn rate is {{ $value }}x normal rate"
+
+          - alert: AvailabilitySLOBreach
+            expr: bi_platform:availability_5m < 0.999
+            for: 1m
+            labels:
+              severity: critical
+              team: backend
+              service: bi-platform
+              slo_type: availability
+            annotations:
+              summary: "Availability SLO breached"
+              description: "Availability is {{ $value | humanizePercentage }}, below 99.9% SLO"
+
+          - alert: LatencySLOBreach
+            expr: bi_platform:latency_p95_5m > 1.0
+            for: 5m
+            labels:
+              severity: warning
+              team: backend
+              service: bi-platform
+              slo_type: latency
+            annotations:
+              summary: "Latency SLO breached"
+              description: "P95 latency is {{ $value }}s, above 1s SLO"
+
+  monitoring-stack-alerts.yml: |
+    groups:
+      - name: monitoring-stack.rules
+        interval: 30s
+        rules:
+          - alert: PrometheusDown
+            expr: up{job="prometheus"} == 0
+            for: 1m
+            labels:
+              severity: critical
+              team: monitoring
+              service: prometheus
+            annotations:
+              summary: "Prometheus is down"
+              description: "Prometheus monitoring system is not responding"
+
+          - alert: GrafanaDown
+            expr: up{job="grafana"} == 0
+            for: 1m
+            labels:
+              severity: critical
+              team: monitoring
+              service: grafana
+            annotations:
+              summary: "Grafana is down"
+              description: "Grafana dashboard system is not responding"
+
+          - alert: AlertManagerDown
+            expr: up{job="alertmanager"} == 0
+            for: 1m
+            labels:
+              severity: critical
+              team: monitoring
+              service: alertmanager
+            annotations:
+              summary: "AlertManager is down"
+              description: "AlertManager notification system is not responding"
+
+          - alert: PrometheusConfigReloadFailed
+            expr: prometheus_config_last_reload_successful == 0
+            for: 1m
+            labels:
+              severity: warning
+              team: monitoring
+              service: prometheus
+            annotations:
+              summary: "Prometheus configuration reload failed"
+              description: "Prometheus failed to reload its configuration"
+
+          - alert: PrometheusTargetDown
+            expr: up == 0
+            for: 2m
+            labels:
+              severity: warning
+              team: monitoring
+            annotations:
+              summary: "Prometheus target is down"
+              description: "Target {{ $labels.job }}/{{ $labels.instance }} is down"
+
+          - alert: PrometheusStorageUsageHigh
+            expr: (prometheus_tsdb_symbol_table_size_bytes + prometheus_tsdb_head_series) / 1e9 > 10
+            for: 5m
+            labels:
+              severity: warning
+              team: monitoring
+              service: prometheus
+            annotations:
+              summary: "Prometheus storage usage is high"
+              description: "Storage usage is {{ $value }}GB"

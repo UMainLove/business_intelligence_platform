@@ -1,0 +1,89 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: bi-platform-ingress
+  namespace: business-intelligence
+spec:
+  policyTypes:
+  - Ingress
+  podSelector:
+    matchLabels:
+      app: bi-platform
+      public: "true"
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 10.0.0.0/8  # Internal network
+    - ipBlock:
+        cidr: 192.168.0.0/16  # Private network
+    - namespaceSelector:
+        matchLabels:
+          trusted: "true"
+    ports:
+    - protocol: TCP
+      port: 8501
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: data-services-egress
+  namespace: business-intelligence
+spec:
+  policyTypes:
+  - Egress
+  podSelector:
+    matchLabels:
+      tier: data
+  egress:
+  # Allow DNS resolution
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow connections to specific external APIs
+  - to:
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          external-api: "allowed"
+    ports:
+    - protocol: TCP
+      port: 443
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: external-api-whitelist
+  namespace: business-intelligence
+spec:
+  policyTypes:
+  - Egress
+  podSelector:
+    matchLabels:
+      app: bi-platform
+  egress:
+  # Allow DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow specific external APIs
+  - to:
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          external-api: "allowed"
+    ports:
+    - protocol: TCP
+      port: 443
+  # Block all other external access is implicit due to default-deny
