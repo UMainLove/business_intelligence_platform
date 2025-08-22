@@ -638,45 +638,48 @@ class ZeroTrustEnforcer:
         # Should apply to all pods (empty selector) and control both ingress/egress
         return "Ingress" in policy_types and "Egress" in policy_types and pod_selector == {}
 
+    def _has_default_deny_policy(self, policies: List[Dict[str, Any]]) -> bool:
+        """Check if default deny policy exists."""
+        return any(
+            policy["metadata"]["name"] == DEFAULT_DENY_POLICY_NAME
+            for policy in policies
+        )
+
     def _check_explicit_allow_only(self, namespace: str) -> bool:
         """Check if only explicit allow rules exist."""
         if not self.k8s_client:
             return False
 
         policies = self.k8s_client.list_network_policies(namespace)
-
-        # If no policies exist, return False (not compliant)
-        if not policies:
+        if not policies or not self._has_default_deny_policy(policies):
             return False
 
-        # Check for default deny policy
-        has_default_deny = False
+        return self._validate_policy_rules(policies)
+
+    def _validate_policy_rules(self, policies: List[Dict[str, Any]]) -> bool:
+        """Validate that all policies have explicit allow rules only."""
         for policy in policies:
-            if policy["metadata"]["name"] == DEFAULT_DENY_POLICY_NAME:
-                has_default_deny = True
-                break
-
-        if not has_default_deny:
-            return False
-
-        for policy in policies:
-            spec = policy.get("spec", {})
-
-            # Skip default deny policy check
             if policy["metadata"]["name"] == DEFAULT_DENY_POLICY_NAME:
                 continue
 
-            # Check ingress rules
-            ingress_rules = spec.get("ingress", [])
-            for rule in ingress_rules:
-                if not rule.get("from"):  # Empty from = allow all
-                    return False
+            spec = policy.get("spec", {})
+            if not self._check_policy_spec_rules(spec):
+                return False
+        return True
 
-            # Check egress rules
-            egress_rules = spec.get("egress", [])
-            for rule in egress_rules:
-                if not rule.get("to"):  # Empty to = allow all
-                    return False
+    def _check_policy_spec_rules(self, spec: Dict[str, Any]) -> bool:
+        """Check individual policy spec rules."""
+        # Check ingress rules
+        ingress_rules = spec.get("ingress", [])
+        for rule in ingress_rules:
+            if not rule.get("from"):  # Empty from = allow all
+                return False
+
+        # Check egress rules
+        egress_rules = spec.get("egress", [])
+        for rule in egress_rules:
+            if not rule.get("to"):  # Empty to = allow all
+                return False
 
         return True
 
@@ -820,5 +823,5 @@ def test_connectivity(source_pod: str, target_host: str, port: int, timeout: int
     finally:
         try:
             sock.close()
-        except:
+        except Exception:
             pass

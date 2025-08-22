@@ -18,6 +18,10 @@ jobs:
   k8s-tests:
     name: K8s Infrastructure TDD Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
     strategy:
       matrix:
         python-version: ['3.10', '3.11', '3.12']
@@ -279,6 +283,10 @@ jobs:
   k8s-manifest-security:
     name: K8s Manifest Security Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
     
     steps:
     - uses: actions/checkout@v5
@@ -313,6 +321,8 @@ jobs:
     needs: [k8s-tests, k8s-manifest-security]
     runs-on: ubuntu-latest
     if: always()
+    permissions:
+      contents: read
     
     steps:
     - name: Summary

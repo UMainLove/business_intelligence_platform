@@ -216,7 +216,7 @@ class TestSecretsManagement:
         encrypted_value = encrypted_data["anthropic-api-key"]
         assert encrypted_value is not None and len(encrypted_value) > 0
         assert not encrypted_value.startswith("sk-"), "API key should not be in plain text"
-        assert not "anthropic" in encrypted_value.lower(), (
+        assert "anthropic" not in encrypted_value.lower(), (
             "Encrypted data should not contain identifiable patterns"
         )
 
@@ -564,7 +564,7 @@ class TestSecretsManagement:
         }
 
         # Create mock service account
-        self.k8s_client.service_accounts[f"kube-system/sealed-secrets-controller"] = {
+        self.k8s_client.service_accounts["kube-system/sealed-secrets-controller"] = {
             "kind": "ServiceAccount",
             "metadata": {"name": "sealed-secrets-controller", "namespace": "kube-system"},
         }

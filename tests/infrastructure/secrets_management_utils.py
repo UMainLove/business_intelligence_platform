@@ -185,6 +185,9 @@ class SealedSecretsManager:
             "metadata": {"name": self.controller_name, "namespace": self.controller_namespace},
         }
 
+        # Create the service account
+        self.k8s_client.create_deployment(self.controller_namespace, service_account)
+
         created = self.k8s_client.create_deployment(self.controller_namespace, controller_manifest)
         return created is not None
 

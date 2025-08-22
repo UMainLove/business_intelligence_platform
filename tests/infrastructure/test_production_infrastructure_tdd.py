@@ -500,7 +500,7 @@ class TestProductionInfrastructure:
         priority_class = self.k8s_client.get_priority_class("business-critical")
         assert priority_class is not None, "PriorityClass should exist"
         assert priority_class["value"] == 1000
-        assert priority_class["globalDefault"] == False
+        assert not priority_class["globalDefault"]
 
     def test_database_connection_pooling(self):
         """

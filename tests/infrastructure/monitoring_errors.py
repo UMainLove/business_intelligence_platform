@@ -176,6 +176,22 @@ class MonitoringLogger:
 monitoring_logger = MonitoringLogger("monitoring.stack")
 
 
+def _handle_specific_error(error: Exception, func_name: str, component: str, raise_on_error: bool, default_return: Any):
+    """Handle specific error types with appropriate logging."""
+    if isinstance(error, MonitoringError):
+        monitoring_logger.error(f"Monitoring error in {func_name}", component=component, error=error)
+    elif isinstance(error, ConnectionError):
+        monitoring_logger.error(f"Connection error in {func_name}", component=component, error=error, retry_possible=True)
+    elif isinstance(error, ValidationError):
+        monitoring_logger.warning(f"Validation error in {func_name}", component=component, error=error)
+    else:
+        monitoring_logger.critical(f"Unexpected error in {func_name}", component=component, error=error)
+
+    if raise_on_error:
+        raise
+    return default_return
+
+
 def with_error_handling(
     component: str = "general", raise_on_error: bool = False, default_return: Any = None
 ):
@@ -208,41 +224,8 @@ def with_error_handling(
                 result = func(*args, **kwargs)
                 monitoring_logger.debug(f"Successfully completed {func_name}", component=component)
                 return result
-
-            except MonitoringError as e:
-                monitoring_logger.error(
-                    f"Monitoring error in {func_name}", component=component, error=e
-                )
-                if raise_on_error:
-                    raise
-                return default_return
-
-            except ConnectionError as e:
-                monitoring_logger.error(
-                    f"Connection error in {func_name}",
-                    component=component,
-                    error=e,
-                    retry_possible=True,
-                )
-                if raise_on_error:
-                    raise
-                return default_return
-
-            except ValidationError as e:
-                monitoring_logger.warning(
-                    f"Validation error in {func_name}", component=component, error=e
-                )
-                if raise_on_error:
-                    raise
-                return default_return
-
             except Exception as e:
-                monitoring_logger.critical(
-                    f"Unexpected error in {func_name}", component=component, error=e
-                )
-                if raise_on_error:
-                    raise
-                return default_return
+                return _handle_specific_error(e, func_name, component, raise_on_error, default_return)
 
         return wrapper
 
@@ -354,7 +337,7 @@ class CircuitBreaker:
         if self.is_open:
             if self._should_attempt_reset():
                 self.is_open = False
-                monitoring_logger.info(f"Circuit breaker reset", component=self.component)
+                monitoring_logger.info("Circuit breaker reset", component=self.component)
             else:
                 raise ConnectionError(
                     "Circuit breaker is open",
