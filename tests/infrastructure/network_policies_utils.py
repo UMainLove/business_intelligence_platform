@@ -215,6 +215,43 @@ class NetworkPolicyManager:
             return self.k8s_client.create_network_policy(namespace, policy)
         return policy
 
+    def list_policies(self, namespace: Optional[str] = None) -> List[Dict]:
+        """
+        List network policies.
+
+        Args:
+            namespace: Optional namespace to filter policies
+
+        Returns:
+            List of network policy configurations
+        """
+        if not self.k8s_client:
+            # Return mock policies for testing
+            mock_policies = [
+                {
+                    "metadata": {"name": "default-deny", "namespace": "business-intelligence"},
+                    "spec": {"policyTypes": ["Ingress", "Egress"]},
+                },
+                {
+                    "metadata": {"name": "bi-app-policy", "namespace": "business-intelligence"},
+                    "spec": {"policyTypes": ["Ingress", "Egress"]},
+                },
+                {
+                    "metadata": {"name": "dns-policy", "namespace": "business-intelligence"},
+                    "spec": {"policyTypes": ["Egress"]},
+                },
+            ]
+
+            if namespace:
+                return [p for p in mock_policies if p["metadata"]["namespace"] == namespace]
+            return mock_policies
+
+        if namespace:
+            return self.k8s_client.list_network_policies(namespace)
+
+        # If no namespace specified, return all policies from default namespace
+        return self.k8s_client.list_network_policies("business-intelligence")
+
 
 class ConnectivityTester:
     """
