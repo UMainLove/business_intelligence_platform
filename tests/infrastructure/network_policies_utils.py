@@ -640,10 +640,7 @@ class ZeroTrustEnforcer:
 
     def _has_default_deny_policy(self, policies: List[Dict[str, Any]]) -> bool:
         """Check if default deny policy exists."""
-        return any(
-            policy["metadata"]["name"] == DEFAULT_DENY_POLICY_NAME
-            for policy in policies
-        )
+        return any(policy["metadata"]["name"] == DEFAULT_DENY_POLICY_NAME for policy in policies)
 
     def _check_explicit_allow_only(self, namespace: str) -> bool:
         """Check if only explicit allow rules exist."""

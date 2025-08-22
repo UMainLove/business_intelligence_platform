@@ -480,7 +480,9 @@ class TestNetworkPolicies:
         assert len(violations) > 0, "Policy violations should be logged"
 
         latest_violation = violations[0]
-        assert latest_violation["target"] == "blocked-external.com", "Should log exact blocked target"
+        assert latest_violation["target"] == "blocked-external.com", (
+            "Should log exact blocked target"
+        )
         assert latest_violation["action"] == "DENY", "Should log deny action"
 
     # Helper methods

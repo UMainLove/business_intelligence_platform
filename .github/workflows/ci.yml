@@ -43,7 +43,7 @@ jobs:
         ruff format --check src tests
         
         echo "🔧 Running Black formatting check..."
-        black --check src tests --exclude="tests/test_document_generation_integration.py"
+        black --check src tests --exclude="tests/test_document_generation_integration.py|tests/infrastructure/"
         
         echo "📋 Checking import sorting..."
         isort --check-only --diff src tests
@@ -161,7 +161,7 @@ jobs:
         ruff format --check src tests
         
         echo "🔧 Running Black formatting check..."
-        black --check src tests --exclude="tests/test_document_generation_integration.py"
+        black --check src tests --exclude="tests/test_document_generation_integration.py|tests/infrastructure/"
         
         echo "📋 Checking import sorting..."
         isort --check-only --diff src tests
