@@ -80,6 +80,7 @@ logs/
 .env.production
 .env.staging
 secrets/
+!k8s/secrets/
 
 # Generated files
 data/generated_docs/
