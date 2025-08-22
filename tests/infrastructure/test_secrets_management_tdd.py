@@ -64,12 +64,20 @@ class K8sSecretsClient:
     def create_deployment(self, namespace: str, deployment_config: Dict) -> Dict:
         """Create Deployment."""
         key = f"{namespace}/{deployment_config['metadata']['name']}"
-        # Simulate deployment ready state
-        deployment_config["status"] = {
-            "replicas": deployment_config["spec"]["replicas"],
-            "ready_replicas": deployment_config["spec"]["replicas"],
-        }
-        self.deployments[key] = deployment_config
+        
+        # Handle ServiceAccount (which doesn't have spec) vs Deployment
+        if deployment_config.get("kind") == "ServiceAccount":
+            # ServiceAccounts don't have spec or status
+            self.service_accounts[key] = deployment_config
+        else:
+            # Handle Deployment
+            if "spec" in deployment_config:
+                deployment_config["status"] = {
+                    "replicas": deployment_config["spec"]["replicas"],
+                    "ready_replicas": deployment_config["spec"]["replicas"],
+                }
+            self.deployments[key] = deployment_config
+        
         return deployment_config
 
     def get_sealed_secret(self, namespace: str, name: str) -> Optional[Dict]:
