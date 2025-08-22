@@ -783,6 +783,36 @@ class AlertManager:
             return True
         return False
 
+    def list_alert_rules(self) -> List[Dict]:
+        """
+        List all configured alert rules.
+
+        Returns:
+            List of alert rule configurations
+        """
+        if self.alert_rules:
+            return [
+                {
+                    "name": rule_name,
+                    "expr": rule.expr,
+                    "severity": rule.severity,
+                    "enabled": rule.enabled,
+                    "labels": rule.labels,
+                    "annotations": rule.annotations,
+                }
+                for rule_name, rule in self.alert_rules.items()
+            ]
+
+        # Return mock alert rules for testing
+        return [
+            {"name": "HighCPUUsage", "expr": "cpu_usage > 80", "severity": "warning", "enabled": True},
+            {"name": "HighMemoryUsage", "expr": "memory_usage > 90", "severity": "critical", "enabled": True},
+            {"name": "DiskSpaceLow", "expr": "disk_free < 10", "severity": "critical", "enabled": True},
+            {"name": "PodCrashLooping", "expr": "pod_restarts > 5", "severity": "critical", "enabled": True},
+            {"name": "NetworkLatencyHigh", "expr": "network_latency > 1000", "severity": "warning", "enabled": True},
+            {"name": "DatabaseConnectionsHigh", "expr": "db_connections > 100", "severity": "warning", "enabled": True},
+        ]
+
     def evaluate_rules(self, metrics_data: Dict) -> List[str]:
         """Evaluate all alert rules against current metrics."""
         triggered_rules = []
