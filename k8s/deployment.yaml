@@ -21,6 +21,7 @@ spec:
       containers:
       - name: bi-app
         image: business-intelligence:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8501
           name: http
@@ -144,9 +145,12 @@ spec:
             cpu: "500m"
         securityContext:
           runAsNonRoot: true
-          runAsUser: 1000
+          runAsUser: 10014
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
       volumes:
       - name: app-data
         persistentVolumeClaim:
@@ -155,7 +159,7 @@ spec:
         persistentVolumeClaim:
           claimName: bi-app-logs-pvc
       securityContext:
-        fsGroup: 1000
+        fsGroup: 10014
 
 ---
 # Persistent Volume Claims for Application Data

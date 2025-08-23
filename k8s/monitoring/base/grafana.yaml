@@ -200,7 +200,7 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
-        runAsUser: 472  # grafana user
+        runAsUser: 10015  # high UID for security
         runAsGroup: 472
         fsGroup: 472
         seccompProfile:
@@ -221,7 +221,7 @@ spec:
       containers:
         - name: grafana
           image: grafana/grafana:9.3.0
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - name: http
               containerPort: 3000
@@ -282,7 +282,7 @@ spec:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             runAsNonRoot: true
-            runAsUser: 472
+            runAsUser: 10015
             capabilities:
               drop:
               - ALL

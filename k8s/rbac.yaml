@@ -19,8 +19,9 @@ rules:
   resources: ["deployments", "replicasets"]
   verbs: ["get", "list", "watch"]
 - apiGroups: [""]
-  resources: ["configmaps", "secrets"]
+  resources: ["configmaps"]
   verbs: ["get", "list"]
+# Note: Secret access removed for security. Use dedicated secret management roles if needed.
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
