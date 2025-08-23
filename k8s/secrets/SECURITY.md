@@ -8,7 +8,7 @@ This document explains the RBAC security model for the Sealed Secrets Controller
 
 ### ClusterRole Permissions
 
-The Sealed Secrets Controller requires specific cluster-level permissions:
+The Sealed Secrets Controller ClusterRole has **NO secret permissions** - all secret management is delegated to namespace-specific Roles:
 
 1. **SealedSecrets CRD Management** (`bitnami.com/sealedsecrets`)
    - `get`, `list`, `watch`: Read SealedSecret resources across all namespaces
@@ -23,20 +23,29 @@ The Sealed Secrets Controller requires specific cluster-level permissions:
    - `create`, `patch`: Log controller operations and errors
    - **Justification**: Essential for debugging and audit trails
 
-4. **Secret Discovery** (`core/secrets` - ClusterRole level)
-   - `get`, `list`, `create`, `update`, `patch`: Minimal permissions for secret discovery
-   - **Note**: While flagged by security scanners, these permissions are scoped:
-     - No `delete` permission at cluster level
-     - Actual secret management delegated to namespace-specific Roles
-   - **Justification**: Controller needs to verify secret existence before creation
+**Important**: The ClusterRole contains NO permissions for secrets. This addresses Snyk security findings while maintaining functionality through namespace-specific Roles.
 
 ### Namespace-Specific Permissions
 
 Secret management is restricted to specific namespaces through Role/RoleBinding:
 
-- **business-intelligence** namespace only
-- Permissions: `get`, `list`, `create`, `update`, `patch`, `delete` on secrets
-- **Security Benefit**: Prevents accidental secret access in other namespaces
+#### Business Intelligence Namespace
+- **Namespace**: `business-intelligence`
+- **Permissions**: `get`, `list`, `create`, `update`, `patch` on secrets
+- **NO DELETE**: Controller cannot delete secrets (principle of least privilege)
+- **SealedSecrets**: Can read and watch SealedSecrets in this namespace
+
+#### Monitoring Namespace
+- **Namespace**: `monitoring`
+- **Permissions**: `get`, `list`, `create`, `update`, `patch` on secrets
+- **NO DELETE**: Controller cannot delete secrets
+- **SealedSecrets**: Can read and watch SealedSecrets in this namespace
+
+**Security Benefits**:
+- No cluster-wide secret access
+- Per-namespace authorization
+- No destructive operations (delete)
+- Audit trail per namespace
 
 ## Security Improvements Made
 
@@ -55,8 +64,8 @@ Secret management is restricted to specific namespaces through Role/RoleBinding:
 
 | Resource | ClusterRole Verbs | Namespace Role Verbs | Justification |
 |----------|-------------------|---------------------|---------------|
-| secrets | get, list, create, update, patch | get, list, create, update, patch, delete | ClusterRole for discovery, Role for management |
-| sealedsecrets | get, list, watch, update, patch | - | CRD management requires cluster scope |
+| secrets | **NONE** | get, list, create, update, patch | All secret operations via namespace Roles only |
+| sealedsecrets | get, list, watch, update, patch | get, list, watch | CRD management at cluster, reading at namespace |
 | namespaces | get, list | - | Validation of target namespaces |
 | events | create, patch | - | Audit logging |
 
