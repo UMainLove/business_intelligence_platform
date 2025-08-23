@@ -30,7 +30,7 @@ flower>=2.0.1           # Celery monitoring
 
 # Security
 cryptography>=41.0.0    # Encryption
-python-jose>=3.3.0      # JWT tokens
+PyJWT>=2.8.0            # JWT tokens (secure, uses cryptography backend)
 passlib>=1.7.0          # Password hashing
 
 # Cloud Storage
