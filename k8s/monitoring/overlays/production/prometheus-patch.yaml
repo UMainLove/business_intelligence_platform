@@ -6,8 +6,21 @@ spec:
   replicas: 3
   template:
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10008
+        fsGroup: 10008
       containers:
       - name: prometheus
+        imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 10008
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
         resources:
           requests:
             memory: 2Gi
@@ -34,3 +47,37 @@ spec:
         - '--storage.tsdb.wal-compression'
         - '--storage.tsdb.min-block-duration=2h'
         - '--storage.tsdb.max-block-duration=24h'
+        volumeMounts:
+        - name: prometheus-tmp
+          mountPath: /tmp
+        - name: prometheus-run
+          mountPath: /prometheus
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: 9090
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 15
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: 9090
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 10
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /-/ready
+            port: 9090
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 10
+          failureThreshold: 10
+      volumes:
+      - name: prometheus-tmp
+        emptyDir: {}
+      - name: prometheus-run
+        emptyDir: {}
