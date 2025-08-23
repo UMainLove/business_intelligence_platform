@@ -24,9 +24,22 @@ spec:
                 values:
                 - postgres-ha
             topologyKey: kubernetes.io/hostname
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999  # postgres user in Debian
+        fsGroup: 999
       containers:
       - name: postgres
         image: postgres:14
+        imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 999  # postgres user in Debian
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
         ports:
         - containerPort: 5432
         env:
@@ -51,6 +64,10 @@ spec:
         volumeMounts:
         - name: postgres-storage
           mountPath: /var/lib/postgresql/data
+        - name: postgres-tmp
+          mountPath: /tmp
+        - name: postgres-run
+          mountPath: /var/run/postgresql
         readinessProbe:
           exec:
             command:
@@ -74,6 +91,11 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "1000m"
+      volumes:
+      - name: postgres-tmp
+        emptyDir: {}
+      - name: postgres-run
+        emptyDir: {}
   volumeClaimTemplates:
   - metadata:
       name: postgres-storage

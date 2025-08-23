@@ -24,9 +24,22 @@ spec:
                 values:
                 - redis-ha
             topologyKey: kubernetes.io/hostname
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999  # redis user in Alpine
+        fsGroup: 999
       containers:
       - name: redis
         image: redis:7-alpine
+        imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 999  # redis user in Alpine
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
         ports:
         - containerPort: 6379
         command:
@@ -45,6 +58,8 @@ spec:
         volumeMounts:
         - name: redis-storage
           mountPath: /data
+        - name: redis-tmp
+          mountPath: /tmp
         readinessProbe:
           exec:
             command:
@@ -66,6 +81,9 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "500m"
+      volumes:
+      - name: redis-tmp
+        emptyDir: {}
   volumeClaimTemplates:
   - metadata:
       name: redis-storage
