@@ -11,9 +11,22 @@ spec:
     spec:
       template:
         spec:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10006
+            fsGroup: 10006
           containers:
           - name: backup
             image: postgres:14-alpine
+            imagePullPolicy: Always
+            securityContext:
+              allowPrivilegeEscalation: false
+              runAsNonRoot: true
+              runAsUser: 10006
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                - ALL
             command:
               - /bin/sh
               - -c
@@ -42,8 +55,23 @@ spec:
             volumeMounts:
             - name: backup-storage
               mountPath: /backup
+            - name: tmp
+              mountPath: /tmp
+            - name: postgres-run
+              mountPath: /var/run/postgresql
+            resources:
+              requests:
+                memory: "256Mi"
+                cpu: "100m"
+              limits:
+                memory: "512Mi"
+                cpu: "500m"
           volumes:
           - name: backup-storage
             persistentVolumeClaim:
               claimName: backup-pvc
+          - name: tmp
+            emptyDir: {}
+          - name: postgres-run
+            emptyDir: {}
           restartPolicy: OnFailure
