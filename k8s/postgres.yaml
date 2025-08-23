@@ -29,9 +29,22 @@ spec:
       labels:
         app: postgres
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 70  # postgres user in Alpine
+        fsGroup: 70
       containers:
       - name: postgres
         image: postgres:16-alpine
+        imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 70  # postgres user in Alpine
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
         ports:
         - containerPort: 5432
         env:
@@ -49,6 +62,10 @@ spec:
         volumeMounts:
         - name: postgres-storage
           mountPath: /var/lib/postgresql/data
+        - name: postgres-tmp
+          mountPath: /tmp
+        - name: postgres-run
+          mountPath: /var/run/postgresql
         livenessProbe:
           exec:
             command:
@@ -76,6 +93,10 @@ spec:
       - name: postgres-storage
         persistentVolumeClaim:
           claimName: postgres-pvc
+      - name: postgres-tmp
+        emptyDir: {}
+      - name: postgres-run
+        emptyDir: {}
 
 ---
 apiVersion: v1
