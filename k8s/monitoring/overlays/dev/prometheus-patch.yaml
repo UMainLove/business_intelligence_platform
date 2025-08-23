@@ -6,8 +6,21 @@ spec:
   replicas: 1
   template:
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10009
+        fsGroup: 10009
       containers:
       - name: prometheus
+        imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 10009
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
         resources:
           requests:
             memory: 512Mi
@@ -29,3 +42,29 @@ spec:
         - '--log.level=debug'
         - '--query.max-concurrency=10'
         - '--query.timeout=2m'
+        volumeMounts:
+        - name: prometheus-tmp
+          mountPath: /tmp
+        - name: prometheus-data
+          mountPath: /prometheus
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: 9090
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: 9090
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+      volumes:
+      - name: prometheus-tmp
+        emptyDir: {}
+      - name: prometheus-data
+        emptyDir: {}

@@ -6,8 +6,21 @@ spec:
   replicas: 1
   template:
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10010
+        fsGroup: 10010
       containers:
       - name: grafana
+        imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 10010
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
         resources:
           requests:
             memory: 256Mi
@@ -22,3 +35,33 @@ spec:
           value: "true"  # Allow sign-up in dev
         - name: GF_AUTH_ANONYMOUS_ENABLED
           value: "true"  # Enable anonymous access in dev
+        volumeMounts:
+        - name: grafana-tmp
+          mountPath: /tmp
+        - name: grafana-logs
+          mountPath: /var/log/grafana
+        - name: grafana-plugins
+          mountPath: /var/lib/grafana/plugins
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 5
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+      volumes:
+      - name: grafana-tmp
+        emptyDir: {}
+      - name: grafana-logs
+        emptyDir: {}
+      - name: grafana-plugins
+        emptyDir: {}
