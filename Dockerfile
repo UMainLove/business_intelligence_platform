@@ -36,16 +36,18 @@ RUN apk update && \
 
 WORKDIR /build
 
-# Copy requirements  
-COPY requirements.txt requirements-prod.txt ./
+# Copy Alpine-compatible requirements
+COPY requirements-alpine.txt ./
+
+# Create virtual environment and activate it
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Build wheels for faster installs and smaller final image
-# Using python3 -m pip with --break-system-packages for Alpine's managed environment
-# Replace psycopg2-binary with psycopg2 for Alpine compatibility
-RUN sed -i 's/psycopg2-binary/psycopg2/g' requirements*.txt && \
-    python3 -m pip install --break-system-packages --upgrade pip wheel && \
-    python3 -m pip wheel --break-system-packages --no-cache-dir --wheel-dir /wheels \
-    -r requirements.txt -r requirements-prod.txt
+# Using virtual environment (cleaner than --break-system-packages)
+RUN pip install --upgrade pip wheel && \
+    pip wheel --no-cache-dir --wheel-dir /wheels \
+    -r requirements-alpine.txt
 
 # Stage 2: Runtime - Minimal final image with Alpine 3.21.3 (zero CVEs)
 FROM alpine:3.21.3 AS runtime
@@ -54,6 +56,10 @@ FROM alpine:3.21.3 AS runtime
 RUN apk add --no-cache \
     python3 \
     py3-pip
+
+# Create virtual environment in runtime stage
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -79,19 +85,18 @@ WORKDIR /app
 COPY --from=builder /wheels /wheels
 
 # Install from wheels (much faster, smaller)
-# First copy requirements files for pip to reference  
-COPY requirements.txt requirements-prod.txt /tmp/
-RUN sed -i 's/psycopg2-binary/psycopg2/g' /tmp/requirements*.txt && \
-    python3 -m pip install --break-system-packages --upgrade pip && \
-    python3 -m pip install --break-system-packages --no-cache-dir --no-index --find-links /wheels \
-    -r /tmp/requirements.txt -r /tmp/requirements-prod.txt || \
-    python3 -m pip install --break-system-packages --no-cache-dir /wheels/*.whl && \
+# Copy Alpine-compatible requirements file for pip to reference  
+COPY requirements-alpine.txt /tmp/
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir --no-index --find-links /wheels \
+    -r /tmp/requirements-alpine.txt || \
+    pip install --no-cache-dir /wheels/*.whl && \
     rm -rf /wheels ~/.cache/pip /tmp/requirements*.txt
 
 # Copy application code (only what's needed)
 COPY --chown=appuser:appuser src/ ./src/
 COPY --chown=appuser:appuser app.py app_bi.py conftest.py ./
-COPY --chown=appuser:appuser requirements.txt requirements-prod.txt ./
+COPY --chown=appuser:appuser requirements-alpine.txt ./
 
 USER appuser
 

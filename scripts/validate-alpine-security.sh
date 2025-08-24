@@ -47,13 +47,13 @@ check_security "APK updates applied" "grep -q 'apk upgrade' Dockerfile" 1
 check_security "Non-root user (10001)" "grep -q 'adduser -u 10001' Dockerfile" 2
 
 # 4. No build tools in runtime
-check_security "Build tools only in builder" "! grep -A5 'FROM alpine:3.21.3 as runtime' Dockerfile | grep -q 'build-base'" 1
+check_security "Build tools only in builder" "! grep -iA5 'FROM alpine:3.21.3 as runtime' Dockerfile | grep -q 'build-base'" 1
 
 # 5. Multi-stage build
-check_security "Multi-stage build" "grep -q 'FROM.*as builder' Dockerfile && grep -q 'FROM.*as runtime' Dockerfile" 1
+check_security "Multi-stage build" "grep -iq 'FROM.*as builder' Dockerfile && grep -iq 'FROM.*as runtime' Dockerfile" 1
 
 # 6. Minimal packages
-check_security "Minimal runtime packages" "grep -A10 'FROM alpine:3.21.3 as runtime' Dockerfile | grep 'apk add' | grep -v build-base" 1
+check_security "Minimal runtime packages" "grep -iA10 'FROM alpine:3.21.3 as runtime' Dockerfile | grep 'apk add' | grep -v build-base" 1
 
 # 7. Security context in K8s
 check_security "K8s security context" "grep -q 'runAsNonRoot: true' k8s/deployment.yaml" 1

@@ -108,7 +108,7 @@ def test_imports():
         ('numpy', 'Numerical computing'),
         ('psycopg2', 'PostgreSQL driver'),
         ('cryptography', 'Security'),
-        ('PyJWT', 'JWT tokens'),
+        ('jwt', 'JWT tokens'),
     ]
     
     failed = []
