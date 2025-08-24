@@ -26,8 +26,8 @@ spec:
             topologyKey: kubernetes.io/hostname
       securityContext:
         runAsNonRoot: true
-        runAsUser: 999  # redis user in Alpine
-        fsGroup: 999
+        runAsUser: 10999  # High UID for security (based on redis Alpine UID 999)
+        fsGroup: 10999
       containers:
       - name: redis
         image: redis:7-alpine
@@ -35,7 +35,7 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
           runAsNonRoot: true
-          runAsUser: 999  # redis user in Alpine
+          runAsUser: 10999  # High UID for security (based on redis Alpine UID 999)
           readOnlyRootFilesystem: true
           capabilities:
             drop:

@@ -31,8 +31,8 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
-        runAsUser: 70  # postgres user in Alpine
-        fsGroup: 70
+        runAsUser: 10070  # High UID for security (based on postgres Alpine UID 70)
+        fsGroup: 10070
       containers:
       - name: postgres
         image: postgres:16-alpine
@@ -40,7 +40,7 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
           runAsNonRoot: true
-          runAsUser: 70  # postgres user in Alpine
+          runAsUser: 10070  # High UID for security (based on postgres Alpine UID 70)
           readOnlyRootFilesystem: true
           capabilities:
             drop:
