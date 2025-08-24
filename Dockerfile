@@ -12,7 +12,7 @@
 #   DOCKER_CONTENT_TRUST=1 docker build -t bi-platform .
 #
 # Stage 1: Builder - Install dependencies and create wheels
-FROM alpine:3.21.3 as builder
+FROM alpine:3.21.3 AS builder
 
 # Install Python and pip on Alpine 3.21.3
 # Alpine 3.21 provides Python 3.13 by default
@@ -40,15 +40,15 @@ WORKDIR /build
 COPY requirements.txt requirements-prod.txt ./
 
 # Build wheels for faster installs and smaller final image
-# Using python3 -m pip to ensure correct Python version
+# Using python3 -m pip with --break-system-packages for Alpine's managed environment
 # Replace psycopg2-binary with psycopg2 for Alpine compatibility
-RUN python3 -m pip install --upgrade pip wheel && \
-    sed -i 's/psycopg2-binary/psycopg2/g' requirements*.txt && \
-    python3 -m pip wheel --no-cache-dir --wheel-dir /wheels \
+RUN sed -i 's/psycopg2-binary/psycopg2/g' requirements*.txt && \
+    python3 -m pip install --break-system-packages --upgrade pip wheel && \
+    python3 -m pip wheel --break-system-packages --no-cache-dir --wheel-dir /wheels \
     -r requirements.txt -r requirements-prod.txt
 
 # Stage 2: Runtime - Minimal final image with Alpine 3.21.3 (zero CVEs)
-FROM alpine:3.21.3 as runtime
+FROM alpine:3.21.3 AS runtime
 
 # Install Python runtime (no dev packages needed)
 RUN apk add --no-cache \
@@ -81,11 +81,11 @@ COPY --from=builder /wheels /wheels
 # Install from wheels (much faster, smaller)
 # First copy requirements files for pip to reference  
 COPY requirements.txt requirements-prod.txt /tmp/
-RUN python3 -m pip install --upgrade pip && \
-    sed -i 's/psycopg2-binary/psycopg2/g' /tmp/requirements*.txt && \
-    python3 -m pip install --no-cache-dir --no-index --find-links /wheels \
+RUN sed -i 's/psycopg2-binary/psycopg2/g' /tmp/requirements*.txt && \
+    python3 -m pip install --break-system-packages --upgrade pip && \
+    python3 -m pip install --break-system-packages --no-cache-dir --no-index --find-links /wheels \
     -r /tmp/requirements.txt -r /tmp/requirements-prod.txt || \
-    python3 -m pip install --no-cache-dir /wheels/*.whl && \
+    python3 -m pip install --break-system-packages --no-cache-dir /wheels/*.whl && \
     rm -rf /wheels ~/.cache/pip /tmp/requirements*.txt
 
 # Copy application code (only what's needed)

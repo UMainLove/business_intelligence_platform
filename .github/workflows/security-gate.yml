@@ -1,5 +1,9 @@
 name: Security Gate
 
+permissions:
+  contents: read
+  security-events: write
+
 on:
   push:
     branches: [ main, develop ]
@@ -9,6 +13,9 @@ on:
 jobs:
   security-gate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     
     steps:
     - name: Checkout code
