@@ -1,0 +1,3 @@
+# Alpine-specific package overrides
+# psycopg2-binary doesn't work well on Alpine, use compiled version
+psycopg2>=2.9.0  # PostgreSQL adapter (compiled for Alpine)

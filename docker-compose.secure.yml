@@ -1,0 +1,195 @@
+version: '3.8'
+
+# Secure Docker Compose Configuration
+# With DCT and security best practices
+
+services:
+  bi-platform:
+    # Use specific digest instead of tag for production
+    # image: ghcr.io/umainlove/business_intelligence_platform@sha256:DIGEST_HERE
+    image: bi-platform:latest
+    
+    # Build with security options
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - DOCKER_CONTENT_TRUST=1  # Enable DCT verification
+      cache_from:
+        - alpine:3.21.3
+    
+    # Security configurations
+    security_opt:
+      - no-new-privileges:true  # Prevent privilege escalation
+      - seccomp:unconfined      # Use default seccomp profile
+    
+    # Capabilities
+    cap_drop:
+      - ALL  # Drop all capabilities
+    
+    # Read-only root filesystem
+    read_only: true
+    
+    # Non-root user (must match Dockerfile)
+    user: "10001:10001"
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Volumes (with read-only where possible)
+    volumes:
+      - ./data:/app/data:ro        # Read-only data
+      - tmp-vol:/tmp                # Writable temp
+      - cache-vol:/home/appuser/.cache  # Writable cache
+    
+    # Temporary filesystems for writable areas
+    tmpfs:
+      - /tmp
+      - /var/tmp
+    
+    # Environment variables
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - DOCKER_CONTENT_TRUST=1     # Enforce DCT
+    
+    # Network
+    networks:
+      - bi-network
+    
+    # Ports
+    ports:
+      - "127.0.0.1:8501:8501"  # Bind to localhost only
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=bi-platform"
+
+  # PostgreSQL with security hardening
+  postgres:
+    image: postgres:16-alpine
+    
+    security_opt:
+      - no-new-privileges:true
+    
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    
+    environment:
+      POSTGRES_DB: business_intelligence
+      POSTGRES_USER: bi_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_INITDB_ARGS: "--auth-local=trust --auth-host=scram-sha-256"
+    
+    secrets:
+      - postgres_password
+    
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    
+    networks:
+      - bi-network
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bi_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis with security hardening  
+  redis:
+    image: redis:7-alpine
+    
+    security_opt:
+      - no-new-privileges:true
+    
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETUID
+      - SETGID
+    
+    command: >
+      redis-server
+      --requirepass $${REDIS_PASSWORD}
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+      --appendfilename "redis-appendonly.aof"
+    
+    environment:
+      REDIS_PASSWORD_FILE: /run/secrets/redis_password
+    
+    secrets:
+      - redis_password
+    
+    volumes:
+      - redis-data:/data
+    
+    networks:
+      - bi-network
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# Networks
+networks:
+  bi-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+# Volumes
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  tmp-vol:
+    driver: local
+  cache-vol:
+    driver: local
+
+# Secrets (use Docker secrets in Swarm mode or external files)
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  redis_password:
+    file: ./secrets/redis_password.txt

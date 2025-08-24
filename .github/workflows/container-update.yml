@@ -1,0 +1,70 @@
+name: Container Security Updates
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC to check for security updates
+    - cron: '0 2 * * *'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  update-container:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build fresh container with latest patches
+      id: build
+      run: |
+        # Build with --no-cache to ensure fresh package updates
+        docker build --no-cache -t bi-platform:latest .
+        
+    - name: Scan for vulnerabilities
+      id: scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: bi-platform:latest
+        format: 'json'
+        output: 'trivy-results.json'
+        severity: 'CRITICAL,HIGH,MEDIUM'
+        
+    - name: Check if updates reduced vulnerabilities
+      run: |
+        # Parse vulnerability counts
+        CRITICAL=$(jq '[.Results[].Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-results.json)
+        HIGH=$(jq '[.Results[].Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-results.json)
+        
+        echo "Found $CRITICAL CRITICAL and $HIGH HIGH vulnerabilities"
+        
+        if [ "$CRITICAL" -eq 0 ] && [ "$HIGH" -eq 0 ]; then
+          echo "✅ Container is secure - no critical/high vulnerabilities"
+          echo "CREATE_PR=false" >> $GITHUB_ENV
+        else
+          echo "⚠️ Vulnerabilities found - may need base image update"
+          echo "CREATE_PR=true" >> $GITHUB_ENV
+        fi
+        
+    - name: Create PR if vulnerabilities found
+      if: env.CREATE_PR == 'true'
+      uses: peter-evans/create-pull-request@v5
+      with:
+        commit-message: 'chore: Update container base image for security'
+        title: '🔒 Security: Container base image update needed'
+        body: |
+          ## Container Security Update
+          
+          The daily security scan found vulnerabilities in the container.
+          
+          ### Action Required:
+          - Review the Trivy scan results
+          - Consider updating the base Alpine version
+          - Test the application with the new image
+          
+          ### Scan Results:
+          Check the workflow run for detailed vulnerability report.
+        branch: security/container-update
+        delete-branch: true

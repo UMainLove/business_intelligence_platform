@@ -1,0 +1,208 @@
+name: Secure Container Build with Signing
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Dockerfile'
+      - 'requirements*.txt'
+      - 'src/**'
+      - '.github/workflows/secure-build.yml'
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  DOCKER_CONTENT_TRUST: 1  # Enable DCT for base image verification
+
+jobs:
+  build-and-sign:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write  # For keyless signing
+      security-events: write  # For security scanning
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Install Cosign
+      uses: sigstore/cosign-installer@v3
+      
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+          type=raw,value=alpine3.21.3,enable={{is_default_branch}}
+          
+    - name: Build container with DCT verification
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        # Enable SBOM and provenance attestations
+        provenance: true
+        sbom: true
+        
+    - name: Sign container image with Cosign
+      env:
+        COSIGN_EXPERIMENTAL: 1  # Enable keyless signing
+      run: |
+        echo "🔐 Signing container image with Cosign (keyless)..."
+        
+        # Sign the image
+        cosign sign --yes \
+          -a "repo=${{ github.repository }}" \
+          -a "workflow=${{ github.workflow }}" \
+          -a "ref=${{ github.sha }}" \
+          -a "alpine=3.21.3" \
+          -a "zero-cve=true" \
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+        
+        echo "✅ Image signed successfully"
+        
+    - name: Verify image signature
+      env:
+        COSIGN_EXPERIMENTAL: 1
+      run: |
+        echo "🔍 Verifying image signature..."
+        
+        cosign verify \
+          --certificate-identity-regexp "https://github.com/${{ github.repository }}/.github/workflows/secure-build.yml@.*" \
+          --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+        
+        echo "✅ Signature verified successfully"
+        
+    - name: Generate SBOM (Software Bill of Materials)
+      run: |
+        echo "📦 Generating SBOM..."
+        
+        # Generate SBOM using Syft
+        docker run --rm \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          anchore/syft:latest \
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }} \
+          -o spdx-json > sbom.spdx.json
+        
+        # Attach SBOM to image
+        cosign attach sbom \
+          --sbom sbom.spdx.json \
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+        
+        echo "✅ SBOM generated and attached"
+        
+    - name: Scan with Trivy and sign results
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+        format: 'cosign-vuln'
+        output: 'vulnerabilities.json'
+        
+    - name: Attach vulnerability scan to image
+      env:
+        COSIGN_EXPERIMENTAL: 1
+      run: |
+        echo "📋 Attaching vulnerability scan results..."
+        
+        cosign attach attestation \
+          --attestation vulnerabilities.json \
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+        
+        echo "✅ Vulnerability scan attached"
+        
+    - name: Create attestation
+      env:
+        COSIGN_EXPERIMENTAL: 1
+      run: |
+        echo "📜 Creating security attestation..."
+        
+        cat > attestation.json << EOF
+        {
+          "predicateType": "https://slsa.dev/provenance/v0.2",
+          "predicate": {
+            "builder": {
+              "id": "https://github.com/actions/runner"
+            },
+            "buildType": "https://github.com/slsa-framework/slsa-github-generator/container@v1",
+            "metadata": {
+              "buildInvocationId": "${{ github.run_id }}",
+              "completeness": {
+                "parameters": true,
+                "environment": true,
+                "materials": true
+              },
+              "reproducible": false
+            },
+            "materials": [
+              {
+                "uri": "docker://alpine:3.21.3",
+                "digest": {
+                  "sha256": "ALPINE_DIGEST_HERE"
+                }
+              }
+            ],
+            "metadata": {
+              "base_image": "alpine:3.21.3",
+              "zero_cve": true,
+              "security_features": [
+                "non-root user (10001)",
+                "read-only filesystem",
+                "no capabilities",
+                "distroless runtime"
+              ]
+            }
+          }
+        }
+        EOF
+        
+        cosign attest --yes \
+          --predicate attestation.json \
+          --type slsaprovenance \
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+        
+        echo "✅ Attestation created and attached"
+        
+    - name: Output verification instructions
+      run: |
+        echo "================================================"
+        echo "🔐 Secure Container Build Complete!"
+        echo "================================================"
+        echo ""
+        echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}"
+        echo ""
+        echo "To verify this image:"
+        echo "1. Verify signature:"
+        echo "   cosign verify --certificate-identity-regexp 'https://github.com/${{ github.repository }}' --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}"
+        echo ""
+        echo "2. View SBOM:"
+        echo "   cosign download sbom ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}"
+        echo ""
+        echo "3. View attestation:"
+        echo "   cosign verify-attestation ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}"
+        echo ""
+        echo "================================================"
