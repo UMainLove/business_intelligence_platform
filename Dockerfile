@@ -1,5 +1,5 @@
 # Multi-stage Docker build for Business Intelligence Platform
-FROM python:3.11-slim-bookworm as base
+FROM python:3.10-slim as base
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
