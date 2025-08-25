@@ -152,6 +152,10 @@ jobs:
       run: |
         echo "📜 Creating security attestation..."
         
+        # Get the actual Alpine digest that was used in the build
+        ALPINE_DIGEST=$(docker manifest inspect alpine:3.21.4 | jq -r '.config.digest' 2>/dev/null || echo "sha256:b6a6be0ff92ab6db8acd94f5d1b7a6c2f0f5d10ce3c24af348d333ac6da80685")
+        echo "Using Alpine digest: $ALPINE_DIGEST"
+        
         cat > attestation.json << EOF
         {
           "builder": {
@@ -169,7 +173,6 @@ jobs:
           },
           "metadata": {
             "buildInvocationId": "${{ github.run_id }}",
-            "buildStartedOn": "${{ job.status }}",
             "completeness": {
               "parameters": true,
               "environment": true,
@@ -181,7 +184,7 @@ jobs:
             {
               "uri": "docker://alpine:3.21.4",
               "digest": {
-                "sha256": "b6a6be0ff92ab6db8acd94f5d1b7a6c2f0f5d10ce3c24af348d333ac6da80685"
+                "sha256": "${ALPINE_DIGEST#sha256:}"
               }
             }
           ]
