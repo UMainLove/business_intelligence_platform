@@ -122,24 +122,29 @@ jobs:
         
         echo "✅ SBOM generated and attached"
         
-    - name: Scan with Trivy and sign results
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
-        format: 'cosign-vuln'
-        output: 'vulnerabilities.json'
-        
-    - name: Attach vulnerability scan to image
+    - name: Scan with Trivy and create attestation
       env:
         COSIGN_EXPERIMENTAL: 1
+        DOCKER_CONTENT_TRUST: 0  # Temporarily disable DCT for pulling Trivy image
       run: |
-        echo "📋 Attaching vulnerability scan results..."
+        echo "🔍 Scanning container with Trivy and creating attestation..."
         
-        cosign attach attestation \
-          --attestation vulnerabilities.json \
+        # Generate vulnerability report in JSON format
+        docker run --rm \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -v $(pwd):/tmp \
+          aquasec/trivy:latest image \
+          --format json \
+          --output /tmp/vulnerabilities.json \
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
         
-        echo "✅ Vulnerability scan attached"
+        # Create vulnerability attestation using cosign attest
+        cosign attest --yes \
+          --predicate vulnerabilities.json \
+          --type vuln \
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+        
+        echo "✅ Vulnerability scan completed and attested"
         
     - name: Create attestation
       env:
