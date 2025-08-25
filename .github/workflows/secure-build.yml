@@ -154,40 +154,37 @@ jobs:
         
         cat > attestation.json << EOF
         {
-          "predicateType": "https://slsa.dev/provenance/v0.2",
-          "predicate": {
-            "builder": {
-              "id": "https://github.com/actions/runner"
-            },
-            "buildType": "https://github.com/slsa-framework/slsa-github-generator/container@v1",
-            "metadata": {
-              "buildInvocationId": "${{ github.run_id }}",
-              "completeness": {
-                "parameters": true,
-                "environment": true,
-                "materials": true
+          "builder": {
+            "id": "https://github.com/${{ github.repository }}/.github/workflows/secure-build.yml@${{ github.ref }}"
+          },
+          "buildType": "https://github.com/slsa-framework/slsa-github-generator/container@v1",
+          "invocation": {
+            "configSource": {
+              "uri": "https://github.com/${{ github.repository }}",
+              "digest": {
+                "sha1": "${{ github.sha }}"
               },
-              "reproducible": false
-            },
-            "materials": [
-              {
-                "uri": "docker://alpine:3.21.4",
-                "digest": {
-                  "sha256": "ALPINE_DIGEST_HERE"
-                }
-              }
-            ],
-            "metadata": {
-              "base_image": "alpine:3.21.4",
-              "minimal_cve": "1 MEDIUM (SQLite - no fix available)",
-              "security_features": [
-                "non-root user (10001)",
-                "read-only filesystem",
-                "no capabilities",
-                "distroless runtime"
-              ]
+              "entryPoint": "Dockerfile"
             }
-          }
+          },
+          "metadata": {
+            "buildInvocationId": "${{ github.run_id }}",
+            "buildStartedOn": "${{ job.status }}",
+            "completeness": {
+              "parameters": true,
+              "environment": true,
+              "materials": true
+            },
+            "reproducible": false
+          },
+          "materials": [
+            {
+              "uri": "docker://alpine:3.21.4",
+              "digest": {
+                "sha256": "b6a6be0ff92ab6db8acd94f5d1b7a6c2f0f5d10ce3c24af348d333ac6da80685"
+              }
+            }
+          ]
         }
         EOF
         
