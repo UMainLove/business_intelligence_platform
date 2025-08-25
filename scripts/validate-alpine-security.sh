@@ -37,8 +37,8 @@ check_security() {
 echo "📋 Security Checklist:"
 echo "----------------------"
 
-# 1. Alpine 3.21.3 base
-check_security "Alpine 3.21.3 base image" "grep -q 'FROM alpine:3.21.3' Dockerfile" 2
+# 1. Alpine 3.21.4 base
+check_security "Alpine 3.21.4 base image" "grep -q 'FROM alpine:3.21.4' Dockerfile" 2
 
 # 2. Security updates
 check_security "APK updates applied" "grep -q 'apk upgrade' Dockerfile" 1
@@ -67,10 +67,10 @@ echo "📊 Security Score: $SECURITY_SCORE/$MAX_SCORE"
 echo "===================================="
 
 if [ $SECURITY_SCORE -eq $MAX_SCORE ]; then
-    echo -e "${GREEN}✅ PERFECT SCORE! Container is production-ready with zero known CVEs.${NC}"
+    echo -e "${GREEN}✅ PERFECT SCORE! Container is production-ready with minimal CVEs.${NC}"
     echo
     echo "Summary:"
-    echo "• Base: Alpine 3.21.3 (zero CVEs)"
+    echo "• Base: Alpine 3.21.4 (minimal CVEs, latest stable)"
     echo "• User: Non-root (UID 10001)"
     echo "• Build: Multi-stage (minimal attack surface)"
     echo "• Runtime: No build tools, minimal packages"
@@ -84,8 +84,8 @@ fi
 echo
 echo "🔍 Expected Security Scan Results:"
 echo "-----------------------------------"
-echo "• Alpine 3.21.3: 0 CVEs in base image"
-echo "• Python packages: Check for updates"
+echo "• Alpine 3.21.4: 1 MEDIUM CVE (sqlite - no fix available)"
+echo "• Python packages: All updated, setuptools CVE fixed"
 echo "• Container size: Should be < 500MB"
 echo
 echo "To verify zero CVEs, run:"
