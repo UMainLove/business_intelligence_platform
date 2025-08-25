@@ -32,6 +32,8 @@ RUN apk update && \
     postgresql-dev \
     gcc \
     musl-dev \
+    rust \
+    cargo \
     && rm -rf /var/cache/apk/*
 
 WORKDIR /build
