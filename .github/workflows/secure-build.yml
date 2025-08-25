@@ -52,7 +52,7 @@ jobs:
           type=ref,event=pr
           type=sha,prefix={{branch}}-
           type=raw,value=latest,enable={{is_default_branch}}
-          type=raw,value=alpine3.21.3,enable={{is_default_branch}}
+          type=raw,value=alpine3.21.4,enable={{is_default_branch}}
           
     - name: Build container with DCT verification
       id: build
@@ -79,8 +79,8 @@ jobs:
           -a "repo=${{ github.repository }}" \
           -a "workflow=${{ github.workflow }}" \
           -a "ref=${{ github.sha }}" \
-          -a "alpine=3.21.3" \
-          -a "zero-cve=true" \
+          -a "alpine=3.21.4" \
+          -a "minimal-cve=1-medium" \
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
         
         echo "✅ Image signed successfully"
@@ -160,15 +160,15 @@ jobs:
             },
             "materials": [
               {
-                "uri": "docker://alpine:3.21.3",
+                "uri": "docker://alpine:3.21.4",
                 "digest": {
                   "sha256": "ALPINE_DIGEST_HERE"
                 }
               }
             ],
             "metadata": {
-              "base_image": "alpine:3.21.3",
-              "zero_cve": true,
+              "base_image": "alpine:3.21.4",
+              "minimal_cve": "1 MEDIUM (SQLite - no fix available)",
               "security_features": [
                 "non-root user (10001)",
                 "read-only filesystem",

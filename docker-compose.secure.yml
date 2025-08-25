@@ -16,7 +16,7 @@ services:
       args:
         - DOCKER_CONTENT_TRUST=1  # Enable DCT verification
       cache_from:
-        - alpine:3.21.3
+        - alpine:3.21.4
     
     # Security configurations
     security_opt:
@@ -45,7 +45,7 @@ services:
     
     # Health check
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8501/"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8501/"]
       interval: 30s
       timeout: 10s
       retries: 3
