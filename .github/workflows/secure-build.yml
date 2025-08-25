@@ -103,10 +103,12 @@ jobs:
         echo "✅ Signature verified successfully"
         
     - name: Generate SBOM (Software Bill of Materials)
+      env:
+        DOCKER_CONTENT_TRUST: 0  # Temporarily disable DCT for pulling Syft image
       run: |
         echo "📦 Generating SBOM..."
         
-        # Generate SBOM using Syft
+        # Generate SBOM using Syft (DCT disabled for third-party tool)
         docker run --rm \
           -v /var/run/docker.sock:/var/run/docker.sock \
           anchore/syft:latest \
