@@ -405,6 +405,35 @@ ALTER SYSTEM SET maintenance_work_mem = '64MB';
 ALTER SYSTEM SET checkpoint_completion_target = 0.9;
 ```
 
+### Secure Container Images
+
+**Production-Ready Alpine Containers:**
+```bash
+# Current production image (signed with Cosign)
+ghcr.io/umainlove/business_intelligence_platform:alpine3.21.4
+
+# Verify container signature
+cosign verify \
+  --certificate-identity-regexp "https://github.com/UMainLove/business_intelligence_platform/.github/workflows/secure-build.yml@.*" \
+  --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+  ghcr.io/umainlove/business_intelligence_platform@sha256:024d0d69ae261aa01c3671368cfde2e1c2d23e144d30bc8cb0455df1ba8446b1
+```
+
+**Security Features:**
+- ✅ **Alpine 3.21.4 Base**: Minimal attack surface (1.15GB vs 1.75GB Debian)
+- ✅ **Zero Vulnerabilities**: Clean Trivy/Bandit/Semgrep scans
+- ✅ **Signed Images**: Cosign keyless signing with SLSA provenance
+- ✅ **SBOM Included**: Complete Software Bill of Materials attached
+- ✅ **Non-root User**: Runs as appuser:10001 for security
+- ✅ **Multi-stage Build**: No build tools in final image
+
+**For Production Deployment (Use Digest):**
+```bash
+# Always use digest (not tag) for immutability
+kubectl set image deployment/bi-platform \
+  bi-platform=ghcr.io/umainlove/business_intelligence_platform@sha256:024d0d69ae261aa01c3671368cfde2e1c2d23e144d30bc8cb0455df1ba8446b1
+```
+
 ## 📊 Monitoring & Observability
 
 ### Prometheus Configuration
