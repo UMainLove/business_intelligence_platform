@@ -21,7 +21,7 @@ spec:
       containers:
       - name: bi-app
         image: business-intelligence:latest
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent  # Use local image if available
         ports:
         - containerPort: 8501
           name: http
@@ -170,7 +170,7 @@ metadata:
   namespace: business-intelligence
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
       storage: 5Gi
@@ -183,7 +183,7 @@ metadata:
   namespace: business-intelligence
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
       storage: 2Gi

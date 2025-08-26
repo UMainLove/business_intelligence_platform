@@ -6,9 +6,9 @@ metadata:
 data:
   alertmanager.yml: |
     global:
-      smtp_smarthost: '{{ env "EMAIL_SMTP_HOST" }}'
-      smtp_from: '{{ env "EMAIL_FROM_ADDRESS" }}'
-      slack_api_url: '{{ env "SLACK_WEBHOOK_URL" }}'
+      smtp_smarthost: 'localhost:587'
+      smtp_from: 'staging@bi-platform.local'
+      slack_api_url: 'http://localhost:9093/webhook'  # Placeholder for local testing
 
     route:
       group_by: ['alertname', 'severity']
@@ -27,38 +27,18 @@ data:
     receivers:
       - name: 'web.hook'
         webhook_configs:
-          - url: 'http://webhook-service:5000/alerts'
+          - url: 'http://localhost:5000/alerts'
             send_resolved: true
 
       - name: 'critical-alerts'
-        email_configs:
-          - to: 'admin@bi-platform.com'
-            subject: 'CRITICAL: {{ .GroupLabels.alertname }}'
-            body: |
-              {{ range .Alerts }}
-              Alert: {{ .Annotations.summary }}
-              Instance: {{ .Labels.instance }}
-              Severity: {{ .Labels.severity }}
-              {{ end }}
-        slack_configs:
-          - channel: '#alerts-critical'
-            title: 'Critical Alert - {{ .GroupLabels.alertname }}'
-            text: |
-              {{ range .Alerts }}
-              • {{ .Annotations.summary }}
-              • Instance: {{ .Labels.instance }}
-              {{ end }}
+        webhook_configs:
+          - url: 'http://localhost:5000/critical'
+            send_resolved: true
 
       - name: 'warning-alerts'
-        email_configs:
-          - to: 'team@bi-platform.com'
-            subject: 'WARNING: {{ .GroupLabels.alertname }}'
-            body: |
-              {{ range .Alerts }}
-              Alert: {{ .Annotations.summary }}
-              Instance: {{ .Labels.instance }}
-              Severity: {{ .Labels.severity }}
-              {{ end }}
+        webhook_configs:
+          - url: 'http://localhost:5000/warnings'
+            send_resolved: true
 
     inhibit_rules:
       - source_match:
@@ -247,7 +227,7 @@ spec:
   resources:
     requests:
       storage: 5Gi
-  storageClassName: fast
+  storageClassName: standard
 
 ---
 apiVersion: networking.k8s.io/v1

@@ -1,0 +1,17 @@
+global:
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'alerts@bi-staging.local'
+  smtp_require_tls: false
+
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'staging-webhook'
+
+receivers:
+  - name: 'staging-webhook'
+    webhook_configs:
+      - url: 'http://bi-app:8501/webhook/alerts'
+        send_resolved: true

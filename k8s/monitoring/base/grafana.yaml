@@ -229,7 +229,7 @@ spec:
           env:
             - name: GF_SECURITY_ADMIN_PASSWORD
               valueFrom:
-                secretRef:
+                secretKeyRef:
                   name: monitoring-secrets
                   key: grafana-admin-password
             - name: GF_INSTALL_PLUGINS
@@ -379,7 +379,7 @@ spec:
   resources:
     requests:
       storage: 5Gi
-  storageClassName: fast
+  storageClassName: standard
 
 ---
 apiVersion: networking.k8s.io/v1

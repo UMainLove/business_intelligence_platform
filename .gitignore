@@ -79,6 +79,7 @@ logs/
 .env.local
 .env.production
 .env.staging
+.env.backup
 secrets/
 !k8s/secrets/
 

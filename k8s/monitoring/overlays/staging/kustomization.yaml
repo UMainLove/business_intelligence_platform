@@ -6,6 +6,14 @@ namespace: monitoring
 resources:
   - ../../base
 
+patches:
+  - patch: |-
+      - op: remove
+        path: /spec/template/spec/topologySpreadConstraints
+    target:
+      kind: Deployment
+      name: prometheus
+
 configMapGenerator:
   - name: monitoring-env-config
     behavior: merge
@@ -22,6 +30,8 @@ configMapGenerator:
       - prometheus.replicas=2
       - grafana.replicas=2
       - alertmanager.replicas=2
+      - EMAIL_SMTP_HOST=localhost:587
+      - EMAIL_FROM_ADDRESS=staging@bi-platform.local
   - name: environment-properties
     literals:
       - app.properties=ENVIRONMENT=staging

@@ -20,8 +20,6 @@ data:
     global:
       scrape_interval: 15s
       evaluation_interval: 15s
-      retention.time: 30d
-      retention.size: 50GB
 
     rule_files:
       - /etc/prometheus/rules/*.yml
@@ -287,15 +285,14 @@ metadata:
   labels:
     app: prometheus
     component: monitoring
-  annotations:
-    volume.beta.kubernetes.io/storage-class: "fast"
+  annotations: {}
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
       storage: 100Gi  # Increased for production
-  storageClassName: fast
+  storageClassName: standard
   volumeMode: Filesystem
 
 ---
