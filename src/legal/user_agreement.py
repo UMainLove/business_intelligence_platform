@@ -26,9 +26,22 @@ class LegalAgreement:
         self.use_database = use_database
 
         if use_database:
-            from .legal_database import LegalDatabaseManager
+            try:
+                from .legal_database import LegalDatabaseManager
 
-            self.db = LegalDatabaseManager()
+                self.db = LegalDatabaseManager()
+            except ImportError as e:
+                # Fall back to JSON mode if SQLAlchemy not available
+                import warnings
+
+                warnings.warn(
+                    f"SQLAlchemy not available ({e}), falling back to JSON storage mode. "
+                    "Install sqlalchemy>=2.0.0 for database storage.",
+                    UserWarning,
+                )
+                self.use_database = False
+                self.acceptance_file = Path("data/legal_acceptances.json")
+                self.acceptance_file.parent.mkdir(parents=True, exist_ok=True)
         else:
             # Fallback to JSON for testing/development
             self.acceptance_file = Path("data/legal_acceptances.json")

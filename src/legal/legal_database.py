@@ -7,7 +7,7 @@ This module provides persistent storage of user legal agreements with full audit
 import hashlib
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -25,10 +25,13 @@ from sqlalchemy import (
     or_,
 )
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
-Base: DeclarativeMeta = declarative_base()
+
+class Base(DeclarativeBase):
+    pass
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -73,7 +76,7 @@ class LegalAcceptance(Base):  # type: ignore
     third_party_sharing_consent = Column(Boolean, default=False)
 
     # Audit fields
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     expires_at = Column(DateTime)  # When re-acceptance needed
     revoked_at = Column(DateTime)  # If user revokes consent
     revocation_reason = Column(Text)
@@ -141,7 +144,7 @@ class LegalTermsVersion(Base):  # type: ignore
     jurisdictions = Column(JSON)  # List of applicable jurisdictions
     minimum_age = Column(Integer, default=18)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     created_by = Column(String(100))
 
 
@@ -208,7 +211,7 @@ class LegalDatabaseManager:
             session_hash = hashlib.sha256(session_id.encode()).hexdigest()
             ip_hash = hashlib.sha256(ip_address.encode()).hexdigest()
             acceptance_id = hashlib.sha256(
-                f"{user_hash}{session_hash}{datetime.utcnow().isoformat()}".encode()
+                f"{user_hash}{session_hash}{datetime.now(timezone.utc).isoformat()}".encode()
             ).hexdigest()
 
             # Create acceptance record
@@ -217,7 +220,7 @@ class LegalDatabaseManager:
                 user_hash=user_hash,
                 session_hash=session_hash,
                 ip_hash=ip_hash,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 terms_version=terms_version,
                 acceptance_type="initial",
                 disclaimers_accepted=disclaimers,
@@ -227,7 +230,7 @@ class LegalDatabaseManager:
                     additional_data.get("platform_version", "1.0") if additional_data else "1.0"
                 ),
                 environment=os.getenv("ENVIRONMENT", "development"),
-                expires_at=datetime.utcnow() + timedelta(days=365),  # 1 year validity
+                expires_at=datetime.now(timezone.utc) + timedelta(days=365),  # 1 year validity
                 data_processing_consent=True,
                 country_code=additional_data.get("country_code") if additional_data else None,
                 user_agent_hash=(
@@ -242,7 +245,7 @@ class LegalDatabaseManager:
             # Log the event
             event = LegalComplianceLog(
                 event_id=hashlib.sha256(f"accept_{acceptance_id}".encode()).hexdigest(),
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 event_type="acceptance",
                 user_hash=user_hash,
                 session_hash=session_hash,
@@ -291,7 +294,7 @@ class LegalDatabaseManager:
                 LegalAcceptance.revoked_at.is_(None),
                 or_(
                     LegalAcceptance.expires_at.is_(None),
-                    LegalAcceptance.expires_at > datetime.utcnow(),
+                    LegalAcceptance.expires_at > datetime.now(timezone.utc),
                 ),
             )
 
@@ -343,15 +346,15 @@ class LegalDatabaseManager:
             )
 
             for acceptance in acceptances:
-                acceptance.revoked_at = datetime.utcnow()  # type: ignore
+                acceptance.revoked_at = datetime.now(timezone.utc)  # type: ignore
                 acceptance.revocation_reason = reason  # type: ignore
 
             # Log revocation event
             event = LegalComplianceLog(
                 event_id=hashlib.sha256(
-                    f"revoke_{user_hash}_{datetime.utcnow().isoformat()}".encode()
+                    f"revoke_{user_hash}_{datetime.now(timezone.utc).isoformat()}".encode()
                 ).hexdigest(),
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 event_type="revocation",
                 user_hash=user_hash,
                 event_data={"reason": reason, "revoked_count": len(acceptances)},
@@ -383,7 +386,7 @@ class LegalDatabaseManager:
         """
         session = self.SessionLocal()
         try:
-            cutoff_date = datetime.utcnow() - timedelta(days=days)
+            cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
 
             total_acceptances = (
                 session.query(func.count(LegalAcceptance.id))
@@ -396,7 +399,7 @@ class LegalDatabaseManager:
                 .filter(
                     LegalAcceptance.timestamp >= cutoff_date,
                     LegalAcceptance.revoked_at.is_(None),
-                    LegalAcceptance.expires_at > datetime.utcnow(),
+                    LegalAcceptance.expires_at > datetime.now(timezone.utc),
                 )
                 .scalar()
             )
@@ -441,7 +444,7 @@ class LegalDatabaseManager:
         """
         session = self.SessionLocal()
         try:
-            cutoff_date = datetime.utcnow() - timedelta(days=retention_days)
+            cutoff_date = datetime.now(timezone.utc) - timedelta(days=retention_days)
 
             # Delete old revoked records
             deleted = (

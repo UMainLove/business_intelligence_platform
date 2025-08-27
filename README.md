@@ -12,24 +12,24 @@ A comprehensive AI-powered business analysis platform built with AG2 (AutoGen) a
 
 ## 🚀 Features
 
-### 🎯 **Multi-Agent Business Analysis**
-- **Economist Agent**: Financial modeling, ROI analysis, unit economics
-- **Lawyer Agent**: Legal compliance, regulatory analysis, risk assessment  
-- **Sociologist Agent**: Market research, customer behavior, social trends
-- **Synthesizer Agent**: Comprehensive report generation and strategic recommendations
+### 🎯 **Multi-Agent Business Analysis** ✅ **AG2 v0.9.9 Compatible**
+- **Economist Agent**: Financial modeling, ROI analysis, unit economics (`src/agents/core_agents.py`)
+- **Lawyer Agent**: Legal compliance, regulatory analysis, risk assessment (`src/agents/core_agents.py`)
+- **Sociologist Agent**: Market research, customer behavior, social trends (`src/agents/core_agents.py`)
+- **Synthesizer Agent**: Comprehensive report generation and strategic recommendations (`src/agents/core_agents.py`)
 
-### 🛠️ **Advanced Business Intelligence Tools**
-- **Financial Modeling**: NPV, IRR, payback analysis, unit economics, cash flow projections
-- **Market Research RAG**: Historical data analysis with vector database integration
-- **Web Intelligence**: Real-time market data collection and competitive analysis
-- **Database Integration**: PostgreSQL for production, SQLite for development
-- **Document Generation**: Automated business reports and analysis documents
-- **External API Integration**: Third-party data sources and services
+### 🛠️ **Advanced Business Intelligence Tools** ✅ **Modular Architecture**
+- **Financial Modeling**: NPV, IRR, payback analysis, unit economics, cash flow projections (`src/bi_tools/analysis_tools.py`)
+- **Market Research RAG**: Historical data analysis with vector database integration (`src/bi_platform/platform.py:764-865`)
+- **Web Intelligence**: Real-time market data collection and competitive analysis (`src/bi_platform/platform.py:548-664`)
+- **Database Integration**: PostgreSQL for production, SQLite for development (`src/tools/database_*.py`)
+- **Document Generation**: Automated business reports and analysis documents (`src/bi_platform/platform.py:666-716`)
+- **External API Integration**: Third-party data sources and services (`src/tools/api_tools.py`)
 
-### 📊 **Three Analysis Modes**
-1. **Interactive Analysis**: Real-time chat with AI specialists (original validator enhanced)
-2. **Sequential Validation**: 7-phase structured business validation workflow
-3. **Swarm Scenario Planning**: 8 stress-test scenarios for risk assessment
+### 📊 **Three Analysis Modes** ✅ **AG2 v0.9.9 Updated**
+1. **Interactive Analysis**: Uses `initiate_chats` sequential pattern (`src/bi_platform/platform.py:311-406`)
+2. **Sequential Validation**: 7-phase structured business validation workflow (`src/bi_workflows/validation_workflow.py`)
+3. **Swarm Scenario Planning**: 8 stress-test scenarios for risk assessment (`src/bi_workflows/scenario_analysis.py`)
 
 ### 🏗️ **Production-Ready Infrastructure**
 - **Docker & Kubernetes**: Full containerization with auto-scaling
@@ -54,6 +54,34 @@ A comprehensive AI-powered business analysis platform built with AG2 (AutoGen) a
 - **Clean Deprecation Handling**: Updated all datetime usage, ag2 v0.97 stable version
 - **Performance Validated**: All agents, workflows, and tools thoroughly tested
 - **Production-Ready Infrastructure**: Kubernetes, monitoring, secrets management, backups
+
+### 🔄 **AG2 v0.9.9 Migration & Breaking Changes**
+**✅ Successfully Migrated from AG2 v0.9.7 Patterns:**
+
+- **AutoPattern/initiate_group_chat** → **initiate_chats sequential pattern**
+  - Old: `initiate_group_chat(pattern=auto_pattern, ...)` 
+  - New: `initiate_chats([{"sender": user, "recipient": agent, ...}])`
+  - Location: `src/bi_platform/platform.py:343-373`
+
+- **Group Chat Speaker Selection** → **Limited options in v0.9.9**
+  - Old: Custom speaker selection functions
+  - New: "auto", "round_robin", or manual specification
+  - Impact: Simplified routing logic in workflows
+
+- **Context Variables** → **Swarm vs AG2 patterns**  
+  - Swarm: `ContextVariables()` for advanced scenarios
+  - AG2: Standard message context for multi-agent chats
+  - Implementation: Hybrid approach in `src/bi_tools/workflow_tools.py`
+
+- **Agent Tool Registration** → **Updated register_function usage**
+  - Pattern: `register_function(tool, caller=agent, executor=executor)`
+  - Location: `src/bi_tools/workflow_tools.py:122-216`
+
+- **Memory Integration** → **Mem0 + AG2 hybrid patterns**
+  - Enhanced agents with memory context injection
+  - Implementation: `src/bi_memory/memory_manager.py`
+
+**📋 Migration Status:** All features updated to AG2 v0.9.9 ⚠️ Tests incoming!
 
 ## 📋 Quick Start
 
@@ -86,6 +114,9 @@ cp .env.example .env
 # Core API
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
 
+OPENAI_API_KEY=your_openai_api_key_here # Used for memory infrastructure managed by Mem0
+
+MEM0_API_KEY=your_mem0_api_key_here # Long term memory for agents
 # Professional Models (recommended)
 ANTHROPIC_MODEL_SPECIALISTS=claude-sonnet-4-20250514
 ANTHROPIC_MODEL_SYNTH=claude-3-7-sonnet-20250219
