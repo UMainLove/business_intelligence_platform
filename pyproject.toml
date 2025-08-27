@@ -25,6 +25,7 @@ ignore = ["E501"]  # Ignore line too long, let formatter handle it
 "tests/*" = ["D", "S", "ANN", "PLR2004", "ARG"]
 "*/__init__.py" = ["D", "F401"]
 "src/business_intelligence.py" = ["C901"]  # Allow complexity for tool factory function
+"src/legal/user_agreement.py" = ["C901"]  # Allow complexity for legal agreement UI methods
 
 [tool.isort]
 profile = "black"
