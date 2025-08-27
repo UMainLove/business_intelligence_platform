@@ -22,10 +22,18 @@ from src.chat import (
 from src.config import settings
 from src.error_handling import safe_execute
 from src.health_monitor import health_monitor
+from src.legal.user_agreement import LegalAgreement
 from src.util import estimate_cost_usd, estimate_tokens_chars, get_cost_breakdown
 from src.workflows.swarm_scenarios import ScenarioType
 
+# Initialize legal agreement handler
+legal = LegalAgreement()
+
 st.set_page_config(page_title="Business Intelligence Platform", page_icon="🧠", layout="wide")
+
+# Enforce legal agreement before allowing access
+if not legal.enforce_agreement():
+    st.stop()
 st.title("🧠 Business Intelligence Platform")
 st.caption(
     "AI-Powered Business Analysis with Market Research, Financial Modeling & Scenario Planning"
@@ -59,10 +67,12 @@ def render_history():
                 st.info("🔧 Using business intelligence tools...")
                 # Security: Escape HTML to prevent XSS
                 import html
+
                 st.markdown(html.escape(msg))
             else:
                 # Security: Escape HTML to prevent XSS
                 import html
+
                 st.markdown(html.escape(msg))
 
 
@@ -236,13 +246,13 @@ with st.sidebar:
         ),
         height=180,
     )
-    colA, colB, colC = st.columns(3)
-    with colA:
+    col_a, col_b, col_c = st.columns(3)
+    with col_a:
         if st.button("🧠 Update from chat", use_container_width=True):
             mem = update_memory_from_chat()
             st.success("Memory updated from conversation.")
             st.rerun()
-    with colB:
+    with col_b:
         if st.button("💾 Save edits", use_container_width=True):
             parsed = {
                 "idea": "",
@@ -270,7 +280,7 @@ with st.sidebar:
                 s,
             )
             st.success("Memory saved and applied to agents.")
-    with colC:
+    with col_c:
         if st.button("🧹 Clear", use_container_width=True):
             m, u, s = clear_memory()  # rebuilds agents & keeps transcript
             st.session_state.manager, st.session_state.user_proxy, st.session_state.synthesizer = (
@@ -585,3 +595,6 @@ with tab3:
 if st.session_state.get("mode") == "chat" or not hasattr(st.session_state, "mode"):
     if len(st.session_state.history) == 0:
         render_history()
+
+# Display persistent legal disclaimer footer
+legal.display_disclaimer_footer()

@@ -723,6 +723,26 @@ Multi-scenario stress testing with 8 scenario types:
 - **Comprehensive Testing** (95%+ coverage, integration tests)
 - **Health Monitoring** (System metrics, error tracking)
 
+## ⚖️ Legal Disclaimer & Terms of Use
+
+**IMPORTANT**: This platform requires explicit acceptance of legal terms before use.
+
+### User Agreement
+- **Mandatory Acceptance**: Users must accept comprehensive legal disclaimers
+- **No Professional Advice**: Platform does NOT provide financial, legal, or medical advice
+- **Use at Own Risk**: Users assume full responsibility for decisions
+- **No Liability**: Platform has no liability for damages or losses
+- **AI Limitations**: Users acknowledge AI-generated content may be incorrect
+
+### Key Legal Protections
+- ✅ Explicit disclaimer acceptance required before access
+- ✅ Comprehensive terms of service agreement
+- ✅ Audit trail of user acceptances
+- ✅ Persistent disclaimer footer on all pages
+- ✅ Clear warnings about AI limitations
+
+**See [LEGAL_DISCLAIMER.md](LEGAL_DISCLAIMER.md) for full terms.**
+
 ## 🔒 Security
 
 ### Multi-Layer Security Scanning
